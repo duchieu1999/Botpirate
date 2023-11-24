@@ -12,7 +12,7 @@
     "node-telegram-bot-api": "^0.52.0"
   },
   "engines": {
-    "node": "20.x"
+    "node": "18.x"
   },
   "repository": {
     "type": "git",
