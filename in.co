@@ -31,7 +31,7 @@ const accountSchema = new mongoose.Schema({
 const Account = mongoose.model('Account', accountSchema);
 
 // Khởi tạo bot với ngôn ngữ là tiếng Việt
-const bot = new TelegramBot('6737397282:AAEGGicIi4DRKOtDXIuWaOUpPQlIwqW_t2o', {
+const bot = new TelegramBot('37397282:AAEGGicIi4DRKOtDXIuWaOUpPQlIwqW_t2o', {
   polling: true,
   request: {
     // Sử dụng ngôn ngữ tiếng Việt
