@@ -1,0 +1,357 @@
+
+const TelegramBot = require('node-telegram-bot-api');
+const mongoose = require('mongoose');
+
+
+// Kết nối MongoDB
+mongoose.connect('mongodb+srv://duchieufaryoung0:80E9gUahdOXmGKuy@cluster0.6nlv1cv.mongodb.net/telegram_bot_db?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Định nghĩa Schema và Model cho Tài khoản
+const accountSchema = new mongoose.Schema({
+  userId: { type: Number, required: true, unique: true },
+  username: String,
+  gold: Number,
+  spinCount: Number,
+  robberyCount: Number,
+  level: Number,
+  exp: Number,
+  islandImage: String,
+  lastRobberyTime: { type: Date, default: null, },
+  islandUpgradeCount: {
+    type: Number,
+    default: 0,
+  },
+
+  currentIslandImageUrl: {
+    type: String,
+    default: 'default-island-url', // Thay đổi thành URL mặc định của hòn đảo
+  },
+});
+
+const Account = mongoose.model('Account', accountSchema);
+
+// Khởi tạo bot với ngôn ngữ là tiếng Việt
+const bot = new TelegramBot('6737397282:AAEGGicIi4DRKOtDXIuWaOUpPQlIwqW_t2o', {
+  polling: true,
+  request: {
+    // Sử dụng ngôn ngữ tiếng Việt
+    prefer_authorize: 'never',
+    preferred_language: 'vi',
+  },
+});
+
+// Xử lý lệnh /start
+bot.onText(/\/start/, async (msg) => {
+  const userId = msg.from.id;
+
+  // Kiểm tra xem tài khoản đã tồn tại trong database chưa
+  let account = await Account.findOne({ userId });
+
+  if (!account) {
+    // Nếu chưa tồn tại, tạo một tài khoản mới
+    account = new Account({
+      userId,
+      username: msg.from.username,
+      gold: 10000000,
+      spinCount: 50,
+      robberyCount: 500,
+      level: 1,
+      exp: 0,
+      islandImage: 'https://cdn.glitch.global/3bcfe13f-3c0c-40e5-b3d0-f12f19963a46/91a406dbfc1b6a0ca508952b5a1ed0f395150bc8ff6111b33c296bad9234f51f_600%20(2).jpeg?v=1700664892269',
+    });
+
+    await account.save();
+  }
+
+  // Gửi thông điệp chào mừng và hiển thị nút reply keyboard Tài khoản
+  bot.sendMessage(msg.chat.id, `Chào mừng, ${msg.from.first_name}!`, {
+    reply_markup: {
+      keyboard: [['Tài khoản'], ['Quay Thưởng'], ['Nâng Cấp Hòn Đảo'], ['Đi Cướp Đảo']],
+      resize_keyboard: true,
+    },
+  });
+});
+
+// Xử lý khi nhấn vào nút reply keyboard Tài khoản
+bot.onText(/Tài khoản/, async (msg) => {
+  const userId = msg.from.id;
+  const account = await Account.findOne({ userId });
+
+  if (account) {
+    // Hiển thị thông tin tài khoản
+    const message = `
+            Username: ${account.username}
+            Số Vàng: ${account.gold}
+            Số lượt quay thưởng: ${account.spinCount}
+            Số lượt cướp đảo: ${account.robberyCount}
+            Level: ${account.level}
+            Exp: ${account.exp}
+            
+        `;
+
+    bot.sendPhoto(msg.chat.id, account.islandImage, {
+      caption: `Tài sản đảo của bạn:
+Username: ${account.username}
+            Số Vàng: ${account.gold}
+            Số lượt quay thưởng: ${account.spinCount}
+            Số lượt cướp đảo: ${account.robberyCount}
+            Level: ${account.level}
+            Exp: ${account.exp}`
+    });
+  } else {
+    bot.sendMessage(msg.chat.id, 'Tài khoản không tồn tại.');
+  }
+});
+
+// ...
+
+// Xử lý khi nhấn vào nút reply keyboard Quay Thưởng
+bot.onText(/Quay Thưởng/, async (msg) => {
+  const userId = msg.from.id;
+  let account = await Account.findOne({ userId });
+
+  if (account && account.spinCount > 0) {
+    // Giảm số lượt quay và lưu vào database
+    account.spinCount--;
+    await account.save();
+
+    // Tính xác suất thưởng
+    const randomNumber = Math.random() * 100;
+    let reward;
+
+    if (randomNumber < 60) {
+      // 60% vàng từ 2000 đến 30000 vàng
+      const goldAmount = Math.floor(Math.random() * (30000 - 2000 + 1)) + 2000;
+      account.gold += goldAmount;
+      reward = `Nhận được ${goldAmount} vàng!`;
+    } else if (randomNumber < 80) {
+      // 20% exp từ 2 đến 12 exp
+      const expAmount = Math.floor(Math.random() * (12 - 2 + 1)) + 2;
+      account.exp += expAmount;
+      reward = `Nhận được ${expAmount} exp!`;
+    } else if (randomNumber < 90) {
+      // 10% số lượt quay từ 1 đến 5
+      const spinAmount = Math.floor(Math.random() * (5 - 1 + 1)) + 1;
+      account.spinCount += spinAmount;
+      reward = `Nhận thêm ${spinAmount} lượt quay!`;
+    } else {
+      // 10% số lượt cướp đảo là 1
+      account.robberyCount += 1;
+      reward = 'Nhận thêm 1 lượt cướp đảo!';
+    }
+
+    // Lưu lại thông tin tài khoản
+    await account.save();
+
+    // Hiển thị thông điệp thưởng
+    bot.sendMessage(msg.chat.id, reward);
+  } else if (account && account.spinCount === 0) {
+    bot.sendMessage(msg.chat.id, 'Bạn đã hết lượt quay thưởng.');
+  } else {
+    bot.sendMessage(msg.chat.id, 'Tài khoản không tồn tại.');
+  }
+});
+
+// ...
+
+// ...
+
+// Lưu trạng thái cướp vàng, username của tài khoản đã chọn, và thời điểm cướp cuối cùng
+const robbingStatus = {};
+let selectedRobberUsername;
+const lastRobberyTime = {};
+
+// Xử lý khi nhấn vào nút reply keyboard Cướp Vàng Ngay
+bot.onText(/Cướp Đảo Ngay của @(.+)/, async (msg, match) => {
+  const userId = msg.from.id;
+  const account = await Account.findOne({ userId });
+
+  if (selectedRobberUsername && selectedRobberUsername === match[1]) {
+    // Kiểm tra xem người dùng có đang cố gắng cướp tài khoản đã chọn hay không
+    if (!robbingStatus[userId] && account && account.robberyCount > 0) {
+      const currentTime = new Date();
+      const lastRobberyTime = account.lastRobberyTime || new Date(0); const timeDiffInSeconds = (currentTime - lastRobberyTime) / 1000;
+
+      // Kiểm tra nếu đã cướp từ cùng một targetAccount trong vòng 24 tiếng
+      if (timeDiffInSeconds >= 86400) {
+        // Đánh dấu trạng thái đang cướp vàng
+        robbingStatus[userId] = true;
+
+        const targetAccount = await Account.findOne({
+          username: selectedRobberUsername,
+          userId: { $ne: userId },
+          gold: { $gt: 0 },
+        });
+
+        if (targetAccount) {
+          // Xác định tỉ lệ và lựa chọn số vàng bị trừ
+          const isHighAmount = Math.random() <= 0.1;
+          const stolenAmount = isHighAmount
+            ? Math.floor(Math.random() * (350000 - 200000 + 1)) + 200000
+            : Math.floor(Math.random() * (140000 - 85000 + 1)) + 85000;
+
+          // Trừ vàng từ tài khoản bị cướp
+          targetAccount.gold -= stolenAmount;
+
+          // Chuyển số vàng từ tài khoản bị cướp sang tài khoản cướp
+          account.gold += stolenAmount;
+
+          // Cập nhật thời điểm cướp cuối cùng
+          account.lastRobberyTime = currentTime;
+
+          // Lưu lại thông tin tài khoản
+          await targetAccount.save();
+          await account.save();
+
+          // Hiển thị thông báo cho người chơi cướp đảo
+          const messageToRobber = `
+                        Bạn đã cướp thành công ${stolenAmount} vàng từ hòn đảo của @${selectedRobberUsername}!
+                        Thông tin tài khoản bị cướp:
+                        Username: ${selectedRobberUsername}
+                        Số Vàng: ${targetAccount.gold}
+                        Hình ảnh hòn đảo: ${targetAccount.islandImage}
+                        Level: ${targetAccount.level}
+                        Exp: ${targetAccount.exp}
+                    `;
+          bot.sendMessage(msg.chat.id, messageToRobber);
+
+          // Hiển thị thông báo cho tài khoản bị cướp
+          const messageToVictim = `
+                        Bạn vừa bị cướp ${stolenAmount} vàng bởi tay cướp biển ${account.username}!
+                        Số Vàng hiện tại của bạn: ${targetAccount.gold}
+                    `;
+          bot.sendMessage(targetAccount.userId, messageToVictim);
+        } else {
+          bot.sendMessage(msg.chat.id, 'Hòn đảo ảo ảnh hoặc không thể cướp hòn đảo này.');
+        }
+
+        // Hủy đánh dấu trạng thái đang cướp vàng
+        robbingStatus[userId] = false;
+      } else {
+        const remainingTime = 86400 - timeDiffInSeconds;
+        bot.sendMessage(
+          msg.chat.id,
+          `Bạn đã cướp hòn đảo này hôm nay, bạn chỉ có thể cướp từ cùng một đảo một lần trong 24 tiếng. Vui lòng đợi ${remainingTime.toFixed(0)} giây.`
+        );
+      }
+    } else if (account && account.robberyCount === 0) {
+      bot.sendMessage(msg.chat.id, 'Bạn đã hết lượt cướp đảo.');
+    }
+  } else {
+    // Thông báo cho người dùng rằng họ chỉ có thể cướp tài khoản đã chọn bởi bot
+    bot.sendMessage(msg.chat.id, 'Bạn chỉ có thể cướp đảo đã tìm được.');
+  }
+});
+
+// ...
+
+// ...
+// Lựa chọn ngẫu nhiên tài khoản cần cướp
+bot.onText(/Đi Cướp Đảo/, async (msg) => {
+  selectedRobberUsername = ''; // Đặt lại tài khoản đã chọn để tránh lựa chọn trùng lặp
+  const randomAccount = await Account.aggregate([
+    { $match: { gold: { $gt: 0 } } },
+    { $sample: { size: 1 } }
+  ]);
+
+  if (randomAccount.length > 0) {
+    selectedRobberUsername = randomAccount[0].username;
+
+    const keyboard = {
+      reply_markup: {
+        keyboard: [
+          [{ text: `Cướp Đảo Ngay của @${selectedRobberUsername}` }],
+        ],
+        one_time_keyboard: true, resize_keyboard: true,
+      },
+    };
+    bot.sendMessage(msg.chat.id, `Đã tìm thấy một hòn đảo @${selectedRobberUsername} để cướp.`, keyboard)
+
+  } else {
+    bot.sendMessage(msg.chat.id, 'Không tìm thấy tài khoản phù hợp để cướp vàng.');
+  }
+});
+
+// ...
+
+
+
+
+
+
+
+// Xử lý khi nhấn vào nút reply keyboard Nâng Cấp Hòn Đảo
+bot.onText(/Nâng Cấp Hòn Đảo/, async (msg) => {
+  const userId = msg.from.id;
+  const account = await Account.findOne({ userId });
+
+  if (account) {
+    const upgradeCost = calculateIslandUpgradeCost(account.islandUpgradeCount);
+
+    // Hiển thị thông báo về số vàng cần nâng cấp và yêu cầu xác nhận
+    const confirmMessage = `Số vàng cần nâng cấp là ${upgradeCost}. Bạn có chắc chắn muốn nâng cấp không?`;
+    const confirmOptions = {
+      reply_markup: {
+        keyboard: [
+          [{ text: 'Xác nhận nâng cấp' }, { text: 'Hủy' }],
+        ],
+        resize_keyboard: true,
+      },
+    };
+
+    bot.sendMessage(msg.chat.id, confirmMessage, confirmOptions);
+
+    // Lưu thông tin tài khoản để sử dụng trong xác nhận
+    bot.onText(/Xác nhận nâng cấp/, async (msg) => {
+      // Trừ số vàng và nâng cấp hòn đảo nếu người chơi xác nhận
+      if (account.gold >= upgradeCost) {
+        account.gold -= upgradeCost;
+        account.islandUpgradeCount++;
+
+        // Cập nhật hình ảnh hòn đảo dựa trên số lần nâng cấp
+        if (account.islandUpgradeCount === 1) {
+          account.islandImage = 'https://cdn.glitch.global/3bcfe13f-3c0c-40e5-b3d0-f12f19963a46/Picsart_23-11-22_22-20-18-613.jpg?v=1700666450098';
+        } else if (account.islandUpgradeCount === 2) {
+          account.islandImage = 'https://example.com/your-island-image-url-2.jpg';
+          // Đổi từ islandUpgradeCount thành account.islandUpgradeCount
+        }
+
+        if (account.islandUpgradeCount === 1) {
+          account.islandImage = 'https://img.upanh.tv/2023/11/23/Cap1.jpg';
+        }
+
+
+        await account.save();
+
+        const successMessage = `Bạn đã nâng cấp hòn đảo thành công lần thứ ${account.islandUpgradeCount}!`;
+        bot.sendMessage(msg.chat.id, successMessage);
+      } else {
+        const errorMessage = 'Bạn không đủ vàng để nâng cấp hòn đảo.';
+        bot.sendMessage(msg.chat.id, errorMessage);
+      }
+      bot.removeTextListener(/Xác nhận nâng cấp/);
+    });
+
+    // Nếu người chơi chọn hủy, không thực hiện nâng cấp
+    bot.onText(/Hủy/, (msg) => {
+      const cancelMessage = 'Bạn đã hủy nâng cấp hòn đảo.';
+      bot.sendMessage(msg.chat.id, cancelMessage), {
+        reply_markup: {
+          keyboard: [['Tài khoản'], ['Quay Thưởng'], ['Nâng Cấp Hòn Đảo'], ['Đi Cướp Đảo']],
+          resize_keyboard: true,
+        },
+      };
+      bot.removeTextListener(/Xác nhận nâng cấp/);
+    });
+  } else {
+    bot.sendMessage(msg.chat.id, 'Tài khoản không tồn tại.');
+  }
+});
+
+// Hàm tính toán số vàng cần nâng cấp
+function calculateIslandUpgradeCost(upgradeCount) {
+  const initialCost = 120000;
+  const additionalCostPercentage = 0.18;
+  return Math.floor(initialCost * Math.pow(1 + additionalCostPercentage, upgradeCount));
+}
+

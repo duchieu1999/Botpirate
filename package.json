@@ -1,0 +1,29 @@
+{
+  "name": "telegram-bot-glitch",
+  "version": "1.0.0",
+  "description": "Telegram bot with MongoDB on glitch.com",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^6.0.12",
+    "node-telegram-bot-api": "^0.52.0"
+  },
+  "engines": {
+    "node": "14.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "your-git-repo-url"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "mongodb",
+    "glitch"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
