@@ -1,63 +1,44 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hiếu Gà - Flower Battle Royale</title>
+    <title>Hiếu Gà - Flower Collection Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/canvas-confetti@1.6.0/dist/confetti.browser.js"></script>
     <style>
         :root {
-            --primary: #ff69b4;
-            --secondary: #5D5CDE;
-            --accent: #ff1493;
-            --background: #fff5f8;
-            --background-dark: #2a1a24;
-            --text: #333;
+            --primary-color: #ff6b9c;
+            --secondary-color: #8a2be2;
+            --background-light: #ffffff;
+            --background-dark: #181818;
+            --text-light: #333333;
             --text-dark: #f0f0f0;
-            --shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            --gradient-pink: linear-gradient(135deg, #ff69b4, #ff1493);
-            --gradient-purple: linear-gradient(135deg, #5D5CDE, #9370DB);
         }
-
-        .dark {
-            --primary: #ff69b4;
-            --secondary: #7d7cee;
-            --accent: #ff1493;
-            --background: var(--background-dark);
-            --text: var(--text-dark);
-        }
-
-        * {
-            box-sizing: border-box;
+        
+        html, body {
             margin: 0;
             padding: 0;
-            touch-action: manipulation;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        body {
-            font-family: 'Arial Rounded MT Bold', 'Avenir Next', 'Segoe UI', sans-serif;
-            background-color: var(--background);
-            color: var(--text);
-            overflow: hidden;
-            transition: background-color 0.3s;
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-        }
-
-        #game-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
             height: 100%;
+            width: 100%;
             overflow: hidden;
+            touch-action: none;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
         }
-
-        /* Logo Loading Screen */
+        
+        body {
+            background-color: var(--background-light);
+            color: var(--text-light);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .dark body {
+            background-color: var(--background-dark);
+            color: var(--text-dark);
+        }
+        
         #loading-screen {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -66,441 +47,502 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background-color: var(--background);
-            z-index: 200;
+            z-index: 1000;
+            background-color: var(--background-light);
+            transition: opacity 0.5s ease-out;
         }
-
-        #logo-animation {
+        
+        .dark #loading-screen {
+            background-color: var(--background-dark);
+        }
+        
+        #logo {
             width: 200px;
             height: 200px;
+            margin-bottom: 20px;
             position: relative;
-            margin-bottom: 30px;
         }
-
+        
+        .logo-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b9c, #8a2be2);
+            animation: pulse 1.5s infinite alternate;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .logo-inner {
+            width: 85%;
+            height: 85%;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ff6b9c;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .dark .logo-inner {
+            background-color: #333;
+            color: #ff8eb2;
+        }
+        
         .loading-bar-container {
-            width: 250px;
-            height: 10px;
+            width: 300px;
+            height: 20px;
             background-color: rgba(255, 255, 255, 0.3);
             border-radius: 10px;
             overflow: hidden;
-            margin-top: 30px;
-            box-shadow: var(--shadow);
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-
+        
         .loading-bar {
             height: 100%;
             width: 0%;
-            background: var(--gradient-pink);
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
             border-radius: 10px;
-            transition: width 0.1s;
+            transition: width 0.2s;
         }
-
-        /* Screen Styles */
-        .screen {
-            position: absolute;
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(255, 107, 156, 0.7);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 20px 10px rgba(138, 43, 226, 0.4);
+            }
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            outline: none;
+            margin: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        #lobby-screen, #waiting-room, #game-screen {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background-color: var(--background);
-            z-index: 100;
-            padding: 20px;
+            z-index: 900;
+        }
+        
+        #waiting-room {
+            justify-content: flex-start;
+            padding-top: 50px;
+        }
+        
+        .room-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            max-width: 90%;
+            width: 500px;
             text-align: center;
+            transition: all 0.3s;
         }
-
-        #menu-screen {
-            background: var(--background);
+        
+        .dark .room-container {
+            background-color: rgba(40, 40, 40, 0.9);
         }
-
-        #room-screen {
-            display: none;
-            background: var(--background);
+        
+        .player-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 10px;
         }
-
-        #game-over-screen {
-            display: none;
-            background-color: rgba(93, 92, 222, 0.95);
+        
+        .player-item {
+            background-color: rgba(255, 107, 156, 0.2);
+            border-radius: 10px;
+            padding: 10px 15px;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .player-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: center;
+            align-items: center;
             color: white;
-        }
-
-        #logo-container {
-            position: relative;
-            width: 180px;
-            height: 180px;
-            margin-bottom: 20px;
-        }
-
-        #logo {
-            width: 100%;
-            height: 100%;
-        }
-
-        .title {
-            font-size: 32px;
-            margin-bottom: 20px;
-            color: var(--accent);
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .subtitle {
-            font-size: 18px;
-            margin-bottom: 30px;
-            color: var(--text);
-            max-width: 85%;
-        }
-
-        /* Button Styles */
-        .btn {
-            background: var(--gradient-purple);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 16px 32px;
-            font-size: 18px;
             font-weight: bold;
-            cursor: pointer;
-            margin: 10px;
-            box-shadow: var(--shadow);
-            transition: all 0.2s;
-            min-width: 180px;
         }
-
-        .btn:hover, .btn:active {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+        
+        .waiting-message {
+            margin: 15px 0;
+            font-style: italic;
+            color: #888;
+            animation: pulse-text 1.5s infinite alternate;
         }
-
-        .btn-pink {
-            background: var(--gradient-pink);
+        
+        @keyframes pulse-text {
+            from { opacity: 0.7; }
+            to { opacity: 1; }
         }
-
-        .btn-disabled {
-            background: #a9a9a9;
-            cursor: not-allowed;
-        }
-
-        .btn-disabled:hover {
-            transform: none;
-            box-shadow: var(--shadow);
-        }
-
-        /* Input Styles */
-        .input-group {
+        
+        .room-code {
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 5px;
             margin: 10px 0;
+            color: var(--primary-color);
+        }
+        
+        #nickname-input {
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: 2px solid var(--primary-color);
+            font-size: 1rem;
             width: 100%;
             max-width: 300px;
-        }
-
-        .input {
-            width: 100%;
-            padding: 15px 20px;
-            font-size: 16px;
-            border-radius: 50px;
-            border: 2px solid #ddd;
-            background-color: white;
-            transition: all 0.3s;
             text-align: center;
-            color: var(--text);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(255, 20, 147, 0.3);
-        }
-
-        /* Room and Players */
-        #room-info {
             margin-bottom: 20px;
-            font-weight: bold;
-            color: var(--accent);
+            outline: none;
+            transition: all 0.3s;
         }
-
-        #player-list-container {
-            width: 100%;
-            max-width: 350px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            padding: 15px;
-            margin: 20px 0;
-            box-shadow: var(--shadow);
-            max-height: 300px;
-            overflow-y: auto;
+        
+        #nickname-input:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.3);
         }
-
-        .player-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 10px;
-            border-radius: 8px;
-            margin: 5px 0;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .player-item.room-owner {
-            background-color: rgba(93, 92, 222, 0.2);
-        }
-
-        .player-item.you {
-            border-left: 4px solid var(--accent);
-        }
-
-        /* Game Canvas and HUD */
+        
         #game-canvas {
             position: absolute;
             top: 0;
             left: 0;
-            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
         }
-
-        #hud {
+        
+        #game-ui {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
+            height: 100%;
             pointer-events: none;
             z-index: 10;
-        }
-
-        .hud-panel {
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            padding: 10px;
-            box-shadow: var(--shadow);
-            margin: 5px;
-        }
-
-        #scoreboard {
-            position: absolute;
-            top: 60px;
-            right: 10px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            padding: 10px;
-            box-shadow: var(--shadow);
-            max-width: 200px;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        .scoreboard-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-            font-size: 14px;
-        }
-
-        .rank1 {
-            color: gold;
-            font-weight: bold;
-        }
-
-        .rank2 {
-            color: silver;
-            font-weight: bold;
-        }
-
-        .rank3 {
-            color: #cd7f32; /* bronze */
-            font-weight: bold;
         }
         
-        #winner-list {
-            margin: 20px 0;
-            font-size: 24px;
+        .scoreboard {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+            min-width: 200px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            pointer-events: auto;
+        }
+        
+        .dark .scoreboard {
+            background-color: rgba(40, 40, 40, 0.8);
+        }
+        
+        .scoreboard h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
             text-align: center;
+            color: var(--primary-color);
+            font-size: 1.2rem;
         }
         
-        .winner {
-            margin: 10px 0;
-            font-weight: bold;
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         }
         
-        .winner.rank1 {
-            font-size: 32px;
-            color: gold;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        .score-item:last-child {
+            border-bottom: none;
         }
         
-        .winner.rank2 {
-            font-size: 28px;
-            color: silver;
-        }
-        
-        .winner.rank3 {
-            font-size: 24px;
-            color: #cd7f32;
-        }
-        
-        #confetti-canvas {
+        .timer {
             position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 10px 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dark .timer {
+            background-color: rgba(40, 40, 40, 0.8);
+        }
+        
+        .game-over-screen {
+            position: fixed;
             top: 0;
             left: 0;
-            pointer-events: none;
-            z-index: 150;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
         
-        #notification {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255, 255, 255, 0.9);
-            color: var(--accent);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            box-shadow: var(--shadow);
-            z-index: 50;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            height: 250px;
         }
-
-        /* Network Status */
-        #network-status {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 8px 15px;
-            border-radius: 20px;
-            background-color: rgba(255, 255, 255, 0.9);
-            color: var(--accent);
-            font-weight: bold;
-            font-size: 14px;
-            z-index: 150;
-            box-shadow: var(--shadow);
-            opacity: 0;
-            transition: opacity 0.3s;
+        
+        .podium-place {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 15px;
         }
-
-        #network-status.connected {
-            color: #2ecc71;
+        
+        .place-1 {
+            z-index: 3;
         }
-
-        #network-status.connecting {
-            color: #f39c12;
+        
+        .place-2 {
+            z-index: 2;
         }
-
-        #network-status.disconnected {
-            color: #e74c3c;
+        
+        .place-3 {
+            z-index: 1;
         }
-
-        /* Error Message */
-        #error-message {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(231, 76, 60, 0.95);
+        
+        .podium-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: center;
+            align-items: center;
             color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: var(--shadow);
-            max-width: 80%;
-            z-index: 1000;
+            font-weight: bold;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            border: 3px solid gold;
+        }
+        
+        .place-2 .podium-avatar {
+            width: 50px;
+            height: 50px;
+            font-size: 1.3rem;
+            border-color: silver;
+        }
+        
+        .place-3 .podium-avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 1.1rem;
+            border-color: #cd7f32;
+        }
+        
+        .podium-block {
+            width: 100px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .place-1 .podium-block {
+            height: 120px;
+        }
+        
+        .place-2 .podium-block {
+            height: 90px;
+        }
+        
+        .place-3 .podium-block {
+            height: 60px;
+        }
+        
+        .podium-name {
+            margin-top: 5px;
+            color: white;
+            font-weight: bold;
             text-align: center;
-            display: none;
+        }
+        
+        .podium-score {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+        
+        #back-to-lobby {
+            margin-top: 30px;
+        }
+        
+        @keyframes shrink-pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 107, 156, 0.7);
+            }
+            50% {
+                transform: scale(0.98);
+                box-shadow: 0 0 10px 5px rgba(138, 43, 226, 0.4);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 107, 156, 0.7);
+            }
         }
 
-        #error-message .btn {
-            margin-top: 15px;
-            font-size: 16px;
-            padding: 10px 20px;
+        /* Flower animation */
+        @keyframes flower-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes flower-float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
         }
     </style>
 </head>
 <body>
-    <div id="game-container">
-        <canvas id="game-canvas" style="display: none;"></canvas>
-        
-        <div id="hud" style="display: none;">
-            <div class="hud-panel" id="score-container">
-                Hoa: <span id="score">0</span>
-            </div>
-            <div class="hud-panel" id="time-container">
-                Thời gian: <span id="time">60</span>s
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div id="logo">
+            <div class="logo-circle">
+                <div class="logo-inner">
+                    HG
+                </div>
             </div>
         </div>
-        
-        <div id="scoreboard" style="display: none;"></div>
-        <div id="notification"></div>
-        <div id="network-status">Đang kết nối...</div>
-        
-        <!-- Loading Screen with Logo Animation -->
-        <div id="loading-screen">
-            <div id="logo-animation">
-                <!-- Logo animation will be created with JavaScript -->
-            </div>
-            <div class="loading-bar-container">
-                <div class="loading-bar" id="loading-progress"></div>
-            </div>
-        </div>
-        
-        <!-- Main Menu Screen -->
-        <div id="menu-screen" class="screen" style="display: none;">
-            <div id="logo-container">
-                <!-- Logo will be inserted by JavaScript -->
-            </div>
-            <h1 class="title">Flower Battle Royale</h1>
-            <p class="subtitle">Thu thập hoa trên bản đồ đang thu hẹp! Chơi cùng bạn bè trong trận chiến hoa 8/3!</p>
-            
-            <div class="input-group">
-                <input type="text" id="player-name" class="input" placeholder="Nhập tên của bạn" maxlength="15">
-            </div>
-            
-            <button id="create-room-btn" class="btn btn-pink">Tạo phòng mới</button>
-            <button id="join-room-btn" class="btn">Vào phòng</button>
-        </div>
-        
-        <!-- Room Screen -->
-        <div id="room-screen" class="screen">
-            <h1 class="title">Phòng đợi</h1>
-            <div id="room-info">Mã phòng: <span id="room-code">----</span></div>
-            
-            <div id="player-list-container">
-                <div id="player-list"></div>
-            </div>
-            
-            <div id="room-message">Đang đợi người chơi... (0/8)</div>
-            
-            <button id="start-game-btn" class="btn btn-pink btn-disabled">Bắt đầu (0/8)</button>
-            <button id="leave-room-btn" class="btn">Rời phòng</button>
-        </div>
-        
-        <!-- Game Over Screen -->
-        <div id="game-over-screen" class="screen">
-            <h1 class="title">Game Kết Thúc!</h1>
-            <div id="winner-list"></div>
-            <button id="back-to-room-btn" class="btn">Trở về phòng đợi</button>
-            <button id="back-to-menu-btn" class="btn">Về menu chính</button>
-        </div>
-        
-        <!-- Error Message -->
-        <div id="error-message">
-            <h3>Lỗi kết nối</h3>
-            <p id="error-text">Không thể kết nối đến máy chủ game.</p>
-            <button id="error-ok-btn" class="btn">Đồng ý</button>
+        <h1 class="text-3xl font-bold mb-2">Hiếu Gà</h1>
+        <p class="text-lg mb-4">Flower Collection Game</p>
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loading-progress"></div>
         </div>
     </div>
+
+    <!-- Lobby Screen -->
+    <div id="lobby-screen">
+        <div class="room-container">
+            <h1 class="text-3xl font-bold mb-4">Flower Collection</h1>
+            <p class="text-lg mb-6">Celebrate Women's Day with a fun multiplayer game!</p>
+            <input type="text" id="nickname-input" placeholder="Enter your nickname" maxlength="15" class="text-base">
+            <div class="flex flex-wrap justify-center">
+                <button id="create-room" class="btn">Create Room</button>
+                <button id="join-room" class="btn">Join Room</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waiting Room -->
+    <div id="waiting-room">
+        <div class="room-container">
+            <h2 class="text-2xl font-bold mb-2">Room Code:</h2>
+            <div class="room-code" id="room-code">XXXX</div>
+            <p class="mb-4">Share this code with friends to join!</p>
+            
+            <h3 class="text-xl font-bold mt-4 mb-2">Players (<span id="player-count">0</span>/8)</h3>
+            <div class="player-list" id="player-list">
+                <!-- Players will be added here dynamically -->
+            </div>
+            
+            <div class="waiting-message" id="waiting-message">Waiting for more players...</div>
+            
+            <div id="start-game-container" style="display: none;">
+                <button id="start-game" class="btn">Start Game</button>
+            </div>
+            <button id="leave-room" class="btn">Leave Room</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen">
+        <canvas id="game-canvas"></canvas>
+        <div id="game-ui">
+            <div class="scoreboard">
+                <h3>Leaderboard</h3>
+                <div id="leaderboard">
+                    <!-- Leaderboard entries will be added here dynamically -->
+                </div>
+            </div>
+            <div class="timer" id="timer">60</div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over" class="game-over-screen">
+        <h1 class="text-4xl font-bold text-white mb-8">Game Over!</h1>
+        <div class="podium" id="podium">
+            <!-- Winners will be added here dynamically -->
+        </div>
+        <button id="back-to-lobby" class="btn">Back to Lobby</button>
+    </div>
     
-    <canvas id="confetti-canvas"></canvas>
+    <!-- Socket.IO Client Library -->
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
 
     <script>
-        // Kiểm tra chế độ tối
+        // Check for dark mode preference
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
         }
+        
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
             if (event.matches) {
                 document.documentElement.classList.add('dark');
@@ -509,2079 +551,1106 @@
             }
         });
 
-        // --------------------------
-        // GAME CONFIGURATION
-        // --------------------------
-        
-        const CONFIG = {
-            // Thông số WebSocket
-            SERVER_URL: "wss://botpirate-ten.vercel.app/flower-battle", // Thay thế bằng URL máy chủ thực tế của bạn
-            RECONNECT_ATTEMPTS: 3,
-            RECONNECT_DELAY: 2000,
-            
-            // Thông số Game
-            GAME_DURATION: 60, // seconds
-            MIN_PLAYERS: 2,    // Số người chơi tối thiểu để bắt đầu
-            MAX_PLAYERS: 8,    // Số người chơi tối đa trong một phòng
-            
-            // Thông số Player
-            PLAYER_SPEED: 5,
-            PLAYER_RADIUS: 20,
-            
-            // Thông số Flower
-            FLOWER_RADIUS: 10,
-            MIN_FLOWERS: 30,   // Số lượng hoa tối thiểu trên bản đồ
-            
-            // Thông số Play Area
-            INIT_AREA_RATIO: 0.45,  // Tỉ lệ giữa bán kính khu vực chơi và kích thước canvas
-            SHRINK_RATE: 0.5,       // pixels/second
-            MIN_AREA_RADIUS: 100,   // Bán kính tối thiểu
-            
-            // Thông số UI
-            LOADING_DURATION: 5000, // 5 seconds
+        // Game Constants and Variables
+        const GAME_STATES = {
+            LOADING: 'loading',
+            LOBBY: 'lobby',
+            WAITING: 'waiting',
+            PLAYING: 'playing',
+            GAME_OVER: 'game_over'
         };
-        
-        // --------------------------
-        // GLOBAL VARIABLES
-        // --------------------------
-        
-        let socket;
-        let connectionAttempts = 0;
-        
-        // Game State
-        const gameState = {
-            status: 'menu', // 'menu', 'room', 'loading', 'playing', 'gameover'
-            playerId: null,
-            playerName: '',
-            isRoomOwner: false,
-            room: {
-                id: null,
-                code: null,
-                players: [],
-                playerCount: 0
-            },
-            game: {
-                players: {},
-                flowers: [],
-                playArea: null,
-                timeRemaining: 0,
-                score: 0,
-                lastUpdate: 0
-            },
-            input: {
-                targetX: 0,
-                targetY: 0,
-                touch: false
-            }
-        };
-        
-        // Animation and UI state
-        let animationFrame;
-        let loadingProgress = 0;
-        let notificationTimeout;
-        let confetti = [];
-        
-        // Canvas và Context
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
-        
-        const confettiCanvas = document.getElementById('confetti-canvas');
-        const confettiCtx = confettiCanvas.getContext('2d');
-        
-        // --------------------------
-        // UI ELEMENTS
-        // --------------------------
-        
-        // Screens
-        const loadingScreen = document.getElementById('loading-screen');
-        const menuScreen = document.getElementById('menu-screen');
-        const roomScreen = document.getElementById('room-screen');
-        const gameOverScreen = document.getElementById('game-over-screen');
-        
-        // Menu UI
-        const playerNameInput = document.getElementById('player-name');
-        const createRoomBtn = document.getElementById('create-room-btn');
-        const joinRoomBtn = document.getElementById('join-room-btn');
-        
-        // Room UI
-        const roomCodeDisplay = document.getElementById('room-code');
-        const playerListContainer = document.getElementById('player-list');
-        const roomMessageElement = document.getElementById('room-message');
-        const startGameBtn = document.getElementById('start-game-btn');
-        const leaveRoomBtn = document.getElementById('leave-room-btn');
-        
-        // Game UI
-        const scoreElement = document.getElementById('score');
-        const timeElement = document.getElementById('time');
-        const scoreboardElement = document.getElementById('scoreboard');
-        const winnerListElement = document.getElementById('winner-list');
-        const notificationElement = document.getElementById('notification');
-        const networkStatusElement = document.getElementById('network-status');
-        
-        // Game Over UI
-        const backToRoomBtn = document.getElementById('back-to-room-btn');
-        const backToMenuBtn = document.getElementById('back-to-menu-btn');
-        
-        // Error UI
-        const errorMessageElement = document.getElementById('error-message');
-        const errorTextElement = document.getElementById('error-text');
-        const errorOkBtn = document.getElementById('error-ok-btn');
-        
-        // Logo Elements
-        const logoAnimation = document.getElementById('logo-animation');
-        const logoContainer = document.getElementById('logo-container');
-        const loadingProgressBar = document.getElementById('loading-progress');
-        
-        // --------------------------
-        // INITIALIZATION
-        // --------------------------
-        
-        // Thiết lập kích thước canvas
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            confettiCanvas.width = window.innerWidth;
-            confettiCanvas.height = window.innerHeight;
+
+        let gameState = GAME_STATES.LOADING;
+        let socket = null;
+        let canvas, ctx;
+        let gameWidth, gameHeight;
+        let players = [];
+        let flowers = [];
+        let currentPlayer = null;
+        let isRoomOwner = false;
+        let roomCode = '';
+        let gameTime = 60;
+        let gameTimer = null;
+        let mapRadius = 0;
+        let maxMapRadius = 0;
+        let isMapShrinking = false;
+        let touchX = 0;
+        let touchY = 0;
+        let isDragging = false;
+        let leaderboard = [];
+
+        // Assets for game
+        const playerColors = [
+            '#FF6B9C', '#8A2BE2', '#FFD700', '#00CED1', 
+            '#FF4500', '#32CD32', '#9370DB', '#FF69B4'
+        ];
+
+        // Flower types with different point values
+        const flowerTypes = [
+            { color: '#FF69B4', points: 1, radius: 15, petals: 5 },  // Pink
+            { color: '#FF0000', points: 2, radius: 18, petals: 8 },  // Red
+            { color: '#FFFF00', points: 3, radius: 20, petals: 6 },  // Yellow
+            { color: '#800080', points: 5, radius: 22, petals: 10 }  // Purple
+        ];
+
+        // Function to create Socket.IO connection
+        function createWebSocket(url) {
+            console.log(`Connecting to Socket.IO server at ${url}`);
             
-            // Resize PlayArea nếu đang trong game
-            if (gameState.game.playArea) {
-                gameState.game.playArea.x = canvas.width / 2;
-                gameState.game.playArea.y = canvas.height / 2;
-            }
-        }
-        
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        
-        // --------------------------
-        // LOGO AND LOADING ANIMATION
-        // --------------------------
-        
-        // Tạo logo Hiếu Gà animated
-        function createAnimatedLogo() {
-            // Create canvas for logo animation
-            const logoCanvas = document.createElement('canvas');
-            logoCanvas.width = 200;
-            logoCanvas.height = 200;
-            logoCanvas.id = 'logo-canvas';
-            logoAnimation.appendChild(logoCanvas);
+            // For development purposes, we create a simulated Socket.IO connection
+            // When deployed, this will use the actual Socket.IO connection
+            const simulateSocketIO = false;
             
-            // Create static logo for other screens
-            createStaticLogo();
-            
-            // Start animation
-            animateChickenLogo(logoCanvas);
-        }
-        
-        // Tạo logo tĩnh cho các màn hình khác
-        function createStaticLogo() {
-            const logoImg = document.createElement('img');
-            logoImg.id = 'logo';
-            
-            // Create static logo on canvas
-            const staticCanvas = document.createElement('canvas');
-            staticCanvas.width = 200;
-            staticCanvas.height = 200;
-            const ctx = staticCanvas.getContext('2d');
-            
-            // Draw circular background
-            ctx.fillStyle = '#FFDE59';
-            ctx.beginPath();
-            ctx.arc(100, 100, 95, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw border
-            ctx.strokeStyle = '#FF9A5A';
-            ctx.lineWidth = 10;
-            ctx.stroke();
-            
-            // Draw chicken body
-            ctx.fillStyle = '#FF5A5A';
-            ctx.beginPath();
-            ctx.ellipse(100, 110, 50, 60, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw chicken head
-            ctx.fillStyle = '#FF5A5A';
-            ctx.beginPath();
-            ctx.arc(100, 60, 30, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw chicken eyes
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(85, 55, 8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(115, 55, 8, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = 'black';
-            ctx.beginPath();
-            ctx.arc(85, 55, 4, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(115, 55, 4, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw chicken comb
-            ctx.fillStyle = '#FF0000';
-            ctx.beginPath();
-            ctx.moveTo(100, 30);
-            ctx.lineTo(85, 45);
-            ctx.lineTo(100, 40);
-            ctx.lineTo(115, 45);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Draw chicken beak
-            ctx.fillStyle = '#FFA500';
-            ctx.beginPath();
-            ctx.moveTo(100, 65);
-            ctx.lineTo(90, 75);
-            ctx.lineTo(110, 75);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Draw chicken wings
-            ctx.fillStyle = '#FF7A7A';
-            ctx.beginPath();
-            ctx.ellipse(60, 110, 15, 30, Math.PI / 4, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.ellipse(140, 110, 15, 30, -Math.PI / 4, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw chicken legs
-            ctx.fillStyle = '#FFA500';
-            ctx.fillRect(85, 165, 8, 20);
-            ctx.fillRect(107, 165, 8, 20);
-            
-            // Draw chicken feet
-            ctx.beginPath();
-            ctx.moveTo(85, 185);
-            ctx.lineTo(70, 190);
-            ctx.lineTo(85, 185);
-            ctx.lineTo(93, 190);
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.moveTo(115, 185);
-            ctx.lineTo(130, 190);
-            ctx.lineTo(115, 185);
-            ctx.lineTo(107, 190);
-            ctx.stroke();
-            
-            // Add text
-            ctx.fillStyle = '#5D5CDE';
-            ctx.font = 'bold 36px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'bottom';
-            ctx.fillText('Hiếu Gà', 100, 240);
-            
-            logoImg.src = staticCanvas.toDataURL();
-            
-            // Clear and append to container
-            logoContainer.innerHTML = '';
-            logoContainer.appendChild(logoImg);
-        }
-        
-        // Animate the chicken logo for loading screen
-        function animateChickenLogo(canvas) {
-            const ctx = canvas.getContext('2d');
-            let frame = 0;
-            let angle = 0;
-            let eyeOffset = 0;
-            let wingScale = 1;
-            let scale = 0.9;
-            let growing = true;
-            
-            function draw() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!simulateSocketIO) {
+                // Create actual Socket.IO connection
+                const socket = io(url, {
+                    autoConnect: false,
+                    reconnection: true,
+                    reconnectionAttempts: 5,
+                    reconnectionDelay: 1000
+                });
                 
-                // Update animation values
-                frame++;
-                angle += 0.02;
-                eyeOffset = Math.sin(frame * 0.1) * 2;
-                wingScale = 1 + Math.sin(frame * 0.1) * 0.2;
-                
-                if (growing) {
-                    scale += 0.003;
-                    if (scale >= 1.1) growing = false;
-                } else {
-                    scale -= 0.003;
-                    if (scale <= 0.9) growing = true;
-                }
-                
-                // Save context for transformations
-                ctx.save();
-                ctx.translate(100, 100);
-                ctx.scale(scale, scale);
-                ctx.translate(-100, -100);
-                
-                // Draw circular background with glow
-                const gradient = ctx.createRadialGradient(100, 100, 0, 100, 100, 100);
-                gradient.addColorStop(0, '#FFDE59');
-                gradient.addColorStop(0.8, '#FFDE59');
-                gradient.addColorStop(1, '#FFC107');
-                
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.arc(100, 100, 95, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Draw border with glow
-                ctx.strokeStyle = '#FF9A5A';
-                ctx.lineWidth = 10;
-                ctx.stroke();
-                
-                // Draw chicken body
-                ctx.fillStyle = '#FF5A5A';
-                ctx.beginPath();
-                ctx.ellipse(100, 110, 50, 60, 0, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Draw chicken head
-                ctx.fillStyle = '#FF5A5A';
-                ctx.beginPath();
-                ctx.arc(100, 60, 30, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Draw animated chicken eyes
-                ctx.fillStyle = 'white';
-                ctx.beginPath();
-                ctx.arc(85 + eyeOffset, 55, 8, 0, Math.PI * 2);
-                ctx.arc(115 + eyeOffset, 55, 8, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.fillStyle = 'black';
-                ctx.beginPath();
-                ctx.arc(85 + eyeOffset, 55, 4, 0, Math.PI * 2);
-                ctx.arc(115 + eyeOffset, 55, 4, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Draw chicken comb with wiggle
-                ctx.fillStyle = '#FF0000';
-                ctx.beginPath();
-                ctx.moveTo(100, 30 + Math.sin(angle * 2) * 3);
-                ctx.lineTo(85, 45);
-                ctx.lineTo(100, 40 + Math.sin(angle * 2) * 2);
-                ctx.lineTo(115, 45);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Draw chicken beak
-                ctx.fillStyle = '#FFA500';
-                ctx.beginPath();
-                ctx.moveTo(100, 65);
-                ctx.lineTo(90, 75);
-                ctx.lineTo(110, 75);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Draw animated chicken wings
-                ctx.fillStyle = '#FF7A7A';
-                
-                // Left wing
-                ctx.save();
-                ctx.translate(60, 110);
-                ctx.rotate(Math.sin(angle) * 0.2);
-                ctx.scale(wingScale, 1);
-                ctx.beginPath();
-                ctx.ellipse(0, 0, 15, 30, Math.PI / 4, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-                
-                // Right wing
-                ctx.save();
-                ctx.translate(140, 110);
-                ctx.rotate(-Math.sin(angle) * 0.2);
-                ctx.scale(wingScale, 1);
-                ctx.beginPath();
-                ctx.ellipse(0, 0, 15, 30, -Math.PI / 4, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-                
-                // Draw chicken legs with movement
-                const legOffset = Math.sin(angle) * 3;
-                
-                ctx.fillStyle = '#FFA500';
-                ctx.fillRect(85, 165, 8, 20 + legOffset);
-                ctx.fillRect(107, 165, 8, 20 - legOffset);
-                
-                // Draw chicken feet
-                ctx.beginPath();
-                ctx.moveTo(85, 185 + legOffset);
-                ctx.lineTo(70, 190 + legOffset);
-                ctx.lineTo(85, 185 + legOffset);
-                ctx.lineTo(93, 190 + legOffset);
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.moveTo(115, 185 - legOffset);
-                ctx.lineTo(130, 190 - legOffset);
-                ctx.lineTo(115, 185 - legOffset);
-                ctx.lineTo(107, 190 - legOffset);
-                ctx.stroke();
-                
-                // Add pulsing text
-                const textScale = 1 + Math.sin(angle * 2) * 0.1;
-                ctx.save();
-                ctx.translate(100, 240);
-                ctx.scale(textScale, textScale);
-                ctx.fillStyle = '#5D5CDE';
-                ctx.font = 'bold 36px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                ctx.fillText('Hiếu Gà', 0, 0);
-                ctx.restore();
-                
-                ctx.restore();
-                
-                // Continue animation
-                if (loadingProgress < 100) {
-                    requestAnimationFrame(draw);
-                }
-            }
-            
-            draw();
-        }
-        
-        // Handle loading screen progress
-        function startLoading() {
-            loadingProgress = 0;
-            loadingProgressBar.style.width = '0%';
-            
-            // Start the loading animation
-            createAnimatedLogo();
-            
-            // Simulate loading progress
-            const totalFrames = 50; // Number of updates to reach 100%
-            const frameTime = CONFIG.LOADING_DURATION / totalFrames;
-            
-            function updateProgress() {
-                loadingProgress += 100 / totalFrames;
-                if (loadingProgress > 100) loadingProgress = 100;
-                
-                loadingProgressBar.style.width = loadingProgress + '%';
-                
-                if (loadingProgress < 100) {
-                    setTimeout(updateProgress, frameTime);
-                } else {
-                    // Loading complete
-                    setTimeout(() => {
-                        loadingScreen.style.display = 'none';
-                        menuScreen.style.display = 'flex';
-                        gameState.status = 'menu';
-                    }, 200);
-                }
-            }
-            
-            updateProgress();
-        }
-        
-        // --------------------------
-        // NETWORK & WEBSOCKET
-        // --------------------------
-        
-        // Initialize WebSocket connection
-        function initializeWebSocket() {
-            try {
-                // Check if there's an existing connection
-                if (socket && socket.readyState !== WebSocket.CLOSED) {
-                    return;
-                }
-                
-                setNetworkStatus('connecting');
-                
-                // Create WebSocket connection
-                socket = new WebSocket(CONFIG.SERVER_URL);
-                
-                // Connection opened
-                socket.addEventListener('open', (event) => {
-                    console.log('Connected to server');
-                    connectionAttempts = 0;
-                    setNetworkStatus('connected');
+                // Add wrapper methods to match our interface
+                const socketWrapper = {
+                    // Connect to the server
+                    connect(roomCode = null, isCreate = false) {
+                        // Store these in query params or in a connection handshake
+                        this.roomCodeToJoin = roomCode;
+                        this.isCreatingRoom = isCreate;
+                        socket.connect();
+                    },
                     
-                    // Send auth data if we have player info
-                    if (gameState.playerId && gameState.playerName) {
-                        sendToServer({
-                            type: 'auth',
-                            playerId: gameState.playerId,
-                            playerName: gameState.playerName
+                    // Send a message to the server
+                    send(data) {
+                        const message = JSON.parse(data);
+                        // Socket.IO uses event names instead of message types
+                        socket.emit(message.type, message);
+                    },
+                    
+                    // Close the connection
+                    close() {
+                        socket.disconnect();
+                    },
+                    
+                    // Event listeners mapping
+                    addEventListener(event, callback) {
+                        if (event === 'open') {
+                            socket.on('connect', callback);
+                        } else if (event === 'message') {
+                            // Handle all game events
+                            socket.on('room_created', (data) => {
+                                callback({data: JSON.stringify({type: 'room_created', ...data})});
+                            });
+                            socket.on('room_joined', (data) => {
+                                callback({data: JSON.stringify({type: 'room_joined', ...data})});
+                            });
+                            socket.on('room_updated', (data) => {
+                                callback({data: JSON.stringify({type: 'room_updated', ...data})});
+                            });
+                            socket.on('game_started', (data) => {
+                                callback({data: JSON.stringify({type: 'game_started', ...data})});
+                            });
+                            socket.on('game_update', (data) => {
+                                callback({data: JSON.stringify({type: 'game_update', ...data})});
+                            });
+                            socket.on('game_over', (data) => {
+                                callback({data: JSON.stringify({type: 'game_over', ...data})});
+                            });
+                        } else if (event === 'close') {
+                            socket.on('disconnect', callback);
+                        } else if (event === 'error') {
+                            socket.on('error', callback);
+                        }
+                    }
+                };
+                
+                // Handle the initial connection and send the create/join room message
+                socket.on('connect', () => {
+                    console.log('Connected to Socket.IO server');
+                    
+                    if (socketWrapper.isCreatingRoom) {
+                        socket.emit('create_room', {
+                            player: currentPlayer
+                        });
+                    } else if (socketWrapper.roomCodeToJoin) {
+                        socket.emit('join_room', {
+                            roomCode: socketWrapper.roomCodeToJoin,
+                            player: currentPlayer
                         });
                     }
                 });
                 
-                // Listen for messages
-                socket.addEventListener('message', (event) => {
-                    try {
-                        const message = JSON.parse(event.data);
-                        handleServerMessage(message);
-                    } catch (e) {
-                        console.error('Error parsing message from server:', e);
-                    }
-                });
-                
-                // Connection closed
-                socket.addEventListener('close', (event) => {
-                    console.log('Disconnected from server', event.code, event.reason);
-                    setNetworkStatus('disconnected');
-                    
-                    // Only try to reconnect if we're not intentionally closing
-                    if (event.code !== 1000) {
-                        handleDisconnect();
-                    }
-                });
-                
-                // Connection error
-                socket.addEventListener('error', (error) => {
-                    console.error('WebSocket error:', error);
-                    setNetworkStatus('disconnected');
-                });
-                
-            } catch (error) {
-                console.error('Error initializing WebSocket:', error);
-                showError('Không thể kết nối đến máy chủ game. Vui lòng thử lại sau.');
-            }
-        }
-        
-        // Handle network status display
-        function setNetworkStatus(status) {
-            networkStatusElement.className = status;
-            
-            switch (status) {
-                case 'connecting':
-                    networkStatusElement.textContent = 'Đang kết nối...';
-                    networkStatusElement.style.opacity = '1';
-                    break;
-                case 'connected':
-                    networkStatusElement.textContent = 'Đã kết nối';
-                    // Fade out after 2 seconds
-                    setTimeout(() => {
-                        networkStatusElement.style.opacity = '0';
-                    }, 2000);
-                    break;
-                case 'disconnected':
-                    networkStatusElement.textContent = 'Mất kết nối!';
-                    networkStatusElement.style.opacity = '1';
-                    break;
-            }
-        }
-        
-        // Try to reconnect after disconnect
-        function handleDisconnect() {
-            if (connectionAttempts >= CONFIG.RECONNECT_ATTEMPTS) {
-                showError('Mất kết nối với máy chủ. Vui lòng tải lại trang.');
-                return;
-            }
-            
-            connectionAttempts++;
-            const delay = CONFIG.RECONNECT_DELAY * connectionAttempts;
-            
-            console.log(`Trying to reconnect in ${delay/1000} seconds...`);
-            showNotification(`Đang thử kết nối lại (${connectionAttempts}/${CONFIG.RECONNECT_ATTEMPTS})...`);
-            
-            setTimeout(() => {
-                initializeWebSocket();
-            }, delay);
-        }
-        
-        // Send message to server
-        function sendToServer(message) {
-            if (!socket || socket.readyState !== WebSocket.OPEN) {
-                console.warn('Cannot send message, socket is not open');
-                return false;
-            }
-            
-            try {
-                socket.send(JSON.stringify(message));
-                return true;
-            } catch (error) {
-                console.error('Error sending message to server:', error);
-                return false;
-            }
-        }
-        
-        // Handle messages from server
-        function handleServerMessage(message) {
-            console.log('Received message:', message.type);
-            
-            switch (message.type) {
-                case 'player_id':
-                    // Server assigned us a player ID
-                    gameState.playerId = message.playerId;
-                    break;
-                    
-                case 'room_created':
-                    // Room created successfully
-                    handleRoomCreated(message);
-                    break;
-                    
-                case 'room_joined':
-                    // Joined a room successfully
-                    handleRoomJoined(message);
-                    break;
-                    
-                case 'room_update':
-                    // Room player list updated
-                    handleRoomUpdate(message);
-                    break;
-                    
-                case 'game_start':
-                    // Game is starting
-                    handleGameStart(message);
-                    break;
-                    
-                case 'game_state':
-                    // Game state update
-                    handleGameState(message);
-                    break;
-                    
-                case 'game_over':
-                    // Game has ended
-                    handleGameOver(message);
-                    break;
-                    
-                case 'error':
-                    // Error message from server
-                    handleServerError(message);
-                    break;
-                    
-                default:
-                    console.warn('Unknown message type:', message.type);
-            }
-        }
-        
-        // --------------------------
-        // SERVER MESSAGE HANDLERS
-        // --------------------------
-        
-        // Handle room created message
-        function handleRoomCreated(message) {
-            gameState.room.id = message.roomId;
-            gameState.room.code = message.roomCode;
-            gameState.isRoomOwner = true;
-            
-            // Update UI
-            roomCodeDisplay.textContent = message.roomCode;
-            showScreen('room');
-            showNotification('Phòng đã được tạo!');
-        }
-        
-        // Handle room joined message
-        function handleRoomJoined(message) {
-            gameState.room.id = message.roomId;
-            gameState.room.code = message.roomCode;
-            gameState.isRoomOwner = message.isOwner;
-            
-            // Update UI
-            roomCodeDisplay.textContent = message.roomCode;
-            showScreen('room');
-            showNotification('Đã vào phòng!');
-        }
-        
-        // Handle room update message
-        function handleRoomUpdate(message) {
-            gameState.room.players = message.players;
-            gameState.room.playerCount = message.players.length;
-            
-            // Update player list
-            updatePlayerList();
-            
-            // Update room message
-            updateRoomStatus();
-        }
-        
-        // Handle game start message
-        function handleGameStart(message) {
-            // Initialize game state
-            gameState.status = 'playing';
-            gameState.game.timeRemaining = CONFIG.GAME_DURATION;
-            gameState.game.score = 0;
-            gameState.game.players = {};
-            gameState.game.flowers = message.flowers || [];
-            
-            // Setup players
-            message.players.forEach(player => {
-                gameState.game.players[player.id] = player;
-            });
-            
-            // Setup play area
-            const areaData = message.playArea;
-            gameState.game.playArea = new PlayArea(
-                canvas.width / 2,
-                canvas.height / 2,
-                Math.min(canvas.width, canvas.height) * CONFIG.INIT_AREA_RATIO
-            );
-            
-            // Show game UI
-            showScreen('game');
-            startGameLoop();
-        }
-        
-        // Handle game state update
-        function handleGameState(message) {
-            // Update game state with server data
-            gameState.game.timeRemaining = message.timeRemaining;
-            
-            // Update players
-            Object.keys(message.players).forEach(playerId => {
-                if (playerId in gameState.game.players) {
-                    const serverPlayer = message.players[playerId];
-                    const clientPlayer = gameState.game.players[playerId];
-                    
-                    // For all players except the local player, update position
-                    if (playerId !== gameState.playerId) {
-                        clientPlayer.x = serverPlayer.x;
-                        clientPlayer.y = serverPlayer.y;
-                    }
-                    
-                    // Update score for all players
-                    clientPlayer.score = serverPlayer.score;
-                } else {
-                    // New player joined during game
-                    gameState.game.players[playerId] = message.players[playerId];
-                }
-            });
-            
-            // Update flowers - only process server-side collected flowers
-            if (message.flowers) {
-                message.flowers.forEach(serverFlower => {
-                    const clientFlower = gameState.game.flowers.find(f => f.id === serverFlower.id);
-                    if (clientFlower) {
-                        // If server says it's collected, update client
-                        if (serverFlower.collected && !clientFlower.collected) {
-                            clientFlower.collected = true;
-                            clientFlower.collectedBy = serverFlower.collectedBy;
-                        }
-                    }
-                });
-            }
-            
-            // Add new flowers if server sent them
-            if (message.newFlowers) {
-                gameState.game.flowers = gameState.game.flowers.concat(message.newFlowers);
-            }
-            
-            // Update play area
-            if (message.playArea) {
-                gameState.game.playArea.targetRadius = message.playArea.radius;
-            }
-            
-            // Update UI
-            updateGameUI();
-        }
-        
-        // Handle game over message
-        function handleGameOver(message) {
-            gameState.status = 'gameover';
-            
-            // Sort players by score
-            const sortedPlayers = Object.values(gameState.game.players)
-                .sort((a, b) => b.score - a.score);
-            
-            // Create winner list HTML
-            let html = '<h2>Top 3 người chơi</h2>';
-            
-            for (let i = 0; i < Math.min(3, sortedPlayers.length); i++) {
-                const player = sortedPlayers[i];
-                let rankClass = '';
-                let emoji = '';
-                
-                if (i === 0) {
-                    rankClass = 'rank1';
-                    emoji = '👑';
-                }
-                else if (i === 1) {
-                    rankClass = 'rank2';
-                    emoji = '🥈';
-                }
-                else if (i === 2) {
-                    rankClass = 'rank3';
-                    emoji = '🥉';
-                }
-                
-                const isYou = player.id === gameState.playerId ? ' (Bạn)' : '';
-                
-                html += `
-                    <div class="winner ${rankClass}">
-                        ${emoji} ${i + 1}. ${player.name}${isYou}: ${player.score} hoa 🌸
-                    </div>
-                `;
-            }
-            
-            winnerListElement.innerHTML = html;
-            
-            // Show game over screen
-            setTimeout(() => {
-                showScreen('gameover');
-                createConfetti();
-            }, 2000);
-        }
-        
-        // Handle server error message
-        function handleServerError(message) {
-            showError(message.message || 'Đã xảy ra lỗi.');
-        }
-        
-        // --------------------------
-        // GAME CLASSES
-        // --------------------------
-        
-        // Lớp Player
-        class Player {
-            constructor(id, name, x, y, color, isHuman = false) {
-                this.id = id;
-                this.name = name;
-                this.x = x;
-                this.y = y;
-                this.targetX = x;
-                this.targetY = y;
-                this.radius = CONFIG.PLAYER_RADIUS;
-                this.color = color;
-                this.score = 0;
-                this.isHuman = isHuman;
-                this.speed = CONFIG.PLAYER_SPEED;
-                this.isAlive = true;
-                this.angle = 0;
-                this.moveDirection = 0;
-                this.animationFrame = 0;
-                this.animationSpeed = 0.1;
-                this.lastPositionSent = {x: 0, y: 0};
-            }
-            
-            update(deltaTime) {
-                if (!this.isAlive) return;
-                
-                // Cập nhật chuyển động cho người chơi
-                if (this.isHuman) {
-                    const dx = this.targetX - this.x;
-                    const dy = this.targetY - this.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance > 5) {
-                        const moveX = (dx / distance) * this.speed * (deltaTime / 16);
-                        const moveY = (dy / distance) * this.speed * (deltaTime / 16);
-                        this.x += moveX;
-                        this.y += moveY;
-                        this.moveDirection = Math.atan2(dy, dx);
-                    }
-                }
-                
-                // Kiểm tra xem người chơi có nằm trong khu vực chơi không
-                const playArea = gameState.game.playArea;
-                const distanceToCenter = Math.sqrt(
-                    Math.pow(this.x - playArea.x, 2) + 
-                    Math.pow(this.y - playArea.y, 2)
-                );
-                
-                if (distanceToCenter > playArea.radius) {
-                    // Di chuyển người chơi trở lại vào trong khu vực chơi
-                    const angle = Math.atan2(this.y - playArea.y, this.x - playArea.x);
-                    const newX = playArea.x + Math.cos(angle) * (playArea.radius - 5);
-                    const newY = playArea.y + Math.sin(angle) * (playArea.radius - 5);
-                    
-                    this.x = newX;
-                    this.y = newY;
-                    
-                    if (this.isHuman) {
-                        this.targetX = this.x;
-                        this.targetY = this.y;
-                    }
-                }
-                
-                // Cập nhật animation
-                this.animationFrame += this.animationSpeed;
-                this.angle = this.moveDirection;
-                
-                // Send position update to server (only for human player)
-                if (this.isHuman && socket && socket.readyState === WebSocket.OPEN) {
-                    // Only send update if position has changed significantly
-                    const positionChanged = Math.abs(this.x - this.lastPositionSent.x) > 5 || 
-                                          Math.abs(this.y - this.lastPositionSent.y) > 5;
-                    
-                    if (positionChanged) {
-                        sendToServer({
-                            type: 'player_move',
-                            x: this.x,
-                            y: this.y
-                        });
-                        
-                        this.lastPositionSent.x = this.x;
-                        this.lastPositionSent.y = this.y;
-                    }
-                }
-            }
-            
-            draw(ctx) {
-                if (!this.isAlive) return;
-                
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(this.angle + Math.PI / 2);
-                
-                // Body
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.ellipse(0, 0, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Mắt
-                const eyeX = Math.sin(this.animationFrame) * 2;
-                ctx.fillStyle = 'white';
-                ctx.beginPath();
-                ctx.arc(-8 + eyeX, -10, 5, 0, Math.PI * 2);
-                ctx.arc(8 + eyeX, -10, 5, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.fillStyle = 'black';
-                ctx.beginPath();
-                ctx.arc(-8 + eyeX, -10, 2.5, 0, Math.PI * 2);
-                ctx.arc(8 + eyeX, -10, 2.5, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Cánh tay
-                ctx.strokeStyle = this.color;
-                ctx.lineWidth = 3;
-                
-                // Cánh tay trái
-                ctx.beginPath();
-                ctx.arc(-this.radius - 2, 0, 8, 0, Math.PI * 2);
-                ctx.stroke();
-                
-                // Cánh tay phải
-                ctx.beginPath();
-                ctx.arc(this.radius + 2, 0, 8, 0, Math.PI * 2);
-                ctx.stroke();
-                
-                // Tên
-                ctx.rotate(-this.angle - Math.PI / 2);
-                const displayName = this.id === gameState.playerId ? this.name + ' (Bạn)' : this.name;
-                ctx.fillStyle = this.id === gameState.playerId ? '#FF1493' : '#333';
-                ctx.font = '14px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                ctx.fillText(displayName, 0, -this.radius - 5);
-                
-                // Số hoa
-                if (this.score > 0) {
-                    ctx.font = '12px Arial';
-                    ctx.fillText(`🌸 ${this.score}`, 0, -this.radius - 20);
-                }
-                
-                ctx.restore();
-            }
-            
-            collectFlowers(flowers) {
-                if (!this.isHuman || !this.isAlive) return 0;
-                
-                let collected = 0;
-                let idsCollected = [];
-                
-                for (const flower of flowers) {
-                    if (!flower.collected) {
-                        const dx = this.x - flower.x;
-                        const dy = this.y - flower.y;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
-                        
-                        if (distance < this.radius + flower.radius) {
-                            // Mark as collected locally immediately for responsive feel
-                            flower.collected = true;
-                            flower.collectedBy = this.id;
-                            
-                            // Track this for score update
-                            idsCollected.push(flower.id);
-                            collected++;
-                        }
-                    }
-                }
-                
-                // Send collect message to server if any flowers were collected
-                if (collected > 0) {
-                    sendToServer({
-                        type: 'collect_flowers',
-                        flowerIds: idsCollected
-                    });
-                    
-                    // Update local score immediately
-                    this.score += collected;
-                    gameState.game.score = this.score;
-                    scoreElement.textContent = this.score;
-                }
-                
-                return collected;
-            }
-        }
-        
-        // Lớp Flower
-        class Flower {
-            constructor(id, x, y, type) {
-                this.id = id;
-                this.x = x;
-                this.y = y;
-                this.type = type;
-                this.radius = CONFIG.FLOWER_RADIUS;
-                this.collected = false;
-                this.collectedBy = null;
-                this.angle = Math.random() * Math.PI * 2;
-                this.rotationSpeed = (Math.random() * 0.02) - 0.01;
-                this.scale = 0.8 + Math.random() * 0.4;
-            }
-            
-            update() {
-                if (!this.collected) {
-                    this.angle += this.rotationSpeed;
-                }
-            }
-            
-            draw(ctx) {
-                if (this.collected) return;
-                
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(this.angle);
-                ctx.scale(this.scale, this.scale);
-                
-                const colors = [
-                    '#FF69B4', // pink
-                    '#FF1493', // deep pink
-                    '#FFB6C1', // light pink
-                    '#FFC0CB', // pink
-                    '#FF77FF', // fuchsia
-                ];
-                
-                const centerColors = [
-                    '#FFFF00', // yellow
-                    '#FFD700', // gold
-                    '#FFA500', // orange
-                ];
-                
-                const flowerColor = colors[this.type % colors.length];
-                const centerColor = centerColors[this.type % centerColors.length];
-                
-                // Draw petals
-                ctx.fillStyle = flowerColor;
-                
-                for (let i = 0; i < 5; i++) {
-                    const angle = (i * Math.PI * 2) / 5;
-                    ctx.beginPath();
-                    ctx.ellipse(
-                        Math.cos(angle) * 8,
-                        Math.sin(angle) * 8,
-                        7, 5, 
-                        angle, 0, Math.PI * 2
-                    );
-                    ctx.fill();
-                }
-                
-                // Draw center
-                ctx.fillStyle = centerColor;
-                ctx.beginPath();
-                ctx.arc(0, 0, 5, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.restore();
-            }
-        }
-        
-        // Lớp PlayArea
-        class PlayArea {
-            constructor(x, y, radius) {
-                this.x = x;
-                this.y = y;
-                this.radius = radius;
-                this.targetRadius = radius;
-                this.shrinkRate = CONFIG.SHRINK_RATE; // đơn vị: pixel/giây
-                this.minRadius = CONFIG.MIN_AREA_RADIUS;
-                this.warningThreshold = 0.3; // khi còn 30% diện tích ban đầu
-                this.criticalThreshold = 0.15; // khi còn 15% diện tích ban đầu
-                this.lastPulse = 0;
-                this.pulseInterval = 500;
-                this.pulseAmount = 0;
-            }
-            
-            update(deltaTime) {
-                // Làm mượt việc giảm kích thước
-                this.radius += (this.targetRadius - this.radius) * 0.05;
-                
-                // Hiệu ứng nhịp đập khi khu vực chơi nhỏ
-                const now = Date.now();
-                const ratio = this.radius / this.targetRadius;
-                
-                if (ratio < this.warningThreshold) {
-                    if (now - this.lastPulse > this.pulseInterval) {
-                        this.pulseAmount = ratio < this.criticalThreshold ? 10 : 5;
-                        this.lastPulse = now;
-                    }
-                    
-                    this.pulseAmount *= 0.9;
-                }
-            }
-            
-            draw(ctx) {
-                const gradient = ctx.createRadialGradient(
-                    this.x, this.y, 0,
-                    this.x, this.y, this.radius + this.pulseAmount
-                );
-                
-                const ratio = this.radius / this.targetRadius;
-                
-                if (ratio < this.criticalThreshold) {
-                    // Đỏ khi rất nhỏ
-                    gradient.addColorStop(0, 'rgba(255, 100, 100, 0.1)');
-                    gradient.addColorStop(0.7, 'rgba(255, 50, 50, 0.2)');
-                    gradient.addColorStop(0.9, 'rgba(255, 0, 0, 0.3)');
-                    gradient.addColorStop(1, 'rgba(255, 0, 0, 0.8)');
-                } else if (ratio < this.warningThreshold) {
-                    // Cam khi nhỏ
-                    gradient.addColorStop(0, 'rgba(255, 200, 100, 0.1)');
-                    gradient.addColorStop(0.7, 'rgba(255, 150, 50, 0.2)');
-                    gradient.addColorStop(0.9, 'rgba(255, 100, 0, 0.3)');
-                    gradient.addColorStop(1, 'rgba(255, 100, 0, 0.8)');
-                } else {
-                    // Bình thường là màu hồng
-                    gradient.addColorStop(0, 'rgba(255, 105, 180, 0.0)');
-                    gradient.addColorStop(0.7, 'rgba(255, 105, 180, 0.1)');
-                    gradient.addColorStop(0.9, 'rgba(255, 105, 180, 0.2)');
-                    gradient.addColorStop(1, 'rgba(255, 105, 180, 0.5)');
-                }
-                
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius + this.pulseAmount, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Viền
-                ctx.strokeStyle = ratio < this.criticalThreshold ? 'rgba(255, 0, 0, 0.8)' : 
-                                 ratio < this.warningThreshold ? 'rgba(255, 100, 0, 0.8)' : 
-                                 'rgba(255, 105, 180, 0.8)';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius + this.pulseAmount, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-        }
-        
-        // Lớp Background
-        class Background {
-            constructor(width, height) {
-                this.width = width;
-                this.height = height;
-                this.elements = [];
-                
-                // Tạo các phần tử nền
-                for (let i = 0; i < 50; i++) {
-                    this.elements.push({
-                        x: Math.random() * width,
-                        y: Math.random() * height,
-                        size: 5 + Math.random() * 15,
-                        type: Math.floor(Math.random() * 5),
-                        rotation: Math.random() * Math.PI * 2,
-                        rotationSpeed: (Math.random() * 0.01) - 0.005,
-                        alpha: 0.1 + Math.random() * 0.2
-                    });
-                }
-            }
-            
-            update() {
-                for (const element of this.elements) {
-                    element.rotation += element.rotationSpeed;
-                }
-            }
-            
-            draw(ctx) {
-                const colors = [
-                    '#FF69B4', // pink
-                    '#FF1493', // deep pink
-                    '#FFB6C1', // light pink
-                    '#FFC0CB', // pink
-                    '#FF77FF', // fuchsia
-                ];
-                
-                for (const element of this.elements) {
-                    ctx.save();
-                    ctx.translate(element.x, element.y);
-                    ctx.rotate(element.rotation);
-                    ctx.globalAlpha = element.alpha;
-                    
-                    const color = colors[element.type % colors.length];
-                    ctx.fillStyle = color;
-                    
-                    if (element.type === 0) {
-                        // Hoa
-                        for (let i = 0; i < 5; i++) {
-                            const angle = (i * Math.PI * 2) / 5;
-                            ctx.beginPath();
-                            ctx.ellipse(
-                                Math.cos(angle) * element.size * 0.4,
-                                Math.sin(angle) * element.size * 0.4,
-                                element.size * 0.4, element.size * 0.3, 
-                                angle, 0, Math.PI * 2
-                            );
-                            ctx.fill();
-                        }
-                        
-                        ctx.fillStyle = '#FFFF00';
-                        ctx.beginPath();
-                        ctx.arc(0, 0, element.size * 0.25, 0, Math.PI * 2);
-                        ctx.fill();
-                    } else if (element.type === 1) {
-                        // Trái tim
-                        const size = element.size * 0.5;
-                        ctx.beginPath();
-                        ctx.moveTo(0, size);
-                        ctx.bezierCurveTo(size, -size, 2*size, size, 0, 2*size);
-                        ctx.bezierCurveTo(-2*size, size, -size, -size, 0, size);
-                        ctx.fill();
-                    } else if (element.type === 2) {
-                        // Sao
-                        const outerRadius = element.size * 0.5;
-                        const innerRadius = element.size * 0.25;
-                        
-                        ctx.beginPath();
-                        for (let i = 0; i < 10; i++) {
-                            const angle = (i * Math.PI) / 5;
-                            const radius = i % 2 === 0 ? outerRadius : innerRadius;
-                            const x = Math.cos(angle) * radius;
-                            const y = Math.sin(angle) * radius;
-                            
-                            if (i === 0) {
-                                ctx.moveTo(x, y);
-                            } else {
-                                ctx.lineTo(x, y);
-                            }
-                        }
-                        ctx.closePath();
-                        ctx.fill();
-                    } else if (element.type === 3) {
-                        // Hình tròn
-                        ctx.beginPath();
-                        ctx.arc(0, 0, element.size * 0.5, 0, Math.PI * 2);
-                        ctx.fill();
-                    } else {
-                        // Cánh hoa
-                        ctx.beginPath();
-                        ctx.ellipse(0, 0, element.size * 0.3, element.size * 0.6, 0, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                    
-                    ctx.restore();
-                }
-            }
-            
-            resize(width, height) {
-                this.width = width;
-                this.height = height;
-                
-                // Điều chỉnh các phần tử nền cho phù hợp với kích thước mới
-                for (const element of this.elements) {
-                    if (element.x > width) element.x = Math.random() * width;
-                    if (element.y > height) element.y = Math.random() * height;
-                }
-            }
-        }
-        
-        // --------------------------
-        // GAME LOOP AND RENDERING
-        // --------------------------
-        
-        // Init background
-        const background = new Background(canvas.width, canvas.height);
-        
-        // Start the game loop
-        function startGameLoop() {
-            // Show game UI
-            canvas.style.display = 'block';
-            document.getElementById('hud').style.display = 'flex';
-            scoreboardElement.style.display = 'block';
-            
-            // Set initial timestamp
-            gameState.game.lastUpdate = performance.now();
-            
-            // Start animation loop
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-            }
-            animationFrame = requestAnimationFrame(gameLoop);
-        }
-        
-        // Main game loop
-        function gameLoop(timestamp) {
-            // Calculate delta time
-            const deltaTime = timestamp - gameState.game.lastUpdate;
-            gameState.game.lastUpdate = timestamp;
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Update and draw background
-            background.update();
-            background.draw(ctx);
-            
-            // Update and draw play area
-            gameState.game.playArea.update(deltaTime);
-            gameState.game.playArea.draw(ctx);
-            
-            // Update and draw flowers
-            for (const flower of gameState.game.flowers) {
-                flower.update();
-                flower.draw(ctx);
-            }
-            
-            // Get local player
-            const localPlayer = gameState.game.players[gameState.playerId];
-            
-            // Update and draw players
-            for (const playerId in gameState.game.players) {
-                const player = gameState.game.players[playerId];
-                
-                // Only update the local player based on input
-                if (playerId === gameState.playerId) {
-                    player.update(deltaTime);
-                    
-                    // Check for flower collisions
-                    const collectedCount = player.collectFlowers(gameState.game.flowers);
-                    if (collectedCount > 0) {
-                        if (collectedCount === 1) {
-                            showNotification(`+1 Hoa! 🌸`);
-                        } else {
-                            showNotification(`+${collectedCount} Hoa! 🌸🌸`);
-                        }
-                    }
-                }
-                
-                // Draw all players
-                player.draw(ctx);
-            }
-            
-            // Update confetti if any
-            updateConfetti(deltaTime);
-            drawConfetti();
-            
-            // Continue game loop if still playing
-            if (gameState.status === 'playing') {
-                animationFrame = requestAnimationFrame(gameLoop);
-            }
-        }
-        
-        // Update game UI
-        function updateGameUI() {
-            // Update time
-            timeElement.textContent = Math.ceil(gameState.game.timeRemaining);
-            
-            // Update score
-            scoreElement.textContent = gameState.game.score;
-            
-            // Update scoreboard
-            updateScoreboard();
-        }
-        
-        // Update scoreboard
-        function updateScoreboard() {
-            // Sort players by score
-            const sortedPlayers = Object.values(gameState.game.players)
-                .sort((a, b) => b.score - a.score);
-            
-            // Create scoreboard HTML
-            let html = '<div class="scoreboard-title">Bảng xếp hạng</div>';
-            
-            for (let i = 0; i < sortedPlayers.length; i++) {
-                const player = sortedPlayers[i];
-                let rankClass = '';
-                
-                if (i === 0) rankClass = 'rank1';
-                else if (i === 1) rankClass = 'rank2';
-                else if (i === 2) rankClass = 'rank3';
-                
-                const isYou = player.id === gameState.playerId ? ' (Bạn)' : '';
-                
-                html += `
-                    <div class="scoreboard-item ${rankClass} ${player.id === gameState.playerId ? 'human' : ''}">
-                        <span>${i + 1}. ${player.name}${isYou}</span>
-                        <span>${player.score}</span>
-                    </div>
-                `;
-                
-                // Only show top 5
-                if (i >= 4) break;
-            }
-            
-            scoreboardElement.innerHTML = html;
-        }
-        
-        // --------------------------
-        // UI FUNCTIONS
-        // --------------------------
-        
-        // Show specific screen
-        function showScreen(screen) {
-            // Hide all screens
-            loadingScreen.style.display = 'none';
-            menuScreen.style.display = 'none';
-            roomScreen.style.display = 'none';
-            gameOverScreen.style.display = 'none';
-            canvas.style.display = 'none';
-            document.getElementById('hud').style.display = 'none';
-            scoreboardElement.style.display = 'none';
-            
-            // Show requested screen
-            switch (screen) {
-                case 'loading':
-                    loadingScreen.style.display = 'flex';
-                    gameState.status = 'loading';
-                    break;
-                case 'menu':
-                    menuScreen.style.display = 'flex';
-                    gameState.status = 'menu';
-                    break;
-                case 'room':
-                    roomScreen.style.display = 'flex';
-                    gameState.status = 'room';
-                    break;
-                case 'game':
-                    canvas.style.display = 'block';
-                    document.getElementById('hud').style.display = 'flex';
-                    scoreboardElement.style.display = 'block';
-                    gameState.status = 'playing';
-                    break;
-                case 'gameover':
-                    gameOverScreen.style.display = 'flex';
-                    gameState.status = 'gameover';
-                    break;
-            }
-        }
-        
-        // Update player list in room
-        function updatePlayerList() {
-            let html = '';
-            const players = gameState.room.players;
-            
-            for (let i = 0; i < players.length; i++) {
-                const player = players[i];
-                const isOwner = player.isOwner;
-                const isYou = player.id === gameState.playerId;
-                const playerClasses = [
-                    isOwner ? 'room-owner' : '',
-                    isYou ? 'you' : ''
-                ].filter(Boolean).join(' ');
-                
-                html += `
-                    <div class="player-item ${playerClasses}">
-                        <span>${player.name} ${isYou ? '(Bạn)' : ''} ${isOwner ? '👑' : ''}</span>
-                        <span>Sẵn sàng</span>
-                    </div>
-                `;
-            }
-            
-            playerListContainer.innerHTML = html;
-        }
-        
-        // Update room status
-        function updateRoomStatus() {
-            const canStart = gameState.isRoomOwner && gameState.room.playerCount >= CONFIG.MIN_PLAYERS;
-            
-            // Update player count display
-            roomMessageElement.textContent = `Đang đợi người chơi... (${gameState.room.playerCount}/${CONFIG.MAX_PLAYERS})`;
-            
-            // Update start button
-            startGameBtn.textContent = `Bắt đầu (${gameState.room.playerCount}/${CONFIG.MIN_PLAYERS})`;
-            
-            if (canStart) {
-                startGameBtn.classList.remove('btn-disabled');
+                return socketWrapper;
             } else {
-                startGameBtn.classList.add('btn-disabled');
-            }
-        }
-        
-        // Show notification
-        function showNotification(message, duration = 2000) {
-            // Clear previous timeout if exists
-            if (notificationTimeout) {
-                clearTimeout(notificationTimeout);
-            }
-            
-            notificationElement.textContent = message;
-            notificationElement.style.opacity = '1';
-            
-            notificationTimeout = setTimeout(() => {
-                notificationElement.style.opacity = '0';
-            }, duration);
-        }
-        
-        // Show error message
-        function showError(message) {
-            errorTextElement.textContent = message;
-            errorMessageElement.style.display = 'block';
-        }
-        
-        // Create confetti effect
-        function createConfetti() {
-            const COLORS = [
-                '#FF69B4', '#FF1493', '#FFB6C1', '#FFC0CB', '#FF77FF',
-                '#FFFF00', '#FFD700', '#FFA500', '#5D5CDE', '#9370DB'
-            ];
-            
-            // Create confetti particles
-            confetti = [];
-            for (let i = 0; i < 150; i++) {
-                confetti.push({
-                    x: Math.random() * confettiCanvas.width,
-                    y: -20 - Math.random() * 100,
-                    size: 5 + Math.random() * 10,
-                    color: COLORS[Math.floor(Math.random() * COLORS.length)],
-                    speed: 1 + Math.random() * 3,
-                    angle: Math.random() * Math.PI * 2,
-                    rotation: Math.random() * Math.PI * 2,
-                    rotationSpeed: (Math.random() - 0.5) * 0.2,
-                    oscillationSpeed: 1 + Math.random() * 2,
-                    oscillationDistance: 40 + Math.random() * 40,
-                    waviness: Math.random() * 5,
-                    type: Math.floor(Math.random() * 3) // 0: rectangle, 1: circle, 2: heart
-                });
-            }
-            
-            // Start the confetti animation
-            if (!animationFrame) {
-                animationFrame = requestAnimationFrame(function(timestamp) {
-                    updateConfetti(16.67); // ~60fps
-                    drawConfetti();
+                // Create a simulated Socket.IO for development
+                const simulatedSocket = {
+                    isConnected: false,
+                    callbacks: {},
+                    simulatedPlayers: [],
+                    simulatedFlowers: [],
+                    roomOwner: null,
+                    roomPlayers: [],
                     
-                    if (confetti.length > 0) {
-                        animationFrame = requestAnimationFrame(arguments.callee);
-                    } else {
-                        animationFrame = null;
+                    // Connect to the server
+                    connect(roomCode = null, isCreate = false) {
+                        setTimeout(() => {
+                            this.isConnected = true;
+                            if (this.callbacks.open) {
+                                this.callbacks.open();
+                            }
+                            
+                            // If creating a room, generate a random room code
+                            if (isCreate) {
+                                roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+                                this.emitEvent('room_created', {
+                                    roomCode: roomCode
+                                });
+                                this.roomOwner = currentPlayer;
+                                this.roomPlayers.push({...currentPlayer});
+                            } else if (roomCode) {
+                                // Joining an existing room
+                                this.emitEvent('room_joined', {
+                                    roomCode: roomCode,
+                                    players: [
+                                        {...currentPlayer, id: currentPlayer.id, isOwner: false},
+                                        {id: 'ai1', nickname: 'Player 1', avatar: 1, score: 0, isOwner: true, x: 0, y: 0},
+                                        {id: 'ai2', nickname: 'Player 2', avatar: 2, score: 0, isOwner: false, x: 0, y: 0}
+                                    ]
+                                });
+                                this.roomPlayers = [
+                                    {...currentPlayer, isOwner: false},
+                                    {id: 'ai1', nickname: 'Player 1', avatar: 1, score: 0, isOwner: true, x: 0, y: 0},
+                                    {id: 'ai2', nickname: 'Player 2', avatar: 2, score: 0, isOwner: false, x: 0, y: 0}
+                                ];
+                                this.roomOwner = {id: 'ai1', nickname: 'Player 1', avatar: 1, score: 0, isOwner: true};
+                            }
+                        }, 1000);
+                    },
+                    
+                    // Emit an event (simulating Socket.IO's emit)
+                    emitEvent(eventName, data) {
+                        if (this.callbacks.message) {
+                            const response = {
+                                data: JSON.stringify({
+                                    type: eventName,
+                                    ...data
+                                })
+                            };
+                            this.callbacks.message(response);
+                        }
+                    },
+                    
+                    // Send a message to the server (Socket.IO style)
+                    send(data) {
+                        const message = JSON.parse(data);
+                        console.log('Sending message:', message);
+                        
+                        setTimeout(() => {
+                            // Handle different message types
+                            switch(message.type) {
+                                case 'create_room':
+                                    // Response is handled in connect method
+                                    break;
+                                    
+                                case 'join_room':
+                                    // Response is handled in connect method
+                                    break;
+                                    
+                                case 'leave_room':
+                                    this.emitEvent('room_updated', {
+                                        players: this.roomPlayers.filter(p => p.id !== currentPlayer.id)
+                                    });
+                                    break;
+                                    
+                                case 'start_game':
+                                    // Initialize game state
+                                    this.simulatedPlayers = [...this.roomPlayers];
+                                    
+                                    // Generate random flowers
+                                    this.simulatedFlowers = Array(30).fill().map((_, i) => {
+                                        const type = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
+                                        const angle = Math.random() * Math.PI * 2;
+                                        const distance = Math.random() * maxMapRadius * 0.9;
+                                        return {
+                                            id: i,
+                                            x: Math.cos(angle) * distance,
+                                            y: Math.sin(angle) * distance,
+                                            type: type
+                                        };
+                                    });
+                                    
+                                    // Send game started event with initial state
+                                    mapRadius = maxMapRadius;
+                                    this.emitEvent('game_started', {
+                                        players: this.simulatedPlayers,
+                                        flowers: this.simulatedFlowers,
+                                        mapRadius: maxMapRadius,
+                                        timeRemaining: gameTime
+                                    });
+                                    
+                                    // Start game loop
+                                    this.startGameLoop();
+                                    break;
+                                    
+                                case 'player_move':
+                                    // Update player position
+                                    const playerIndex = this.simulatedPlayers.findIndex(p => p.id === message.playerId);
+                                    if (playerIndex !== -1) {
+                                        this.simulatedPlayers[playerIndex].x = message.x;
+                                        this.simulatedPlayers[playerIndex].y = message.y;
+                                        
+                                        // Check for flower collection
+                                        this.checkFlowerCollection(this.simulatedPlayers[playerIndex]);
+                                        
+                                        // Send state update
+                                        this.emitEvent('game_update', {
+                                            players: this.simulatedPlayers,
+                                            flowers: this.simulatedFlowers,
+                                            mapRadius: mapRadius,
+                                            timeRemaining: gameTime
+                                        });
+                                    }
+                                    break;
+                            }
+                        }, 50);
+                    },
+                    
+                    // Simulate game loop
+                    startGameLoop() {
+                        let gameClock = gameTime;
+                        const gameInterval = setInterval(() => {
+                            // Update AI players
+                            this.updateAIPlayers();
+                            
+                            // Update game time
+                            gameClock--;
+                            
+                            // Shrink map
+                            if (gameClock % 10 === 0 && mapRadius > maxMapRadius * 0.3) {
+                                mapRadius -= maxMapRadius * 0.1;
+                                
+                                // Generate new flowers
+                                if (this.simulatedFlowers.length < 50) {
+                                    const newFlowers = Array(5).fill().map((_, i) => {
+                                        const type = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
+                                        const angle = Math.random() * Math.PI * 2;
+                                        const distance = Math.random() * mapRadius * 0.9;
+                                        return {
+                                            id: this.simulatedFlowers.length + i,
+                                            x: Math.cos(angle) * distance,
+                                            y: Math.sin(angle) * distance,
+                                            type: type
+                                        };
+                                    });
+                                    this.simulatedFlowers = [...this.simulatedFlowers, ...newFlowers];
+                                }
+                            }
+                            
+                            // Send game update
+                            this.emitEvent('game_update', {
+                                players: this.simulatedPlayers,
+                                flowers: this.simulatedFlowers,
+                                mapRadius: mapRadius,
+                                timeRemaining: gameClock
+                            });
+                            
+                            // Check if game is over
+                            if (gameClock <= 0 || mapRadius <= maxMapRadius * 0.3) {
+                                clearInterval(gameInterval);
+                                
+                                // Sort players by score
+                                const sortedPlayers = [...this.simulatedPlayers].sort((a, b) => b.score - a.score);
+                                
+                                // Send game over event
+                                this.emitEvent('game_over', {
+                                    winners: sortedPlayers.slice(0, 3),
+                                    allPlayers: sortedPlayers
+                                });
+                            }
+                        }, 1000);
+                    },
+                    
+                    // Update AI players
+                    updateAIPlayers() {
+                        this.simulatedPlayers.forEach(player => {
+                            if (player.id !== currentPlayer.id) {
+                                // Random movement for AI players
+                                const moveAngle = Math.random() * Math.PI * 2;
+                                const moveDistance = Math.random() * 10;
+                                
+                                player.x += Math.cos(moveAngle) * moveDistance;
+                                player.y += Math.sin(moveAngle) * moveDistance;
+                                
+                                // Keep within map bounds
+                                const distFromCenter = Math.sqrt(player.x * player.x + player.y * player.y);
+                                if (distFromCenter > mapRadius * 0.95) {
+                                    player.x = (player.x / distFromCenter) * mapRadius * 0.95;
+                                    player.y = (player.y / distFromCenter) * mapRadius * 0.95;
+                                }
+                                
+                                // Check for flower collection
+                                this.checkFlowerCollection(player);
+                            }
+                        });
+                    },
+                    
+                    // Check if player collected any flowers
+                    checkFlowerCollection(player) {
+                        const playerRadius = 25;
+                        
+                        this.simulatedFlowers = this.simulatedFlowers.filter(flower => {
+                            const dx = player.x - flower.x;
+                            const dy = player.y - flower.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (distance < playerRadius + flower.type.radius) {
+                                // Collect flower
+                                player.score += flower.type.points;
+                                
+                                // Spawn a new flower
+                                setTimeout(() => {
+                                    const type = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
+                                    const angle = Math.random() * Math.PI * 2;
+                                    const distance = Math.random() * mapRadius * 0.9;
+                                    
+                                    this.simulatedFlowers.push({
+                                        id: Math.random().toString(36).substring(7),
+                                        x: Math.cos(angle) * distance,
+                                        y: Math.sin(angle) * distance,
+                                        type: type
+                                    });
+                                }, 2000);
+                                
+                                return false;
+                            }
+                            return true;
+                        });
+                    },
+                    
+                    // Close the connection
+                    close() {
+                        this.isConnected = false;
+                        if (this.callbacks.close) {
+                            this.callbacks.close();
+                        }
+                    },
+                    
+                    // Event listeners
+                    addEventListener(event, callback) {
+                        this.callbacks[event] = callback;
                     }
-                });
+                };
+                
+                return simulatedSocket;
             }
         }
-        
-        // Update confetti animation
-        function updateConfetti(deltaTime) {
-            for (let i = confetti.length - 1; i >= 0; i--) {
-                const c = confetti[i];
+
+        // Initialize game
+        function init() {
+            // Start loading animation
+            const loadingProgress = document.getElementById('loading-progress');
+            let progress = 0;
+            const loadingInterval = setInterval(() => {
+                progress += 2;
+                loadingProgress.style.width = `${progress}%`;
                 
-                c.y += c.speed * deltaTime * 0.06;
-                c.x += Math.sin(c.angle) * c.oscillationDistance * Math.sin(c.y * c.waviness * 0.01) * 0.1;
-                c.rotation += c.rotationSpeed * deltaTime * 0.06;
-                
-                // Remove confetti that has fallen off screen
-                if (c.y > confettiCanvas.height + 20) {
-                    confetti.splice(i, 1);
+                if (progress >= 100) {
+                    clearInterval(loadingInterval);
+                    
+                    // Hide loading screen and show lobby
+                    setTimeout(() => {
+                        document.getElementById('loading-screen').style.opacity = '0';
+                        setTimeout(() => {
+                            document.getElementById('loading-screen').style.display = 'none';
+                            document.getElementById('lobby-screen').style.display = 'flex';
+                            gameState = GAME_STATES.LOBBY;
+                        }, 500);
+                    }, 500);
                 }
-            }
-        }
-        
-        // Draw confetti
-        function drawConfetti() {
-            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            }, 100);
             
-            for (const c of confetti) {
-                confettiCtx.save();
-                confettiCtx.translate(c.x, c.y);
-                confettiCtx.rotate(c.rotation);
-                
-                confettiCtx.fillStyle = c.color;
-                
-                if (c.type === 0) {
-                    // Rectangle
-                    confettiCtx.fillRect(-c.size / 2, -c.size / 2, c.size, c.size);
-                } else if (c.type === 1) {
-                    // Circle
-                    confettiCtx.beginPath();
-                    confettiCtx.arc(0, 0, c.size / 2, 0, Math.PI * 2);
-                    confettiCtx.fill();
-                } else {
-                    // Heart
-                    const size = c.size * 0.4;
-                    confettiCtx.beginPath();
-                    confettiCtx.moveTo(0, size);
-                    confettiCtx.bezierCurveTo(size, -size, 2*size, size, 0, 2*size);
-                    confettiCtx.bezierCurveTo(-2*size, size, -size, -size, 0, size);
-                    confettiCtx.fill();
-                }
-                
-                confettiCtx.restore();
-            }
-        }
-        
-        // --------------------------
-        // EVENT HANDLERS
-        // --------------------------
-        
-        // Touch and Mouse input for game
-        function setupGameInput() {
-            // Touch events
-            canvas.addEventListener('touchstart', handleTouchStart);
-            canvas.addEventListener('touchmove', handleTouchMove);
+            // Set up event listeners
+            document.getElementById('create-room').addEventListener('click', createRoom);
+            document.getElementById('join-room').addEventListener('click', joinRoom);
+            document.getElementById('leave-room').addEventListener('click', leaveRoom);
+            document.getElementById('start-game').addEventListener('click', startGame);
+            document.getElementById('back-to-lobby').addEventListener('click', backToLobby);
             
-            // Mouse events
+            // Initialize canvas for game
+            canvas = document.getElementById('game-canvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Touch and mouse event listeners for game controls
             canvas.addEventListener('mousedown', handleMouseDown);
             canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', handleTouchEnd);
         }
-        
-        function handleTouchStart(e) {
-            e.preventDefault();
-            if (gameState.status !== 'playing') return;
-            
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            
-            updatePlayerTarget(x, y);
-            gameState.input.touch = true;
+
+        // Resize canvas
+        function resizeCanvas() {
+            gameWidth = window.innerWidth;
+            gameHeight = window.innerHeight;
+            canvas.width = gameWidth;
+            canvas.height = gameHeight;
+            maxMapRadius = Math.min(gameWidth, gameHeight) * 0.4;
         }
-        
-        function handleTouchMove(e) {
-            e.preventDefault();
-            if (gameState.status !== 'playing' || !gameState.input.touch) return;
-            
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            
-            updatePlayerTarget(x, y);
-        }
-        
-        function handleMouseDown(e) {
-            if (gameState.status !== 'playing') return;
-            
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            updatePlayerTarget(x, y);
-            gameState.input.touch = true;
-        }
-        
-        function handleMouseMove(e) {
-            if (gameState.status !== 'playing' || !gameState.input.touch || e.buttons !== 1) return;
-            
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            updatePlayerTarget(x, y);
-        }
-        
-        function updatePlayerTarget(x, y) {
-            // Update the target position for the local player
-            const player = gameState.game.players[gameState.playerId];
-            if (player) {
-                player.targetX = x;
-                player.targetY = y;
-                gameState.input.targetX = x;
-                gameState.input.targetY = y;
-            }
-        }
-        
-        // --------------------------
-        // NETWORKING ACTIONS
-        // --------------------------
-        
-        // Create room action
+
+        // Create a new room
         function createRoom() {
-            const playerName = playerNameInput.value.trim();
-            
-            if (!playerName) {
-                showError('Vui lòng nhập tên của bạn.');
+            const nickname = document.getElementById('nickname-input').value.trim();
+            if (!nickname) {
+                alert('Please enter a nickname');
                 return;
             }
             
-            gameState.playerName = playerName;
+            // Connect to WebSocket server
+            connectToServer(null, true);
             
-            sendToServer({
-                type: 'create_room',
-                playerName: playerName
-            });
+            // Create player
+            currentPlayer = {
+                id: generateId(),
+                nickname: nickname,
+                avatar: Math.floor(Math.random() * playerColors.length),
+                score: 0,
+                x: 0,
+                y: 0
+            };
+            
+            isRoomOwner = true;
+            gameState = GAME_STATES.WAITING;
+            
+            // Show waiting room
+            document.getElementById('lobby-screen').style.display = 'none';
+            document.getElementById('waiting-room').style.display = 'flex';
+            
+            // Show start game button for room owner
+            document.getElementById('start-game-container').style.display = 'block';
         }
-        
-        // Join room action
+
+        // Join an existing room
         function joinRoom() {
-            const playerName = playerNameInput.value.trim();
-            
-            if (!playerName) {
-                showError('Vui lòng nhập tên của bạn.');
+            const nickname = document.getElementById('nickname-input').value.trim();
+            if (!nickname) {
+                alert('Please enter a nickname');
                 return;
             }
             
             // Prompt for room code
-            const roomCode = prompt('Nhập mã phòng:');
-            if (!roomCode) return;
+            const enteredRoomCode = prompt('Enter Room Code:');
+            if (!enteredRoomCode) return;
             
-            gameState.playerName = playerName;
+            // Connect to WebSocket server
+            connectToServer(enteredRoomCode);
             
-            sendToServer({
-                type: 'join_room',
-                playerName: playerName,
-                roomCode: roomCode
-            });
+            // Create player
+            currentPlayer = {
+                id: generateId(),
+                nickname: nickname,
+                avatar: Math.floor(Math.random() * playerColors.length),
+                score: 0,
+                x: 0,
+                y: 0
+            };
+            
+            isRoomOwner = false;
+            gameState = GAME_STATES.WAITING;
+            
+            // Show waiting room
+            document.getElementById('lobby-screen').style.display = 'none';
+            document.getElementById('waiting-room').style.display = 'flex';
         }
-        
-        // Start game action
-        function startGame() {
-            if (!gameState.isRoomOwner || gameState.room.playerCount < CONFIG.MIN_PLAYERS) {
-                return;
-            }
-            
-            sendToServer({
-                type: 'start_game',
-                roomId: gameState.room.id
-            });
-        }
-        
-        // Leave room action
+
+        // Leave the current room
         function leaveRoom() {
-            sendToServer({
-                type: 'leave_room',
-                roomId: gameState.room.id
+            if (socket) {
+                // Send leave room message
+                socket.send(JSON.stringify({
+                    type: 'leave_room',
+                    playerId: currentPlayer.id
+                }));
+                
+                // Close socket connection
+                socket.close();
+                socket = null;
+            }
+            
+            // Reset game state
+            players = [];
+            isRoomOwner = false;
+            roomCode = '';
+            
+            // Show lobby screen
+            document.getElementById('waiting-room').style.display = 'none';
+            document.getElementById('lobby-screen').style.display = 'flex';
+            gameState = GAME_STATES.LOBBY;
+        }
+
+        // Start the game
+        function startGame() {
+            if (!isRoomOwner) return;
+            
+            // Send start game message
+            socket.send(JSON.stringify({
+                type: 'start_game'
+            }));
+        }
+
+        // Go back to lobby after game
+        function backToLobby() {
+            // Close current game session
+            if (socket) {
+                socket.close();
+                socket = null;
+            }
+            
+            // Reset game variables
+            players = [];
+            flowers = [];
+            isRoomOwner = false;
+            roomCode = '';
+            gameTime = 60;
+            mapRadius = 0;
+            
+            // Clear any running timers
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+            
+            // Hide game over screen and show lobby
+            document.getElementById('game-over').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('lobby-screen').style.display = 'flex';
+            gameState = GAME_STATES.LOBBY;
+        }
+
+        // Connect to WebSocket server
+        function connectToServer(roomCodeToJoin = null, isCreate = false) {
+            // In production, this would be the actual Socket.IO server address
+            // For Socket.IO, the URL typically doesn't include '/ws' at the end
+            // and often uses http/https protocol instead of ws/wss
+            const serverUrl = 'serversocket-production.up.railway.app';
+            
+            // Create WebSocket connection
+            socket = createWebSocket(serverUrl);
+            
+            // Connection opened
+            socket.addEventListener('open', (event) => {
+                console.log('Connected to WebSocket server');
+                
+                // Send create or join room message
+                if (isCreate) {
+                    socket.send(JSON.stringify({
+                        type: 'create_room',
+                        player: currentPlayer
+                    }));
+                } else if (roomCodeToJoin) {
+                    socket.send(JSON.stringify({
+                        type: 'join_room',
+                        roomCode: roomCodeToJoin,
+                        player: currentPlayer
+                    }));
+                }
             });
             
-            // Reset room state
-            gameState.room.id = null;
-            gameState.room.code = null;
-            gameState.room.players = [];
-            gameState.room.playerCount = 0;
-            gameState.isRoomOwner = false;
-            
-            // Go back to menu
-            showScreen('menu');
-        }
-        
-        // --------------------------
-        // BUTTON EVENT LISTENERS
-        // --------------------------
-        
-        // Menu buttons
-        createRoomBtn.addEventListener('click', createRoom);
-        joinRoomBtn.addEventListener('click', joinRoom);
-        
-        // Room buttons
-        startGameBtn.addEventListener('click', startGame);
-        leaveRoomBtn.addEventListener('click', leaveRoom);
-        
-        // Game over buttons
-        backToRoomBtn.addEventListener('click', () => {
-            showScreen('room');
-        });
-        
-        backToMenuBtn.addEventListener('click', () => {
-            if (gameState.room.id) {
-                leaveRoom();
-            } else {
-                showScreen('menu');
-            }
-        });
-        
-        // Error buttons
-        errorOkBtn.addEventListener('click', () => {
-            errorMessageElement.style.display = 'none';
-        });
-        
-        // --------------------------
-        // INITIALIZATION
-        // --------------------------
-        
-        // Setup game input
-        setupGameInput();
-        
-        // Start loading screen
-        startLoading();
-        
-        // Initialize WebSocket (commented out for testing)
-        // Uncomment and update CONFIG.SERVER_URL when you have a real server
-        // initializeWebSocket();
-        
-        // For testing only - simulate websocket server
-        function simulateWebSocketServer() {
-            // We'll create a fake implementation for testing
-            console.log('Using WebSocket simulation mode');
-            
-            // Simulate connection after a delay
-            setTimeout(() => {
-                setNetworkStatus('connected');
+            // Listen for messages
+            socket.addEventListener('message', (event) => {
+                const message = JSON.parse(event.data);
+                console.log('Message from server:', message);
                 
-                // Simulate player_id message
-                handleServerMessage({
-                    type: 'player_id',
-                    playerId: 'player_' + Math.floor(Math.random() * 10000)
-                });
+                switch (message.type) {
+                    case 'room_created':
+                        roomCode = message.roomCode;
+                        document.getElementById('room-code').textContent = roomCode;
+                        updatePlayerList([currentPlayer]);
+                        break;
+                        
+                    case 'room_joined':
+                        roomCode = message.roomCode;
+                        document.getElementById('room-code').textContent = roomCode;
+                        updatePlayerList(message.players);
+                        break;
+                        
+                    case 'room_updated':
+                        updatePlayerList(message.players);
+                        break;
+                        
+                    case 'game_started':
+                        startGameSession(message.players, message.flowers, message.mapRadius);
+                        break;
+                        
+                    case 'game_update':
+                        updateGameState(message.players, message.flowers, message.mapRadius, message.timeRemaining);
+                        break;
+                        
+                    case 'game_over':
+                        endGame(message.winners, message.allPlayers);
+                        break;
+                }
+            });
+            
+            // Connection closed
+            socket.addEventListener('close', (event) => {
+                console.log('Disconnected from server');
+            });
+            
+            // Error handling
+            socket.addEventListener('error', (event) => {
+                console.error('WebSocket error:', event);
+            });
+            
+            // For development, initialize the connection
+            if (socket.connect) {
+                socket.connect(roomCodeToJoin, isCreate);
+            }
+        }
+
+        // Update player list in waiting room
+        function updatePlayerList(playerList) {
+            players = playerList;
+            
+            // Update player count
+            document.getElementById('player-count').textContent = players.length;
+            
+            // Update waiting message
+            if (players.length < 2) {
+                document.getElementById('waiting-message').textContent = 'Waiting for more players...';
+                document.getElementById('start-game-container').style.display = 'none';
+            } else {
+                document.getElementById('waiting-message').textContent = 'Ready to start!';
+                if (isRoomOwner) {
+                    document.getElementById('start-game-container').style.display = 'block';
+                }
+            }
+            
+            // Update player list UI
+            const playerListElement = document.getElementById('player-list');
+            playerListElement.innerHTML = '';
+            
+            players.forEach(player => {
+                const playerElement = document.createElement('div');
+                playerElement.className = 'player-item';
+                
+                const avatarElement = document.createElement('div');
+                avatarElement.className = 'player-avatar';
+                avatarElement.textContent = player.nickname.charAt(0).toUpperCase();
+                avatarElement.style.backgroundColor = playerColors[player.avatar % playerColors.length];
+                
+                const nameElement = document.createElement('div');
+                nameElement.textContent = player.nickname;
+                if (player.isOwner) {
+                    nameElement.textContent += ' 👑';
+                }
+                
+                playerElement.appendChild(avatarElement);
+                playerElement.appendChild(nameElement);
+                playerListElement.appendChild(playerElement);
+            });
+        }
+
+        // Start the game session
+        function startGameSession(gamePlayers, gameFlowers, initialMapRadius) {
+            // Hide waiting room and show game screen
+            document.getElementById('waiting-room').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            gameState = GAME_STATES.PLAYING;
+            
+            // Initialize game variables
+            players = gamePlayers;
+            flowers = gameFlowers;
+            mapRadius = initialMapRadius;
+            gameTime = 60;
+            
+            // Find current player in the list
+            const playerIndex = players.findIndex(p => p.id === currentPlayer.id);
+            if (playerIndex !== -1) {
+                currentPlayer = players[playerIndex];
+            }
+            
+            // Start game timer
+            gameTimer = setInterval(() => {
+                gameTime--;
+                document.getElementById('timer').textContent = gameTime;
+                
+                if (gameTime <= 0) {
+                    clearInterval(gameTimer);
+                }
             }, 1000);
             
-            // Override sendToServer to simulate server responses
-            window.realSendToServer = sendToServer;
-            sendToServer = function(message) {
-                console.log('Sending to simulated server:', message);
-                
-                // Simulate server response based on message type
-                setTimeout(() => {
-                    switch (message.type) {
-                        case 'create_room':
-                            handleServerMessage({
-                                type: 'room_created',
-                                roomId: 'room_' + Math.floor(Math.random() * 10000),
-                                roomCode: Math.floor(1000 + Math.random() * 9000).toString(),
-                                isOwner: true
-                            });
-                            
-                            // Simulate room_update after create
-                            setTimeout(() => {
-                                handleServerMessage({
-                                    type: 'room_update',
-                                    players: [
-                                        {
-                                            id: gameState.playerId,
-                                            name: message.playerName,
-                                            isOwner: true
-                                        }
-                                    ]
-                                });
-                            }, 300);
-                            break;
-                            
-                        case 'join_room':
-                            if (Math.random() > 0.2) {
-                                // Success
-                                handleServerMessage({
-                                    type: 'room_joined',
-                                    roomId: 'room_' + Math.floor(Math.random() * 10000),
-                                    roomCode: message.roomCode,
-                                    isOwner: false
-                                });
-                                
-                                // Simulate room_update after join
-                                setTimeout(() => {
-                                    // Create 1-6 simulated players plus the joining player
-                                    const numOtherPlayers = Math.floor(Math.random() * 6);
-                                    const players = [];
-                                    
-                                    // Add owner
-                                    players.push({
-                                        id: 'player_owner',
-                                        name: 'Chủ phòng',
-                                        isOwner: true
-                                    });
-                                    
-                                    // Add other players
-                                    for (let i = 0; i < numOtherPlayers; i++) {
-                                        players.push({
-                                            id: 'player_' + i,
-                                            name: 'Người chơi ' + (i + 1),
-                                            isOwner: false
-                                        });
-                                    }
-                                    
-                                    // Add joining player
-                                    players.push({
-                                        id: gameState.playerId,
-                                        name: message.playerName,
-                                        isOwner: false
-                                    });
-                                    
-                                    handleServerMessage({
-                                        type: 'room_update',
-                                        players: players
-                                    });
-                                }, 300);
-                            } else {
-                                // Failure
-                                handleServerMessage({
-                                    type: 'error',
-                                    message: 'Phòng không tồn tại hoặc đã đầy.'
-                                });
-                            }
-                            break;
-                            
-                        case 'start_game':
-                            // Generate random players
-                            const playersMap = {};
-                            const colors = [
-                                '#FF6B8B', // human player
-                                '#64B5F6',
-                                '#81C784',
-                                '#FFD54F',
-                                '#BA68C8',
-                                '#4FC3F7',
-                                '#AED581'
-                            ];
-                            
-                            // Add all room players to the game
-                            gameState.room.players.forEach((player, index) => {
-                                const centerX = canvas.width / 2;
-                                const centerY = canvas.height / 2;
-                                const radius = Math.min(canvas.width, canvas.height) * 0.25;
-                                
-                                const angle = (index * Math.PI * 2) / gameState.room.players.length;
-                                const x = centerX + Math.cos(angle) * radius * 0.5;
-                                const y = centerY + Math.sin(angle) * radius * 0.5;
-                                
-                                playersMap[player.id] = {
-                                    id: player.id,
-                                    name: player.name,
-                                    x: x,
-                                    y: y,
-                                    color: colors[index % colors.length],
-                                    score: 0
-                                };
-                            });
-                            
-                            // Generate random flowers
-                            const flowers = [];
-                            const centerX = canvas.width / 2;
-                            const centerY = canvas.height / 2;
-                            const playAreaRadius = Math.min(canvas.width, canvas.height) * CONFIG.INIT_AREA_RATIO * 0.9;
-                            
-                            for (let i = 0; i < 30; i++) {
-                                const angle = Math.random() * Math.PI * 2;
-                                const distance = Math.random() * playAreaRadius;
-                                const x = centerX + Math.cos(angle) * distance;
-                                const y = centerY + Math.sin(angle) * distance;
-                                
-                                flowers.push({
-                                    id: 'flower_' + i,
-                                    x: x,
-                                    y: y,
-                                    type: Math.floor(Math.random() * 5),
-                                    collected: false
-                                });
-                            }
-                            
-                            handleServerMessage({
-                                type: 'game_start',
-                                players: Object.values(playersMap),
-                                flowers: flowers,
-                                playArea: {
-                                    radius: playAreaRadius
-                                }
-                            });
-                            
-                            // Simulate game state updates
-                            let gameTimeRemaining = CONFIG.GAME_DURATION;
-                            const gameInterval = setInterval(() => {
-                                if (gameState.status !== 'playing') {
-                                    clearInterval(gameInterval);
-                                    return;
-                                }
-                                
-                                gameTimeRemaining -= 1;
-                                
-                                // Update bot player positions
-                                Object.values(playersMap).forEach(player => {
-                                    if (player.id !== gameState.playerId) {
-                                        // Random movement
-                                        player.x += (Math.random() - 0.5) * 10;
-                                        player.y += (Math.random() - 0.5) * 10;
-                                        
-                                        // Collect flowers randomly
-                                        if (Math.random() < 0.1) {
-                                            // Find uncollected flower
-                                            const uncollectedFlowers = flowers.filter(f => !f.collected);
-                                            if (uncollectedFlowers.length > 0) {
-                                                const flowerIndex = Math.floor(Math.random() * uncollectedFlowers.length);
-                                                const flower = uncollectedFlowers[flowerIndex];
-                                                flower.collected = true;
-                                                flower.collectedBy = player.id;
-                                                
-                                                // Increment score
-                                                player.score += 1;
-                                            }
-                                        }
-                                    }
-                                });
-                                
-                                // Shrink play area
-                                playAreaRadius = Math.max(
-                                    CONFIG.MIN_AREA_RADIUS,
-                                    playAreaRadius - CONFIG.SHRINK_RATE
-                                );
-                                
-                                // Add new flowers occasionally
-                                if (Math.random() < 0.3) {
-                                    const uncollectedCount = flowers.filter(f => !f.collected).length;
-                                    
-                                    if (uncollectedCount < CONFIG.MIN_FLOWERS) {
-                                        const newFlowers = [];
-                                        const flowerCount = Math.floor(Math.random() * 5) + 3;
-                                        
-                                        for (let i = 0; i < flowerCount; i++) {
-                                            const angle = Math.random() * Math.PI * 2;
-                                            const distance = Math.random() * playAreaRadius * 0.8;
-                                            const x = centerX + Math.cos(angle) * distance;
-                                            const y = centerY + Math.sin(angle) * distance;
-                                            
-                                            const newFlower = {
-                                                id: 'flower_new_' + Date.now() + '_' + i,
-                                                x: x,
-                                                y: y,
-                                                type: Math.floor(Math.random() * 5),
-                                                collected: false
-                                            };
-                                            
-                                            newFlowers.push(newFlower);
-                                            flowers.push(newFlower);
-                                        }
-                                        
-                                        // Update with new flowers
-                                        handleServerMessage({
-                                            type: 'game_state',
-                                            players: playersMap,
-                                            timeRemaining: gameTimeRemaining,
-                                            newFlowers: newFlowers,
-                                            playArea: {
-                                                radius: playAreaRadius
-                                            }
-                                        });
-                                    }
-                                } else {
-                                    // Regular update
-                                    handleServerMessage({
-                                        type: 'game_state',
-                                        players: playersMap,
-                                        timeRemaining: gameTimeRemaining,
-                                        playArea: {
-                                            radius: playAreaRadius
-                                        }
-                                    });
-                                }
-                                
-                                // End game when time runs out
-                                if (gameTimeRemaining <= 0) {
-                                    clearInterval(gameInterval);
-                                    
-                                    handleServerMessage({
-                                        type: 'game_over',
-                                        players: playersMap
-                                    });
-                                }
-                            }, 1000);
-                            break;
-                            
-                        case 'leave_room':
-                            // No response needed
-                            break;
-                            
-                        case 'player_move':
-                            // Update local player in our simulated state
-                            if (gameState.game.players && gameState.game.players[gameState.playerId]) {
-                                gameState.game.players[gameState.playerId].x = message.x;
-                                gameState.game.players[gameState.playerId].y = message.y;
-                            }
-                            break;
-                            
-                        case 'collect_flowers':
-                            // Already handled by client for responsive feel
-                            break;
-                    }
-                }, 200);
-                
-                return true;
-            };
+            // Start game loop
+            requestAnimationFrame(gameLoop);
         }
-        
-        // Use simulation mode for testing
-        simulateWebSocketServer();
+
+        // Update game state with server data
+        function updateGameState(gamePlayers, gameFlowers, gameMapRadius, timeRemaining) {
+            players = gamePlayers;
+            flowers = gameFlowers;
+            mapRadius = gameMapRadius;
+            gameTime = timeRemaining;
+            
+            // Update time display
+            document.getElementById('timer').textContent = gameTime;
+            
+            // Find current player in the list
+            const playerIndex = players.findIndex(p => p.id === currentPlayer.id);
+            if (playerIndex !== -1) {
+                currentPlayer.score = players[playerIndex].score;
+            }
+            
+            // Update leaderboard
+            updateLeaderboard();
+        }
+
+        // Update leaderboard display
+        function updateLeaderboard() {
+            // Sort players by score
+            leaderboard = [...players].sort((a, b) => b.score - a.score).slice(0, 5);
+            
+            // Update leaderboard UI
+            const leaderboardElement = document.getElementById('leaderboard');
+            leaderboardElement.innerHTML = '';
+            
+            leaderboard.forEach((player, index) => {
+                const scoreItem = document.createElement('div');
+                scoreItem.className = 'score-item';
+                
+                const playerInfo = document.createElement('div');
+                playerInfo.innerHTML = `${index + 1}. <span style="color:${playerColors[player.avatar % playerColors.length]}">${player.nickname}</span>`;
+                
+                const playerScore = document.createElement('div');
+                playerScore.textContent = player.score;
+                
+                scoreItem.appendChild(playerInfo);
+                scoreItem.appendChild(playerScore);
+                leaderboardElement.appendChild(scoreItem);
+            });
+        }
+
+        // End the game
+        function endGame(winners, allPlayers) {
+            // Update game state
+            gameState = GAME_STATES.GAME_OVER;
+            
+            // Clear any timers
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+            
+            // Create podium display
+            const podiumElement = document.getElementById('podium');
+            podiumElement.innerHTML = '';
+            
+            // Add second place (left)
+            if (winners.length > 1) {
+                const secondPlace = createPodiumPlace(winners[1], 2);
+                podiumElement.appendChild(secondPlace);
+            }
+            
+            // Add first place (center)
+            if (winners.length > 0) {
+                const firstPlace = createPodiumPlace(winners[0], 1);
+                podiumElement.appendChild(firstPlace);
+                
+                // Trigger confetti for the winner
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+            
+            // Add third place (right)
+            if (winners.length > 2) {
+                const thirdPlace = createPodiumPlace(winners[2], 3);
+                podiumElement.appendChild(thirdPlace);
+            }
+            
+            // Show game over screen
+            document.getElementById('game-over').style.display = 'flex';
+        }
+
+        // Create a podium place element
+        function createPodiumPlace(player, place) {
+            const placeElement = document.createElement('div');
+            placeElement.className = `podium-place place-${place}`;
+            
+            const avatarElement = document.createElement('div');
+            avatarElement.className = 'podium-avatar';
+            avatarElement.textContent = player.nickname.charAt(0).toUpperCase();
+            avatarElement.style.backgroundColor = playerColors[player.avatar % playerColors.length];
+            
+            const nameElement = document.createElement('div');
+            nameElement.className = 'podium-name';
+            nameElement.textContent = player.nickname;
+            
+            const scoreElement = document.createElement('div');
+            scoreElement.className = 'podium-score';
+            scoreElement.textContent = `${player.score} points`;
+            
+            const blockElement = document.createElement('div');
+            blockElement.className = 'podium-block';
+            blockElement.textContent = `#${place}`;
+            
+            placeElement.appendChild(avatarElement);
+            placeElement.appendChild(nameElement);
+            placeElement.appendChild(scoreElement);
+            placeElement.appendChild(blockElement);
+            
+            return placeElement;
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (gameState !== GAME_STATES.PLAYING) return;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, gameWidth, gameHeight);
+            
+            // Draw game world
+            drawWorld();
+            
+            // Request next frame
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Draw the game world
+        function drawWorld() {
+            // Center the view
+            ctx.save();
+            ctx.translate(gameWidth / 2, gameHeight / 2);
+            
+            // Draw circular map boundary
+            ctx.beginPath();
+            ctx.arc(0, 0, mapRadius, 0, Math.PI * 2);
+            ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#333333' : '#f0f0f0';
+            ctx.fill();
+            
+            // Draw pulsating border
+            ctx.beginPath();
+            ctx.arc(0, 0, mapRadius, 0, Math.PI * 2);
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = 'rgba(255, 107, 156, 0.7)';
+            ctx.stroke();
+            
+            // Draw flowers
+            flowers.forEach(flower => {
+                drawFlower(flower.x, flower.y, flower.type);
+            });
+            
+            // Draw other players
+            players.forEach(player => {
+                if (player.id !== currentPlayer.id) {
+                    drawPlayer(player.x, player.y, player.avatar, player.nickname);
+                }
+            });
+            
+            // Draw current player on top
+            drawPlayer(currentPlayer.x, currentPlayer.y, currentPlayer.avatar, currentPlayer.nickname, true);
+            
+            ctx.restore();
+        }
+
+        // Draw a player
+        function drawPlayer(x, y, avatarIndex, nickname, isCurrentPlayer = false) {
+            const radius = 25;
+            const color = playerColors[avatarIndex % playerColors.length];
+            
+            ctx.save();
+            ctx.translate(x, y);
+            
+            // Draw player shadow
+            ctx.beginPath();
+            ctx.arc(0, 5, radius - 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fill();
+            
+            // Draw player circle
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            
+            // Draw player inner circle
+            ctx.beginPath();
+            ctx.arc(0, 0, radius * 0.7, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fill();
+            
+            // Draw player initial
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'white';
+            ctx.fillText(nickname.charAt(0).toUpperCase(), 0, 0);
+            
+            // Draw player name
+            ctx.font = '14px Arial';
+            ctx.fillStyle = 'white';
+            ctx.fillText(nickname, 0, radius + 15);
+            
+            // Draw current player indicator
+            if (isCurrentPlayer) {
+                ctx.beginPath();
+                ctx.arc(0, 0, radius + 5, 0, Math.PI * 2);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'white';
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+
+        // Draw a flower
+        function drawFlower(x, y, flowerType) {
+            const radius = flowerType.radius;
+            const petalCount = flowerType.petals;
+            const color = flowerType.color;
+            
+            ctx.save();
+            ctx.translate(x, y);
+            
+            // Optional: Add subtle rotation animation
+            const time = Date.now() / 2000;
+            ctx.rotate(time % (Math.PI * 2));
+            
+            // Draw petals
+            for (let i = 0; i < petalCount; i++) {
+                const angle = (i / petalCount) * Math.PI * 2;
+                const petalLength = radius * 1.2;
+                
+                ctx.save();
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.ellipse(0, petalLength / 2, radius / 2, petalLength / 2, 0, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.restore();
+            }
+            
+            // Draw center
+            ctx.beginPath();
+            ctx.arc(0, 0, radius / 2, 0, Math.PI * 2);
+            ctx.fillStyle = flowerType.points >= 3 ? 'gold' : 'yellow';
+            ctx.fill();
+            
+            // Draw point value for high-value flowers
+            if (flowerType.points > 1) {
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'white';
+                ctx.fillText(flowerType.points, 0, 0);
+            }
+            
+            ctx.restore();
+        }
+
+        // Mouse/Touch event handlers
+        function handleMouseDown(e) {
+            if (gameState !== GAME_STATES.PLAYING) return;
+            
+            isDragging = true;
+            touchX = e.clientX;
+            touchY = e.clientY;
+        }
+
+        function handleMouseMove(e) {
+            if (!isDragging || gameState !== GAME_STATES.PLAYING) return;
+            
+            // Calculate movement delta
+            const deltaX = e.clientX - touchX;
+            const deltaY = e.clientY - touchY;
+            
+            // Move player
+            movePlayer(deltaX, deltaY);
+            
+            // Update last position
+            touchX = e.clientX;
+            touchY = e.clientY;
+        }
+
+        function handleMouseUp() {
+            isDragging = false;
+        }
+
+        function handleTouchStart(e) {
+            if (gameState !== GAME_STATES.PLAYING) return;
+            
+            e.preventDefault();
+            isDragging = true;
+            touchX = e.touches[0].clientX;
+            touchY = e.touches[0].clientY;
+        }
+
+        function handleTouchMove(e) {
+            if (!isDragging || gameState !== GAME_STATES.PLAYING) return;
+            
+            e.preventDefault();
+            
+            // Calculate movement delta
+            const deltaX = e.touches[0].clientX - touchX;
+            const deltaY = e.touches[0].clientY - touchY;
+            
+            // Move player
+            movePlayer(deltaX, deltaY);
+            
+            // Update last position
+            touchX = e.touches[0].clientX;
+            touchY = e.touches[0].clientY;
+        }
+
+        function handleTouchEnd() {
+            isDragging = false;
+        }
+
+        // Move player
+        function movePlayer(deltaX, deltaY) {
+            // Scale down movement
+            const moveFactor = 0.5;
+            currentPlayer.x += deltaX * moveFactor;
+            currentPlayer.y += deltaY * moveFactor;
+            
+            // Keep player within map bounds
+            const distFromCenter = Math.sqrt(currentPlayer.x * currentPlayer.x + currentPlayer.y * currentPlayer.y);
+            if (distFromCenter > mapRadius * 0.95) {
+                currentPlayer.x = (currentPlayer.x / distFromCenter) * mapRadius * 0.95;
+                currentPlayer.y = (currentPlayer.y / distFromCenter) * mapRadius * 0.95;
+            }
+            
+            // Send move to server
+            if (socket) {
+                // With Socket.IO you can use:
+                 socket.emit('player_move', {
+                    playerId: currentPlayer.id,
+                    x: currentPlayer.x,
+                    y: currentPlayer.y
+                 });
+                
+                // For compatibility with our wrapper
+                socket.send(JSON.stringify({
+                    type: 'player_move',
+                    playerId: currentPlayer.id,
+                    x: currentPlayer.x,
+                    y: currentPlayer.y
+                }));
+            }
+        }
+
+        // Helper function to generate an ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substring(2);
+        }
+
+        // Initialize game on load
+        window.addEventListener('load', init);
     </script>
 </body>
 </html>
