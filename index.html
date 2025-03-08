@@ -2,73 +2,46 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hiếu Gà - Hoa Đua Sắc</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#FF6B9D',
-                        secondary: '#8A4FFF',
-                        accent: '#FFD166',
-                        background: '#FFFAFC',
-                        success: '#06D6A0',
-                        danger: '#EF476F',
-                        dark: {
-                            primary: '#FF4D8D',
-                            secondary: '#7839FF',
-                            background: '#241C2C',
-                            text: '#F0E6FF'
-                        }
-                    },
-                    animation: {
-                        'float': 'float 3s ease-in-out infinite',
-                        'shine': 'shine 1.5s ease-in-out infinite',
-                        'flower-rotate': 'flower-rotate 8s linear infinite',
-                        'bounce-slow': 'bounce 2s ease-in-out infinite'
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' }
-                        },
-                        shine: {
-                            '0%': { opacity: '0.5' },
-                            '50%': { opacity: '1' },
-                            '100%': { opacity: '0.5' }
-                        },
-                        'flower-rotate': {
-                            '0%': { transform: 'rotate(0deg)' },
-                            '100%': { transform: 'rotate(360deg)' }
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Hiếu Gà Huyền Thoại</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.3.1/dist/pixi.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+        :root {
+            --primary: #5D5CDE;
+            --secondary: #ff9500;
+            --accent: #fc3d03;
+            --background: #ffffff;
+            --text: #333333;
+            --card: #f5f5f5;
+            --border: #dddddd;
+        }
+
+        .dark {
+            --primary: #6665e0;
+            --secondary: #ffb040;
+            --accent: #ff5c3a;
+            --background: #181818;
+            --text: #e0e0e0;
+            --card: #282828;
+            --border: #3d3d3d;
         }
 
         body {
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
             overflow: hidden;
-            touch-action: none;
-            background-color: #FFFAFC;
-            color: #333;
-            position: relative;
+            touch-action: manipulation;
         }
 
-        .dark body {
-            background-color: #241C2C;
-            color: #F0E6FF;
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
         }
 
         #game-canvas {
@@ -77,500 +50,522 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 10;
         }
 
-        .joystick-container {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 150px;
-            height: 150px;
-            z-index: 50;
-            touch-action: none;
-            opacity: 0.7;
-        }
-
-        .joystick-background {
+        .ui-overlay {
             position: absolute;
+            z-index: 10;
+            pointer-events: none;
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
-        .joystick-thumb {
+        .control-area {
             position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 150px;
+            height: 150px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            touch-action: none;
+            pointer-events: auto;
+        }
+
+        .joystick {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+        }
+
+        .abilities {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .ability-btn {
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            border: 2px solid rgba(255, 255, 255, 0.8);
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            background-color: var(--primary);
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid gold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
         }
 
-        .chicken-logo {
+        .ability-cooldown {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            transition: height 0.1s linear;
+        }
+
+        .menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--background);
+            color: var(--text);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .character-selection {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            max-width: 600px;
+        }
+
+        .character-card {
+            width: 120px;
+            background-color: var(--card);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .character-card:hover, .character-card.selected {
+            border-color: var(--accent);
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .character-image {
+            width: 80px;
+            height: 80px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
             position: relative;
-            width: 180px;
-            height: 180px;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .game-logo {
+            width: 150px;
+            height: 150px;
             margin: 0 auto;
         }
 
-        .chicken-body {
-            width: 100px;
-            height: 100px;
-            background-color: #FFC36B;
-            border-radius: 50%;
+        .logo-text {
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: var(--accent);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats-bar {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            pointer-events: auto;
+        }
+
+        .health-bar, .mana-bar {
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            margin: 5px 0;
+            width: 45%;
+        }
+
+        .health-bar {
+            background-color: rgba(255, 0, 0, 0.3);
+            border: 2px solid #a00;
+        }
+
+        .mana-bar {
+            background-color: rgba(0, 0, 255, 0.3);
+            border: 2px solid #00a;
+        }
+
+        .health-fill, .mana-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+        }
+
+        .health-fill {
+            background-color: #f00;
+            width: 100%;
+        }
+
+        .mana-fill {
+            background-color: #00f;
+            width: 100%;
+        }
+
+        .health-text, .mana-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            line-height: 20px;
+        }
+
+        .score-display {
             position: absolute;
             top: 50px;
-            left: 50px;
-            z-index: 1;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
         }
 
-        .chicken-head {
-            width: 70px;
-            height: 70px;
-            background-color: #FFA500;
-            border-radius: 50%;
+        .team-score {
+            padding: 5px 15px;
+            margin: 0 10px;
+            border-radius: 5px;
+        }
+
+        .team-blue {
+            background-color: rgba(0, 100, 255, 0.7);
+        }
+
+        .team-red {
+            background-color: rgba(255, 50, 50, 0.7);
+        }
+
+        .minimap {
             position: absolute;
-            top: 30px;
-            left: 70px;
-            z-index: 2;
-        }
-
-        .chicken-eye {
-            width: 20px;
-            height: 20px;
-            background-color: white;
-            border-radius: 50%;
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            z-index: 3;
-        }
-
-        .chicken-eye::after {
-            content: '';
-            width: 10px;
-            height: 10px;
-            background-color: black;
-            border-radius: 50%;
-            position: absolute;
-            top: 5px;
-            left: 5px;
-        }
-
-        .chicken-comb {
-            width: 15px;
-            height: 30px;
-            background-color: #FF5555;
-            position: absolute;
-            top: -25px;
-            left: 30px;
-            border-radius: 10px 10px 0 0;
-            z-index: 2;
-        }
-
-        .chicken-beak {
-            width: 30px;
-            height: 15px;
-            background-color: #FF9500;
-            position: absolute;
-            top: 35px;
-            left: 55px;
-            border-radius: 50%;
-            transform: rotate(10deg);
-            z-index: 3;
-        }
-
-        .chicken-legs {
-            width: 10px;
-            height: 30px;
-            background-color: #FF9500;
-            position: absolute;
-            bottom: -25px;
-            left: 70px;
-            z-index: 0;
-        }
-
-        .chicken-legs::before {
-            content: '';
-            width: 10px;
-            height: 30px;
-            background-color: #FF9500;
-            position: absolute;
-            bottom: 0;
-            left: -30px;
-        }
-
-        .chicken-wing {
-            width: 40px;
-            height: 60px;
-            background-color: #FFDB99;
-            border-radius: 50% 50% 0 50%;
-            position: absolute;
-            top: 60px;
-            left: 20px;
-            transform: rotate(-30deg);
-            z-index: 0;
-        }
-
-        .flower {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-        }
-
-        .petal {
-            width: 15px;
-            height: 15px;
-            background-color: #FF6B9D;
-            border-radius: 50%;
-            position: absolute;
-        }
-
-        .petal:nth-child(1) { top: 0; left: 12.5px; }
-        .petal:nth-child(2) { top: 6px; left: 22px; }
-        .petal:nth-child(3) { top: 12.5px; left: 25px; }
-        .petal:nth-child(4) { top: 22px; left: 22px; }
-        .petal:nth-child(5) { top: 25px; left: 12.5px; }
-        .petal:nth-child(6) { top: 22px; left: 3px; }
-        .petal:nth-child(7) { top: 12.5px; left: 0; }
-        .petal:nth-child(8) { top: 6px; left: 3px; }
-
-        .flower-center {
-            width: 15px;
-            height: 15px;
-            background-color: #FFD166;
-            border-radius: 50%;
-            position: absolute;
-            top: 12.5px;
-            left: 12.5px;
-            z-index: 2;
-        }
-
-        .flower-alt .petal {
-            background-color: #8A4FFF;
-        }
-
-        .flower-alt-2 .petal {
-            background-color: #06D6A0;
-        }
-
-        .bouncing-btn {
-            animation: bounce-slow 2s infinite;
-        }
-        
-        @keyframes bounce-slow {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .border-pulse {
-            animation: border-pulse 2s infinite;
-        }
-        
-        @keyframes border-pulse {
-            0%, 100% { border-color: rgba(255, 107, 157, 0.5); }
-            50% { border-color: rgba(255, 107, 157, 1); }
-        }
-        
-        .typing-animation::after {
-            content: '|';
-            animation: blink 1s infinite;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        .player {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            transition: transform 0.1s linear;
-        }
-
-        .player-avatar {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .player-name {
-            position: absolute;
-            top: -20px;
+            bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
-            white-space: nowrap;
-            text-align: center;
-            font-size: 12px;
-            font-weight: bold;
-            text-shadow: 0 0 3px #FFF, 0 0 3px #FFF, 0 0 3px #FFF;
+            width: 150px;
+            height: 150px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 2px solid gold;
+            border-radius: 5px;
+            pointer-events: auto;
         }
 
-        .player-health {
+        #loading-screen {
             position: absolute;
-            bottom: -10px;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 5px;
-            background-color: #ccc;
-            border-radius: 2px;
-        }
-
-        .player-health-inner {
             height: 100%;
-            background-color: #06D6A0;
-            border-radius: 2px;
-            transition: width 0.3s;
+            background-color: var(--background);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
         }
 
-        .game-item {
-            position: absolute;
-            width: 30px;
+        .loading-bar-container {
+            width: 80%;
+            max-width: 400px;
             height: 30px;
-            border-radius: 50%;
-            z-index: 5;
+            background-color: var(--card);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 20px;
         }
 
-        .safe-zone {
-            position: absolute;
-            border: 2px dashed #8A4FFF;
-            border-radius: 50%;
-            opacity: 0.7;
-            pointer-events: none;
-            z-index: 5;
+        .loading-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            transition: width 0.5s ease;
         }
 
-        .danger-zone {
-            position: absolute;
-            background-color: rgba(239, 71, 111, 0.2);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 4;
-        }
-
-        #flowers-collected {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 20;
+        .loading-text {
+            margin-top: 10px;
             font-size: 18px;
-            font-weight: bold;
-            background-color: rgba(255, 255, 255, 0.7);
-            padding: 5px 10px;
-            border-radius: 10px;
+            color: var(--text);
         }
 
-        #players-count {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 20;
-            font-size: 18px;
-            font-weight: bold;
-            background-color: rgba(255, 255, 255, 0.7);
-            padding: 5px 10px;
-            border-radius: 10px;
+        @media (max-width: 768px) {
+            .character-card {
+                width: 100px;
+            }
+            
+            .ability-btn {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .control-area {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .minimap {
+                width: 100px;
+                height: 100px;
+            }
         }
 
-        #countdown {
-            position: fixed;
+        .game-over {
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
             z-index: 25;
-            font-size: 80px;
-            font-weight: bold;
-            color: #FF6B9D;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
-            opacity: 0;
-            transition: opacity 0.3s;
         }
 
-        .confetti {
+        .entity-name {
             position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #FF6B9D;
-            opacity: 0.8;
-            z-index: 100;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .floating-text {
+            position: absolute;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+            animation: float-up 1s forwards;
+        }
+
+        @keyframes float-up {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Splash Screen -->
-    <div id="splash-screen" class="fixed inset-0 flex flex-col items-center justify-center bg-background dark:bg-dark-background z-50">
-        <div class="chicken-logo animate-float mb-4">
-            <div class="chicken-body"></div>
-            <div class="chicken-wing"></div>
-            <div class="chicken-head">
-                <div class="chicken-eye"></div>
-                <div class="chicken-comb"></div>
-                <div class="chicken-beak"></div>
-            </div>
-            <div class="chicken-legs"></div>
-        </div>
-        <h1 class="text-3xl font-bold text-primary dark:text-dark-primary mb-2">Hiếu Gà</h1>
-        <h2 class="text-xl font-semibold text-secondary dark:text-dark-secondary mb-6">Hoa Đua Sắc</h2>
-        <p class="text-gray-600 dark:text-dark-text mb-8 text-center px-4">Chào mừng ngày 8/3! <br>Hãy cùng tham gia trận chiến sắc hoa!</p>
-        <button id="play-button" class="bg-primary hover:bg-opacity-90 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition duration-300 hover:scale-105 bouncing-btn">
-            Bắt Đầu Chơi
-        </button>
-        
-        <div class="mt-8 flex justify-center space-x-2">
-            <div class="flower animate-flower-rotate">
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="flower-center"></div>
-            </div>
-            <div class="flower flower-alt animate-flower-rotate" style="animation-delay: 0.5s">
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="flower-center"></div>
-            </div>
-            <div class="flower flower-alt-2 animate-flower-rotate" style="animation-delay: 1s">
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="petal"></div>
-                <div class="flower-center"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Lobby Screen -->
-    <div id="lobby-screen" class="fixed inset-0 flex flex-col items-center justify-center bg-background dark:bg-dark-background z-40 hidden">
-        <div class="w-full max-w-md p-6 bg-white dark:bg-dark-background rounded-xl shadow-lg">
-            <div class="flex items-center justify-center mb-6">
-                <div class="chicken-logo" style="transform: scale(0.6);">
-                    <div class="chicken-body"></div>
-                    <div class="chicken-wing"></div>
-                    <div class="chicken-head">
-                        <div class="chicken-eye"></div>
-                        <div class="chicken-comb"></div>
-                        <div class="chicken-beak"></div>
-                    </div>
-                    <div class="chicken-legs"></div>
-                </div>
-                <div>
-                    <h2 class="text-2xl font-bold text-primary dark:text-dark-primary">Hiếu Gà</h2>
-                    <h3 class="text-lg font-semibold text-secondary dark:text-dark-secondary">Hoa Đua Sắc</h3>
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <label for="player-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tên của bạn:</label>
-                <input type="text" id="player-name" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 dark:text-white text-base" placeholder="Nhập tên của bạn" maxlength="10">
-            </div>
-
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chọn màu nhân vật:</label>
-                <div class="flex flex-wrap gap-2 justify-center">
-                    <div class="w-10 h-10 rounded-full bg-pink-500 cursor-pointer color-option border-2 border-transparent hover:border-gray-400" data-color="#EC4899"></div>
-                    <div class="w-10 h-10 rounded-full bg-purple-500 cursor-pointer color-option border-2 border-transparent hover:border-gray-400" data-color="#8B5CF6"></div>
-                    <div class="w-10 h-10 rounded-full bg-blue-500 cursor-pointer color-option border-2 border-transparent hover:border-gray-400" data-color="#3B82F6"></div>
-                    <div class="w-10 h-10 rounded-full bg-green-500 cursor-pointer color-option border-2 border-transparent hover:border-gray-400" data-color="#10B981"></div>
-                    <div class="w-10 h-10 rounded-full bg-yellow-500 cursor-pointer color-option border-2 border-transparent hover:border-gray-400" data-color="#F59E0B"></div>
-                    <div class="w-10 h-10 rounded-full bg-red-500 cursor-pointer color-option border-2 border-transparent hover:border-gray-400" data-color="#EF4444"></div>
-                </div>
-            </div>
-
-            <div class="flex flex-col gap-4">
-                <button id="create-room-btn" class="w-full bg-primary hover:bg-opacity-90 text-white font-bold py-3 px-6 rounded-lg shadow transition duration-300">
-                    Tạo phòng mới
-                </button>
-                <div class="relative">
-                    <input type="text" id="room-code" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 dark:text-white text-base" placeholder="Nhập mã phòng">
-                    <button id="join-room-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-secondary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
-                        Vào
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="waiting-room" class="w-full max-w-md p-6 bg-white dark:bg-dark-background rounded-xl shadow-lg mt-4 hidden">
-            <h3 class="text-xl font-bold text-center mb-4">Phòng chờ</h3>
-            <div class="mb-4 flex justify-between items-center">
-                <span>Mã phòng: </span>
-                <span id="room-code-display" class="font-mono bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded">ABCDE</span>
-                <button id="copy-code-btn" class="text-secondary dark:text-dark-secondary hover:text-opacity-80">Sao chép</button>
-            </div>
-            
-            <div class="mb-6">
-                <h4 class="font-semibold mb-2">Người chơi (<span id="player-count">1</span>/5):</h4>
-                <ul id="players-list" class="space-y-2 max-h-40 overflow-y-auto">
-                    <!-- Players will be added here dynamically -->
-                </ul>
-            </div>
-            
-            <div class="text-center">
-                <button id="start-game-btn" class="bg-success hover:bg-opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed hidden">
-                    Bắt đầu trò chơi
-                </button>
-                <p id="waiting-message" class="text-gray-600 dark:text-gray-400 font-medium typing-animation">Đang chờ người chơi khác...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Game Screen -->
-    <div id="game-screen" class="fixed inset-0 bg-background dark:bg-dark-background z-30 hidden">
+    <div id="game-container">
         <canvas id="game-canvas"></canvas>
-        <div id="flowers-collected">Hoa: 0</div>
-        <div id="players-count">Người chơi: 0/5</div>
-        <div id="countdown">3</div>
         
-        <div class="joystick-container">
-            <div class="joystick-background"></div>
-            <div class="joystick-thumb"></div>
-        </div>
-    </div>
-
-    <!-- Game Over Screen -->
-    <div id="game-over-screen" class="fixed inset-0 flex flex-col items-center justify-center bg-background dark:bg-dark-background z-35 hidden">
-        <h2 class="text-3xl font-bold text-primary dark:text-dark-primary mb-4">Trò chơi kết thúc!</h2>
-        <div id="game-result" class="text-2xl font-semibold mb-6">Kết quả</div>
-        
-        <div id="winners-list" class="w-full max-w-md p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-8">
-            <h3 class="text-xl font-bold mb-4 text-center">Top 3 người thắng cuộc</h3>
-            <div class="space-y-4" id="winners-container">
-                <!-- Winners will be dynamically added here -->
+        <div class="ui-overlay">
+            <div class="stats-bar">
+                <div class="health-bar">
+                    <div class="health-fill"></div>
+                    <div class="health-text">100/100</div>
+                </div>
+                <div class="mana-bar">
+                    <div class="mana-fill"></div>
+                    <div class="mana-text">100/100</div>
+                </div>
             </div>
+            
+            <div class="score-display">
+                <div class="team-score team-blue">0</div>
+                <div class="team-score team-red">0</div>
+            </div>
+            
+            <div class="control-area">
+                <div class="joystick"></div>
+            </div>
+            
+            <div class="abilities">
+                <div class="ability-btn" data-ability="1">K1
+                    <div class="ability-cooldown"></div>
+                </div>
+                <div class="ability-btn" data-ability="2">K2
+                    <div class="ability-cooldown"></div>
+                </div>
+                <div class="ability-btn" data-ability="3">K3
+                    <div class="ability-cooldown"></div>
+                </div>
+                <div class="ability-btn" data-ability="ult">ULT
+                    <div class="ability-cooldown"></div>
+                </div>
+            </div>
+            
+            <div class="minimap"></div>
         </div>
         
-        <button id="play-again-btn" class="bg-primary hover:bg-opacity-90 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition duration-300 hover:scale-105">
-            Chơi lại
-        </button>
+        <div id="loading-screen">
+            <div class="logo-container">
+                <svg class="game-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="100" cy="100" r="95" fill="#ff9500" />
+                    <circle cx="100" cy="100" r="85" fill="#ffcc00" />
+                    
+                    <!-- Body -->
+                    <ellipse cx="100" cy="110" rx="60" ry="65" fill="#ff6b00" />
+                    
+                    <!-- Head -->
+                    <circle cx="100" cy="60" r="30" fill="#ff6b00" />
+                    
+                    <!-- Eyes -->
+                    <circle cx="90" cy="55" r="5" fill="black" />
+                    <circle cx="110" cy="55" r="5" fill="black" />
+                    
+                    <!-- Beak -->
+                    <polygon points="100,65 85,80 115,80" fill="#ff3300" />
+                    
+                    <!-- Comb -->
+                    <path d="M100,35 L85,25 L100,30 L115,20 L110,30 L125,25 L115,35 Z" fill="#ff3300" />
+                    
+                    <!-- Legs -->
+                    <rect x="85" y="170" width="6" height="20" fill="#ff6b00" />
+                    <rect x="109" y="170" width="6" height="20" fill="#ff6b00" />
+                    
+                    <!-- Feet -->
+                    <polygon points="85,190 75,190 85,195" fill="#ff3300" />
+                    <polygon points="115,190 125,190 115,195" fill="#ff3300" />
+                    
+                    <!-- Wings -->
+                    <path d="M40,110 Q60,90 60,140 Z" fill="#ff9900" />
+                    <path d="M160,110 Q140,90 140,140 Z" fill="#ff9900" />
+                </svg>
+                <div class="logo-text">HIẾU GÀ HUYỀN THOẠI</div>
+            </div>
+            <div class="loading-bar-container">
+                <div class="loading-bar"></div>
+            </div>
+            <div class="loading-text">Đang tải game...</div>
+        </div>
+        
+        <div class="menu" id="main-menu">
+            <div class="logo-container">
+                <svg class="game-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="100" cy="100" r="95" fill="#ff9500" />
+                    <circle cx="100" cy="100" r="85" fill="#ffcc00" />
+                    
+                    <!-- Body -->
+                    <ellipse cx="100" cy="110" rx="60" ry="65" fill="#ff6b00" />
+                    
+                    <!-- Head -->
+                    <circle cx="100" cy="60" r="30" fill="#ff6b00" />
+                    
+                    <!-- Eyes -->
+                    <circle cx="90" cy="55" r="5" fill="black" />
+                    <circle cx="110" cy="55" r="5" fill="black" />
+                    
+                    <!-- Beak -->
+                    <polygon points="100,65 85,80 115,80" fill="#ff3300" />
+                    
+                    <!-- Comb -->
+                    <path d="M100,35 L85,25 L100,30 L115,20 L110,30 L125,25 L115,35 Z" fill="#ff3300" />
+                    
+                    <!-- Legs -->
+                    <rect x="85" y="170" width="6" height="20" fill="#ff6b00" />
+                    <rect x="109" y="170" width="6" height="20" fill="#ff6b00" />
+                    
+                    <!-- Feet -->
+                    <polygon points="85,190 75,190 85,195" fill="#ff3300" />
+                    <polygon points="115,190 125,190 115,195" fill="#ff3300" />
+                    
+                    <!-- Wings -->
+                    <path d="M40,110 Q60,90 60,140 Z" fill="#ff9900" />
+                    <path d="M160,110 Q140,90 140,140 Z" fill="#ff9900" />
+                </svg>
+                <div class="logo-text">HIẾU GÀ HUYỀN THOẠI</div>
+            </div>
+            <button class="btn" id="start-game-btn">CHƠI NGAY</button>
+            <button class="btn" id="how-to-play-btn">HƯỚNG DẪN</button>
+        </div>
+        
+        <div class="menu" id="character-menu" style="display: none;">
+            <h2 class="text-2xl font-bold mb-4">Chọn Tướng</h2>
+            <div class="character-selection">
+                <!-- Characters will be dynamically generated here -->
+            </div>
+            <button class="btn" id="start-battle-btn">BẮT ĐẦU TRẬN ĐẤU</button>
+        </div>
+        
+        <div class="menu" id="how-to-play" style="display: none;">
+            <h2 class="text-2xl font-bold mb-4">Hướng Dẫn Chơi</h2>
+            <div class="p-4 max-w-md bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <p class="mb-3">- Di chuyển: Sử dụng cần điều khiển (joystick) ở góc trái màn hình</p>
+                <p class="mb-3">- Tấn công: Tự động khi đến gần quái vật hoặc kẻ địch</p>
+                <p class="mb-3">- Kỹ năng: Nhấn các nút kỹ năng ở góc phải màn hình</p>
+                <p class="mb-3">- Mục tiêu: Phá hủy trụ và tiêu diệt đối thủ để giành chiến thắng</p>
+                <p class="mb-3">- Chiến thắng: Đội đầu tiên đạt 30 điểm sẽ thắng</p>
+            </div>
+            <button class="btn mt-4" id="back-to-menu-btn">QUAY LẠI</button>
+        </div>
     </div>
 
     <script>
-        // Check for dark mode
+        // Check for dark mode preference
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
         }
+
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
             if (event.matches) {
                 document.documentElement.classList.add('dark');
@@ -580,1523 +575,1839 @@
         });
 
         // Game variables
-        let canvas, ctx;
-        let playerColor = "#EC4899"; // Default color
-        let playerName = "";
-        let roomCode = "";
-        let isHost = false;
+        let app;
+        let player;
         let gameStarted = false;
-        let gameOver = false;
-        
-        // Player and game state
-        let player = {
-            id: generateId(),
-            x: 0,
-            y: 0,
-            vx: 0,
-            vy: 0,
-            speed: 5,
-            color: playerColor,
-            name: "",
-            health: 100,
-            flowers: 0,
-            alive: true
+        let gameLoop;
+        let selectedCharacter = null;
+        let entities = [];
+        let projectiles = [];
+        let joystickActive = false;
+        let joystickData = { x: 0, y: 0 };
+        let gameState = {
+            blueScore: 0,
+            redScore: 0
+        };
+        let abilities = {
+            1: { cooldown: 5000, lastUsed: 0, damage: 30, range: 200, type: 'burst' },
+            2: { cooldown: 10000, lastUsed: 0, damage: 50, range: 300, type: 'projectile' },
+            3: { cooldown: 15000, lastUsed: 0, damage: 20, range: 400, type: 'area' },
+            ult: { cooldown: 30000, lastUsed: 0, damage: 100, range: 500, type: 'buff' }
         };
         
-        let otherPlayers = {};
-        let flowers = [];
-        let obstacles = [];
-        let safeZone = { x: 0, y: 0, radius: 0, nextRadius: 0 };
-        let gameAreaWidth = 2000;
-        let gameAreaHeight = 2000;
-        
-        // Touch controls
-        let joystick = {
-            active: false,
-            startX: 0,
-            startY: 0,
-            moveX: 0,
-            moveY: 0,
-            deltaX: 0,
-            deltaY: 0
-        };
-        
-        // WebSocket simulation for preview
-        let mockSocket = {
-            readyState: 0, // 0 = CONNECTING, 1 = OPEN
-            onopen: null,
-            onmessage: null,
-            onclose: null,
-            onerror: null,
+        // Character data
+        const characters = [
+            { id: 'warrior', name: 'Chiến Binh', color: 0xff0000, health: 500, mana: 200, damage: 40, attackSpeed: 1, range: 100, abilities: {
+                1: { name: 'Chém Xoáy', description: 'Tấn công xoay quanh gây sát thương', damage: 50 },
+                2: { name: 'Khiên Bảo Vệ', description: 'Tạo khiên bảo vệ bản thân', damage: 0 },
+                3: { name: 'Xung Kích', description: 'Lao nhanh về phía trước và gây choáng', damage: 30 },
+                ult: { name: 'Phẫn Nộ', description: 'Tăng sức mạnh và tốc độ tấn công', damage: 0 }
+            }},
+            { id: 'mage', name: 'Pháp Sư', color: 0x0000ff, health: 300, mana: 500, damage: 60, attackSpeed: 0.8, range: 400, abilities: {
+                1: { name: 'Cầu Lửa', description: 'Ném một quả cầu lửa gây sát thương', damage: 70 },
+                2: { name: 'Băng Giá', description: 'Làm chậm và gây sát thương kẻ địch', damage: 50 },
+                3: { name: 'Dịch Chuyển', description: 'Di chuyển nhanh một khoảng cách', damage: 0 },
+                ult: { name: 'Bão Thiên Thạch', description: 'Triệu hồi thiên thạch rơi xuống gây sát thương diện rộng', damage: 150 }
+            }},
+            { id: 'assassin', name: 'Sát Thủ', color: 0x00ff00, health: 350, mana: 300, damage: 70, attackSpeed: 1.5, range: 150, abilities: {
+                1: { name: 'Vô Hình', description: 'Trở nên vô hình trong thời gian ngắn', damage: 0 },
+                2: { name: 'Phi Tiêu', description: 'Ném phi tiêu gây sát thương và làm chậm', damage: 60 },
+                3: { name: 'Đòn Kết Liễu', description: 'Gây sát thương cao hơn với mục tiêu có máu thấp', damage: 80 },
+                ult: { name: 'Sát Thủ Bóng Đêm', description: 'Tấn công liên tục và nhanh chóng mục tiêu', damage: 200 }
+            }},
+            { id: 'archer', name: 'Cung Thủ', color: 0xff00ff, health: 300, mana: 250, damage: 55, attackSpeed: 1.2, range: 450, abilities: {
+                1: { name: 'Mưa Tên', description: 'Bắn nhiều mũi tên cùng lúc', damage: 80 },
+                2: { name: 'Tên Xuyên Thấu', description: 'Bắn một mũi tên xuyên qua nhiều mục tiêu', damage: 70 },
+                3: { name: 'Nhảy Lùi', description: 'Nhảy lùi và tăng tốc độ di chuyển', damage: 0 },
+                ult: { name: 'Tiễn Vũ Bão', description: 'Bắn hàng loạt mũi tên lên trời, gây sát thương diện rộng', damage: 180 }
+            }},
+            { id: 'support', name: 'Hỗ Trợ', color: 0xffff00, health: 400, mana: 400, damage: 30, attackSpeed: 0.9, range: 300, abilities: {
+                1: { name: 'Hồi Phục', description: 'Hồi phục máu cho bản thân và đồng minh', damage: -50 },
+                2: { name: 'Tăng Tốc', description: 'Tăng tốc độ di chuyển cho đồng minh', damage: 0 },
+                3: { name: 'Khống Chế', description: 'Khống chế kẻ địch trong khu vực nhỏ', damage: 30 },
+                ult: { name: 'Hộ Mệnh', description: 'Làm vô hiệu mọi sát thương trong thời gian ngắn', damage: 0 }
+            }},
+        ];
+
+        // Function to simulate loading
+        function startLoading() {
+            const loadingBar = document.querySelector('.loading-bar');
+            const loadingText = document.querySelector('.loading-text');
+            const loadingScreen = document.getElementById('loading-screen');
             
-            send: function(data) {
-                console.log("Sending data:", data);
-                
-                // Simulate server response
-                const message = JSON.parse(data);
-                
-                setTimeout(() => {
-                    if (this.readyState === 1) {
-                        switch(message.type) {
-                            case "join":
-                                this._simulateJoin(message);
-                                break;
-                            case "create":
-                                this._simulateCreate(message);
-                                break;
-                            case "start":
-                                this._simulateStart(message);
-                                break;
-                            case "move":
-                                this._simulateMove(message);
-                                break;
-                            case "collectFlower":
-                                this._simulateCollectFlower(message);
-                                break;
-                        }
-                    }
-                }, 200);
-            },
-            
-            close: function() {
-                this.readyState = 3; // CLOSED
-                if (this.onclose) this.onclose({ code: 1000 });
-            },
-            
-            connect: function() {
-                this.readyState = 0; // CONNECTING
-                
-                setTimeout(() => {
-                    this.readyState = 1; // OPEN
-                    if (this.onopen) this.onopen();
-                }, 500);
-            },
-            
-            // Simulation methods
-            _simulateJoin: function(message) {
-                const room = message.room;
-                if (room === "DEMO" || room === "TEST") {
-                    // Create some fake players
-                    const fakePlayers = [
-                        { id: generateId(), name: "Hạnh Hoa", color: "#8B5CF6" },
-                        { id: generateId(), name: "Lan Anh", color: "#3B82F6" },
-                        { id: generateId(), name: "Thanh Xuân", color: "#10B981" }
-                    ];
+            let progress = 0;
+            const loadingInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(loadingInterval);
                     
-                    // Send join success
-                    this._sendMessage({
-                        type: "joinSuccess",
-                        room: room,
-                        players: [...fakePlayers, {
-                            id: player.id,
-                            name: message.player.name,
-                            color: message.player.color
-                        }],
-                        isHost: false
-                    });
-                    
-                    // Notify other players
                     setTimeout(() => {
-                        this._sendMessage({
-                            type: "playerJoined",
-                            player: {
-                                id: fakePlayers[0].id,
-                                name: fakePlayers[0].name,
-                                color: fakePlayers[0].color
-                            }
-                        });
-                    }, 2000);
-                } else {
-                    // Simulate error for invalid room
-                    this._sendMessage({
-                        type: "error",
-                        message: "Không tìm thấy phòng!"
-                    });
-                }
-            },
-            
-            _simulateCreate: function(message) {
-                this._sendMessage({
-                    type: "createSuccess",
-                    room: "DEMO",
-                    players: [{
-                        id: player.id,
-                        name: message.player.name,
-                        color: message.player.color
-                    }],
-                    isHost: true
-                });
-            },
-            
-            _simulateStart: function(message) {
-                // Generate game map and items
-                const gameMap = this._generateGameMap();
-                
-                this._sendMessage({
-                    type: "gameStart",
-                    map: gameMap,
-                    countdown: 3
-                });
-            },
-            
-            _simulateMove: function(message) {
-                // For demo, we'll simulate movement of other players
-                const playerId = message.player.id;
-                
-                // Only echo back the player's own movement
-                if (playerId === player.id) {
-                    this._sendMessage({
-                        type: "playerMove",
-                        playerId: playerId,
-                        x: message.x,
-                        y: message.y,
-                        vx: message.vx,
-                        vy: message.vy
-                    });
+                        loadingScreen.style.display = 'none';
+                        document.getElementById('main-menu').style.display = 'flex';
+                    }, 500);
                 }
                 
-                // Simulate other players movement
-                for (const id in otherPlayers) {
-                    if (id !== player.id) {
-                        // Random movement
-                        const randomX = otherPlayers[id].x + (Math.random() * 20 - 10);
-                        const randomY = otherPlayers[id].y + (Math.random() * 20 - 10);
-                        
-                        // Keep within boundaries
-                        const constrainedX = Math.max(50, Math.min(gameAreaWidth - 50, randomX));
-                        const constrainedY = Math.max(50, Math.min(gameAreaHeight - 50, randomY));
-                        
-                        this._sendMessage({
-                            type: "playerMove",
-                            playerId: id,
-                            x: constrainedX,
-                            y: constrainedY,
-                            vx: constrainedX - otherPlayers[id].x,
-                            vy: constrainedY - otherPlayers[id].y
-                        });
-                        
-                        otherPlayers[id].x = constrainedX;
-                        otherPlayers[id].y = constrainedY;
-                    }
-                }
-            },
-            
-            _simulateCollectFlower: function(message) {
-                const flowerIndex = message.flowerIndex;
-                
-                if (flowerIndex >= 0 && flowerIndex < flowers.length) {
-                    // Send collect success
-                    this._sendMessage({
-                        type: "flowerCollected",
-                        playerId: player.id,
-                        flowerIndex: flowerIndex,
-                        flowerCount: player.flowers + 1
-                    });
-                    
-                    // Generate a new flower
-                    setTimeout(() => {
-                        const newFlower = this._generateRandomFlower();
-                        this._sendMessage({
-                            type: "newFlower",
-                            flower: newFlower,
-                            index: flowerIndex
-                        });
-                    }, 2000);
-                }
-            },
-            
-            _generateGameMap: function() {
-                const flowers = [];
-                const obstacles = [];
-                
-                // Generate flowers
-                for (let i = 0; i < 20; i++) {
-                    flowers.push({
-                        x: Math.random() * (gameAreaWidth - 100) + 50,
-                        y: Math.random() * (gameAreaHeight - 100) + 50,
-                        type: Math.floor(Math.random() * 3)
-                    });
-                }
-                
-                // Generate obstacles
-                for (let i = 0; i < 10; i++) {
-                    obstacles.push({
-                        x: Math.random() * (gameAreaWidth - 200) + 100,
-                        y: Math.random() * (gameAreaHeight - 200) + 100,
-                        radius: Math.random() * 30 + 20
-                    });
-                }
-                
-                // Setup safe zone
-                const safeZone = {
-                    x: gameAreaWidth / 2,
-                    y: gameAreaHeight / 2,
-                    radius: gameAreaWidth / 2,
-                    nextRadius: gameAreaWidth / 2.5
-                };
-                
-                // Setup player positions
-                const playerPositions = {};
-                
-                // Main player
-                playerPositions[player.id] = {
-                    x: gameAreaWidth / 2 + (Math.random() * 200 - 100),
-                    y: gameAreaHeight / 2 + (Math.random() * 200 - 100)
-                };
-                
-                // Other players
-                for (const id in otherPlayers) {
-                    playerPositions[id] = {
-                        x: gameAreaWidth / 2 + (Math.random() * 400 - 200),
-                        y: gameAreaHeight / 2 + (Math.random() * 400 - 200)
-                    };
-                }
-                
-                return {
-                    width: gameAreaWidth,
-                    height: gameAreaHeight,
-                    flowers: flowers,
-                    obstacles: obstacles,
-                    safeZone: safeZone,
-                    playerPositions: playerPositions
-                };
-            },
-            
-            _generateRandomFlower: function() {
-                return {
-                    x: Math.random() * (gameAreaWidth - 100) + 50,
-                    y: Math.random() * (gameAreaHeight - 100) + 50,
-                    type: Math.floor(Math.random() * 3)
-                };
-            },
-            
-            _sendMessage: function(data) {
-                if (this.onmessage) {
-                    this.onmessage({ data: JSON.stringify(data) });
-                }
-            }
-        };
+                loadingBar.style.width = `${progress}%`;
+                loadingText.textContent = `Đang tải game... ${Math.floor(progress)}%`;
+            }, 200);
+        }
         
-        // Initialize WebSocket (will be mockSocket for Canvas preview)
-        let socket = mockSocket;
-        
-        // UI Elements
-        const splashScreen = document.getElementById('splash-screen');
-        const lobbyScreen = document.getElementById('lobby-screen');
-        const gameScreen = document.getElementById('game-screen');
-        const gameOverScreen = document.getElementById('game-over-screen');
-        const playButton = document.getElementById('play-button');
-        const playerNameInput = document.getElementById('player-name');
-        const colorOptions = document.querySelectorAll('.color-option');
-        const createRoomBtn = document.getElementById('create-room-btn');
-        const joinRoomBtn = document.getElementById('join-room-btn');
-        const roomCodeInput = document.getElementById('room-code');
-        const waitingRoom = document.getElementById('waiting-room');
-        const roomCodeDisplay = document.getElementById('room-code-display');
-        const copyCodeBtn = document.getElementById('copy-code-btn');
-        const playerCountElement = document.getElementById('player-count');
-        const playersList = document.getElementById('players-list');
-        const startGameBtn = document.getElementById('start-game-btn');
-        const waitingMessage = document.getElementById('waiting-message');
-        const flowersCollected = document.getElementById('flowers-collected');
-        const playersCount = document.getElementById('players-count');
-        const countdownElement = document.getElementById('countdown');
-        const playAgainBtn = document.getElementById('play-again-btn');
-        const gameResult = document.getElementById('game-result');
-        const winnersContainer = document.getElementById('winners-container');
-        
-        // Game initialization
-        function initGame() {
-            // Setup canvas
-            canvas = document.getElementById('game-canvas');
-            ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            // Initialize joystick
-            initJoystick();
-            
-            // Setup event listeners
-            playButton.addEventListener('click', showLobby);
-            
-            colorOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    colorOptions.forEach(opt => opt.classList.remove('border-primary', 'border-2'));
-                    this.classList.add('border-primary', 'border-2');
-                    playerColor = this.getAttribute('data-color');
-                    player.color = playerColor;
-                });
+        // Initialize PixiJS
+        function initPixi() {
+            // Create PixiJS application
+            app = new PIXI.Application({
+                width: window.innerWidth,
+                height: window.innerHeight,
+                backgroundColor: 0x2c3e50,
+                view: document.getElementById('game-canvas'),
+                resolution: window.devicePixelRatio || 1,
+                autoDensity: true
             });
             
-            createRoomBtn.addEventListener('click', createRoom);
-            joinRoomBtn.addEventListener('click', joinRoom);
-            copyCodeBtn.addEventListener('click', copyRoomCode);
-            startGameBtn.addEventListener('click', startGame);
-            playAgainBtn.addEventListener('click', returnToLobby);
+            // Create game map
+            createMap();
             
-            // Select the first color by default
-            colorOptions[0].click();
-            
-            // Setup window resize event
-            window.addEventListener('resize', handleResize);
+            // Handle window resize
+            window.addEventListener('resize', onResize);
+            onResize();
         }
         
-        function handleResize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+        // Create game map
+        function createMap() {
+            // Create main background
+            const background = new PIXI.Graphics();
+            background.beginFill(0x357b4c);
+            background.drawRect(0, 0, 2000, 2000);
+            background.endFill();
+            app.stage.addChild(background);
+            
+            // Create paths/lanes
+            const paths = new PIXI.Graphics();
+            paths.beginFill(0xc2b280);
+            // Top lane
+            paths.drawRect(0, 300, 2000, 150);
+            // Middle lane
+            paths.drawRect(925, 0, 150, 2000);
+            // Bottom lane
+            paths.drawRect(0, 1550, 2000, 150);
+            paths.endFill();
+            app.stage.addChild(paths);
+            
+            // Create base areas
+            const blueBase = new PIXI.Graphics();
+            blueBase.beginFill(0x0088ff, 0.5);
+            blueBase.drawCircle(200, 200, 200);
+            blueBase.endFill();
+            
+            const redBase = new PIXI.Graphics();
+            redBase.beginFill(0xff3333, 0.5);
+            redBase.drawCircle(1800, 1800, 200);
+            redBase.endFill();
+            
+            app.stage.addChild(blueBase, redBase);
+            
+            // Create jungle areas with bushes
+            createJungle();
+            
+            // Create structures (towers, inhibitors)
+            createStructures();
         }
         
-        function initJoystick() {
-            const joystickContainer = document.querySelector('.joystick-container');
-            const joystickThumb = document.querySelector('.joystick-thumb');
+        // Create jungle areas
+        function createJungle() {
+            // Create jungle bushes
+            const jungleBushes = [
+                { x: 500, y: 500, radius: 100 },
+                { x: 1500, y: 1500, radius: 100 },
+                { x: 500, y: 1500, radius: 100 },
+                { x: 1500, y: 500, radius: 100 },
+                { x: 1000, y: 1000, radius: 150 },
+                { x: 700, y: 1000, radius: 80 },
+                { x: 1300, y: 1000, radius: 80 },
+                { x: 1000, y: 700, radius: 80 },
+                { x: 1000, y: 1300, radius: 80 }
+            ];
             
-            // Touch events for joystick
-            joystickContainer.addEventListener('touchstart', handleJoystickStart);
-            joystickContainer.addEventListener('touchmove', handleJoystickMove);
-            joystickContainer.addEventListener('touchend', handleJoystickEnd);
+            const bushGraphics = new PIXI.Graphics();
+            bushGraphics.alpha = 0.7;
             
-            // Mouse events for joystick (for testing on desktop)
-            joystickContainer.addEventListener('mousedown', handleJoystickStart);
-            document.addEventListener('mousemove', handleJoystickMove);
-            document.addEventListener('mouseup', handleJoystickEnd);
-        }
-        
-        function handleJoystickStart(e) {
-            e.preventDefault();
-            joystick.active = true;
-            
-            const container = document.querySelector('.joystick-container');
-            const rect = container.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            // Get touch or mouse position
-            if (e.type === 'touchstart') {
-                joystick.startX = e.touches[0].clientX;
-                joystick.startY = e.touches[0].clientY;
-            } else { // mousedown
-                joystick.startX = e.clientX;
-                joystick.startY = e.clientY;
+            for (const bush of jungleBushes) {
+                bushGraphics.beginFill(0x326432);
+                bushGraphics.drawCircle(bush.x, bush.y, bush.radius);
+                bushGraphics.endFill();
             }
             
-            joystick.moveX = joystick.startX;
-            joystick.moveY = joystick.startY;
-            updateJoystickPosition();
+            app.stage.addChild(bushGraphics);
         }
         
-        function handleJoystickMove(e) {
-            if (!joystick.active) return;
-            e.preventDefault();
+        // Create structures
+        function createStructures() {
+            // Blue team towers
+            const blueTowers = [
+                { x: 400, y: 350, team: 'blue' },
+                { x: 400, y: 1000, team: 'blue' },
+                { x: 400, y: 1650, team: 'blue' },
+                { x: 1000, y: 400, team: 'blue' },
+                { x: 1650, y: 400, team: 'blue' }
+            ];
             
-            // Get touch or mouse position
-            if (e.type === 'touchmove') {
-                joystick.moveX = e.touches[0].clientX;
-                joystick.moveY = e.touches[0].clientY;
-            } else { // mousemove
-                joystick.moveX = e.clientX;
-                joystick.moveY = e.clientY;
-            }
+            // Red team towers
+            const redTowers = [
+                { x: 1600, y: 350, team: 'red' },
+                { x: 1600, y: 1000, team: 'red' },
+                { x: 1600, y: 1650, team: 'red' },
+                { x: 1000, y: 1600, team: 'red' },
+                { x: 350, y: 1600, team: 'red' }
+            ];
             
-            updateJoystickPosition();
+            // Create towers
+            createTowers(blueTowers);
+            createTowers(redTowers);
         }
         
-        function handleJoystickEnd(e) {
-            if (!joystick.active) return;
-            e.preventDefault();
-            
-            joystick.active = false;
-            joystick.deltaX = 0;
-            joystick.deltaY = 0;
-            
-            // Reset thumb position
-            const thumb = document.querySelector('.joystick-thumb');
-            thumb.style.transform = 'translate(-50%, -50%)';
-            
-            // Update player velocity
-            player.vx = 0;
-            player.vy = 0;
-            
-            if (gameStarted && !gameOver) {
-                sendPlayerMove();
-            }
-        }
-        
-        function updateJoystickPosition() {
-            const thumb = document.querySelector('.joystick-thumb');
-            const container = document.querySelector('.joystick-container');
-            const rect = container.getBoundingClientRect();
-            
-            // Calculate the center of the joystick
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            // Calculate the distance from the center
-            joystick.deltaX = joystick.moveX - centerX;
-            joystick.deltaY = joystick.moveY - centerY;
-            
-            // Limit the joystick movement to the container radius
-            const maxDistance = rect.width / 2 - 30; // 30 is half the thumb width
-            const distance = Math.sqrt(joystick.deltaX * joystick.deltaX + joystick.deltaY * joystick.deltaY);
-            
-            if (distance > maxDistance) {
-                const angle = Math.atan2(joystick.deltaY, joystick.deltaX);
-                joystick.deltaX = Math.cos(angle) * maxDistance;
-                joystick.deltaY = Math.sin(angle) * maxDistance;
-            }
-            
-            // Update thumb position
-            thumb.style.transform = `translate(calc(-50% + ${joystick.deltaX}px), calc(-50% + ${joystick.deltaY}px))`;
-            
-            // Update player velocity based on joystick position (normalized)
-            if (distance > 0) {
-                const normalizedDeltaX = joystick.deltaX / maxDistance;
-                const normalizedDeltaY = joystick.deltaY / maxDistance;
+        // Create towers
+        function createTowers(towerData) {
+            for (const tower of towerData) {
+                const towerGraphics = new PIXI.Graphics();
+                towerGraphics.beginFill(tower.team === 'blue' ? 0x0088ff : 0xff3333);
+                towerGraphics.drawRect(-20, -20, 40, 100);
+                towerGraphics.endFill();
                 
-                player.vx = normalizedDeltaX * player.speed;
-                player.vy = normalizedDeltaY * player.speed;
+                const towerTop = new PIXI.Graphics();
+                towerTop.beginFill(tower.team === 'blue' ? 0x0066cc : 0xcc0000);
+                towerTop.drawCircle(0, -30, 30);
+                towerTop.endFill();
+                
+                const towerContainer = new PIXI.Container();
+                towerContainer.addChild(towerGraphics, towerTop);
+                towerContainer.position.set(tower.x, tower.y);
+                app.stage.addChild(towerContainer);
+                
+                // Add to entities
+                entities.push({
+                    sprite: towerContainer,
+                    type: 'tower',
+                    team: tower.team,
+                    health: 500,
+                    maxHealth: 500,
+                    damage: 50,
+                    attackSpeed: 1,
+                    lastAttack: 0,
+                    range: 300,
+                    x: tower.x,
+                    y: tower.y,
+                    width: 40,
+                    height: 100,
+                    target: null,
+                    alive: true
+                });
+                
+                // Add health bar
+                const healthBar = new PIXI.Graphics();
+                healthBar.beginFill(0x00ff00);
+                healthBar.drawRect(-30, -60, 60, 10);
+                healthBar.endFill();
+                towerContainer.addChild(healthBar);
+                
+                // Add entity name
+                const nameText = new PIXI.Text(tower.team === 'blue' ? 'Trụ Xanh' : 'Trụ Đỏ', {
+                    fontFamily: 'Arial',
+                    fontSize: 12,
+                    fill: 0xffffff,
+                    align: 'center'
+                });
+                nameText.anchor.set(0.5, 0.5);
+                nameText.position.set(0, -80);
+                towerContainer.addChild(nameText);
+            }
+        }
+        
+        // Create player character
+        function createPlayer(character) {
+            // Create player graphics
+            const playerGraphics = new PIXI.Graphics();
+            playerGraphics.beginFill(character.color);
+            playerGraphics.drawCircle(0, 0, 30);
+            playerGraphics.endFill();
+            
+            // Add facial features
+            const face = new PIXI.Graphics();
+            face.beginFill(0xffffff);
+            face.drawCircle(-10, -5, 5);  // Left eye
+            face.drawCircle(10, -5, 5);   // Right eye
+            face.endFill();
+            
+            face.beginFill(0x000000);
+            face.drawCircle(-10, -5, 2);  // Left pupil
+            face.drawCircle(10, -5, 2);   // Right pupil
+            face.endFill();
+            
+            // Mouth depends on character
+            face.beginFill(0x000000);
+            if (character.id === 'warrior' || character.id === 'assassin') {
+                face.drawRect(-15, 10, 30, 3);  // Straight mouth
+            } else if (character.id === 'mage' || character.id === 'support') {
+                face.arc(0, 10, 15, 0, Math.PI);  // Smile
             } else {
-                player.vx = 0;
-                player.vy = 0;
+                face.arc(0, 20, 15, Math.PI, 0);  // Frown
             }
+            face.endFill();
             
-            if (gameStarted && !gameOver) {
-                sendPlayerMove();
-            }
-        }
-        
-        function showLobby() {
-            splashScreen.style.display = 'none';
-            lobbyScreen.style.display = 'flex';
-        }
-        
-        function createRoom() {
-            playerName = playerNameInput.value.trim() || `Người chơi ${Math.floor(Math.random() * 1000)}`;
-            player.name = playerName;
+            // Create container for player
+            const playerContainer = new PIXI.Container();
+            playerContainer.addChild(playerGraphics, face);
+            playerContainer.position.set(200, 200);
+            app.stage.addChild(playerContainer);
             
-            // Connect to WebSocket server
-            connectToServer();
+            // Add name text
+            const nameText = new PIXI.Text(`${character.name}`, {
+                fontFamily: 'Arial',
+                fontSize: 14,
+                fill: 0xffffff,
+                align: 'center'
+            });
+            nameText.anchor.set(0.5, 0.5);
+            nameText.position.set(0, -50);
+            playerContainer.addChild(nameText);
             
-            socket.onopen = function() {
-                // Send create room message
-                socket.send(JSON.stringify({
-                    type: "create",
-                    player: {
-                        id: player.id,
-                        name: playerName,
-                        color: playerColor
-                    }
-                }));
+            // Add health bar
+            const healthBar = new PIXI.Graphics();
+            healthBar.beginFill(0x00ff00);
+            healthBar.drawRect(-30, -40, 60, 5);
+            healthBar.endFill();
+            playerContainer.addChild(healthBar);
+            
+            // Add mana bar
+            const manaBar = new PIXI.Graphics();
+            manaBar.beginFill(0x0000ff);
+            manaBar.drawRect(-30, -35, 60, 5);
+            manaBar.endFill();
+            playerContainer.addChild(manaBar);
+            
+            // Create player object
+            player = {
+                sprite: playerContainer,
+                type: 'player',
+                character: character,
+                team: 'blue',
+                health: character.health,
+                maxHealth: character.health,
+                mana: character.mana,
+                maxMana: character.mana,
+                damage: character.damage,
+                attackSpeed: character.attackSpeed,
+                range: character.range,
+                lastAttack: 0,
+                x: 200,
+                y: 200,
+                speed: 5,
+                width: 60,
+                height: 60,
+                target: null,
+                alive: true,
+                healthBar: healthBar,
+                manaBar: manaBar,
+                kills: 0,
+                deaths: 0,
+                level: 1,
+                experience: 0
             };
+            
+            // Add player to entities
+            entities.push(player);
+            
+            // Center camera on player
+            centerCamera();
+            
+            // Update UI with initial values
+            updateUI();
         }
         
-        function joinRoom() {
-            playerName = playerNameInput.value.trim() || `Người chơi ${Math.floor(Math.random() * 1000)}`;
-            player.name = playerName;
+        // Create enemy AI
+        function createEnemies() {
+            for (let i = 0; i < 5; i++) {
+                const randomChar = characters[Math.floor(Math.random() * characters.length)];
+                createEnemy(randomChar, 'red', 1800 - i * 100, 1800 - i * 100);
+            }
             
-            roomCode = roomCodeInput.value.trim().toUpperCase();
-            if (!roomCode) {
-                alert("Vui lòng nhập mã phòng!");
+            // Create allied bots
+            for (let i = 0; i < 4; i++) {
+                const randomChar = characters[Math.floor(Math.random() * characters.length)];
+                createEnemy(randomChar, 'blue', 300 + i * 100, 300 + i * 100);
+            }
+            
+            // Create minions that spawn periodically
+            setInterval(spawnMinions, 30000);
+        }
+        
+        // Create a single enemy
+        function createEnemy(character, team, x, y) {
+            // Create enemy graphics
+            const enemyGraphics = new PIXI.Graphics();
+            enemyGraphics.beginFill(team === 'blue' ? 0x0088ff : 0xff3333);
+            enemyGraphics.drawCircle(0, 0, 30);
+            enemyGraphics.endFill();
+            
+            // Add facial features
+            const face = new PIXI.Graphics();
+            face.beginFill(0xffffff);
+            face.drawCircle(-10, -5, 5);  // Left eye
+            face.drawCircle(10, -5, 5);   // Right eye
+            face.endFill();
+            
+            face.beginFill(0x000000);
+            face.drawCircle(-10, -5, 2);  // Left pupil
+            face.drawCircle(10, -5, 2);   // Right pupil
+            face.endFill();
+            
+            // Mouth
+            face.beginFill(0x000000);
+            if (team === 'red') {
+                face.arc(0, 20, 15, Math.PI, 0);  // Frown for enemies
+            } else {
+                face.arc(0, 10, 15, 0, Math.PI);  // Smile for allies
+            }
+            face.endFill();
+            
+            // Create container for enemy
+            const enemyContainer = new PIXI.Container();
+            enemyContainer.addChild(enemyGraphics, face);
+            enemyContainer.position.set(x, y);
+            app.stage.addChild(enemyContainer);
+            
+            // Add name text
+            const nameText = new PIXI.Text(`${character.name} ${team === 'blue' ? '(Đồng đội)' : '(Địch)'}`, {
+                fontFamily: 'Arial',
+                fontSize: 14,
+                fill: 0xffffff,
+                align: 'center'
+            });
+            nameText.anchor.set(0.5, 0.5);
+            nameText.position.set(0, -50);
+            enemyContainer.addChild(nameText);
+            
+            // Add health bar
+            const healthBar = new PIXI.Graphics();
+            healthBar.beginFill(0x00ff00);
+            healthBar.drawRect(-30, -40, 60, 5);
+            healthBar.endFill();
+            enemyContainer.addChild(healthBar);
+            
+            // Create enemy object
+            const enemy = {
+                sprite: enemyContainer,
+                type: 'champion',
+                character: character,
+                team: team,
+                health: character.health,
+                maxHealth: character.health,
+                damage: character.damage,
+                attackSpeed: character.attackSpeed,
+                range: character.range,
+                lastAttack: 0,
+                x: x,
+                y: y,
+                speed: 3,
+                width: 60,
+                height: 60,
+                target: null,
+                alive: true,
+                healthBar: healthBar,
+                path: generateRandomPath(x, y, team),
+                pathIndex: 0,
+                waitTime: 0,
+                aiState: 'patrolling',
+                lastAbilityUse: 0
+            };
+            
+            // Add enemy to entities
+            entities.push(enemy);
+        }
+        
+        // Spawn minions
+        function spawnMinions() {
+            // Blue team minions
+            for (let i = 0; i < 9; i++) {
+                const lane = i % 3; // 0 = top, 1 = mid, 2 = bot
+                let x, y;
+                
+                // Position based on lane
+                if (lane === 0) {
+                    x = 200;
+                    y = 350;
+                } else if (lane === 1) {
+                    x = 1000;
+                    y = 200;
+                } else {
+                    x = 200;
+                    y = 1650;
+                }
+                
+                createMinion('blue', x + (i % 3) * 40, y + (i % 3) * 40, lane);
+            }
+            
+            // Red team minions
+            for (let i = 0; i < 9; i++) {
+                const lane = i % 3; // 0 = top, 1 = mid, 2 = bot
+                let x, y;
+                
+                // Position based on lane
+                if (lane === 0) {
+                    x = 1800;
+                    y = 350;
+                } else if (lane === 1) {
+                    x = 1000;
+                    y = 1800;
+                } else {
+                    x = 1800;
+                    y = 1650;
+                }
+                
+                createMinion('red', x - (i % 3) * 40, y - (i % 3) * 40, lane);
+            }
+        }
+        
+        // Create a single minion
+        function createMinion(team, x, y, lane) {
+            // Create minion graphics
+            const minionGraphics = new PIXI.Graphics();
+            minionGraphics.beginFill(team === 'blue' ? 0x0088ff : 0xff3333);
+            minionGraphics.drawCircle(0, 0, 15);
+            minionGraphics.endFill();
+            
+            // Create container for minion
+            const minionContainer = new PIXI.Container();
+            minionContainer.addChild(minionGraphics);
+            minionContainer.position.set(x, y);
+            app.stage.addChild(minionContainer);
+            
+            // Add name text
+            const nameText = new PIXI.Text(`Lính ${team === 'blue' ? 'Xanh' : 'Đỏ'}`, {
+                fontFamily: 'Arial',
+                fontSize: 10,
+                fill: 0xffffff,
+                align: 'center'
+            });
+            nameText.anchor.set(0.5, 0.5);
+            nameText.position.set(0, -25);
+            minionContainer.addChild(nameText);
+            
+            // Add health bar
+            const healthBar = new PIXI.Graphics();
+            healthBar.beginFill(0x00ff00);
+            healthBar.drawRect(-15, -20, 30, 3);
+            healthBar.endFill();
+            minionContainer.addChild(healthBar);
+            
+            // Generate path based on lane
+            let path = [];
+            if (team === 'blue') {
+                if (lane === 0) {
+                    path = [
+                        { x: 400, y: 350 },
+                        { x: 1600, y: 350 }
+                    ];
+                } else if (lane === 1) {
+                    path = [
+                        { x: 1000, y: 400 },
+                        { x: 1000, y: 1600 }
+                    ];
+                } else {
+                    path = [
+                        { x: 400, y: 1650 },
+                        { x: 1600, y: 1650 }
+                    ];
+                }
+            } else {
+                if (lane === 0) {
+                    path = [
+                        { x: 1600, y: 350 },
+                        { x: 400, y: 350 }
+                    ];
+                } else if (lane === 1) {
+                    path = [
+                        { x: 1000, y: 1600 },
+                        { x: 1000, y: 400 }
+                    ];
+                } else {
+                    path = [
+                        { x: 1600, y: 1650 },
+                        { x: 400, y: 1650 }
+                    ];
+                }
+            }
+            
+            // Create minion object
+            const minion = {
+                sprite: minionContainer,
+                type: 'minion',
+                team: team,
+                health: 100,
+                maxHealth: 100,
+                damage: 10,
+                attackSpeed: 1,
+                range: 100,
+                lastAttack: 0,
+                x: x,
+                y: y,
+                speed: 2,
+                width: 30,
+                height: 30,
+                target: null,
+                alive: true,
+                healthBar: healthBar,
+                path: path,
+                pathIndex: 0,
+                aiState: 'pushing'
+            };
+            
+            // Add minion to entities
+            entities.push(minion);
+        }
+        
+        // Generate random patrol path
+        function generateRandomPath(x, y, team) {
+            const path = [];
+            const pathLength = 5 + Math.floor(Math.random() * 5);
+            
+            // Starting point
+            path.push({ x, y });
+            
+            // Team-based patrol areas
+            const baseX = team === 'blue' ? 600 : 1400;
+            const baseY = team === 'blue' ? 600 : 1400;
+            
+            // Generate path points around the base area
+            for (let i = 0; i < pathLength; i++) {
+                const radius = 200 + Math.random() * 600;
+                const angle = Math.random() * Math.PI * 2;
+                
+                const pathX = baseX + Math.cos(angle) * radius;
+                const pathY = baseY + Math.sin(angle) * radius;
+                
+                path.push({ x: pathX, y: pathY });
+            }
+            
+            // Add base point to return to
+            path.push({ x, y });
+            
+            return path;
+        }
+        
+        // Start the game
+        function startGame() {
+            // Hide menu
+            document.getElementById('character-menu').style.display = 'none';
+            
+            // Show UI elements
+            document.querySelector('.ui-overlay').style.display = 'block';
+            
+            // Create players and enemies
+            createPlayer(selectedCharacter);
+            createEnemies();
+            
+            // Start game loop
+            gameStarted = true;
+            gameLoop = setInterval(updateGame, 1000 / 60); // 60 FPS
+        }
+        
+        // Update game
+        function updateGame() {
+            // Handle player movement
+            if (joystickActive && player.alive) {
+                movePlayer();
+            }
+            
+            // Update entities
+            for (let i = 0; i < entities.length; i++) {
+                const entity = entities[i];
+                
+                // Skip dead entities
+                if (!entity.alive) continue;
+                
+                // Update entity position
+                entity.sprite.position.x = entity.x;
+                entity.sprite.position.y = entity.y;
+                
+                // Update health bar
+                if (entity.healthBar) {
+                    const healthPercent = entity.health / entity.maxHealth;
+                    entity.healthBar.width = 60 * healthPercent;
+                    entity.healthBar.tint = getHealthColor(healthPercent);
+                }
+                
+                // Update mana bar if it exists
+                if (entity.manaBar) {
+                    const manaPercent = entity.mana / entity.maxMana;
+                    entity.manaBar.width = 60 * manaPercent;
+                }
+                
+                // Apply AI for non-player entities
+                if (entity !== player) {
+                    updateEntityAI(entity);
+                }
+                
+                // Check for attack
+                if (entity.target && entity.target.alive) {
+                    const targetDistance = getDistance(entity.x, entity.y, entity.target.x, entity.target.y);
+                    
+                    // If target is in range, attack
+                    if (targetDistance <= entity.range) {
+                        const now = Date.now();
+                        if (now - entity.lastAttack > 1000 / entity.attackSpeed) {
+                            attackTarget(entity, entity.target);
+                            entity.lastAttack = now;
+                        }
+                    }
+                }
+            }
+            
+            // Update projectiles
+            updateProjectiles();
+            
+            // Center camera on player
+            centerCamera();
+            
+            // Update UI
+            updateUI();
+            
+            // Check if game should end
+            checkGameEnd();
+        }
+        
+        // Move player
+        function movePlayer() {
+            if (!player) return;
+            
+            // Calculate new position
+            const newX = player.x + joystickData.x * player.speed;
+            const newY = player.y + joystickData.y * player.speed;
+            
+            // Boundary checks
+            const boundaryPadding = 50;
+            const newXClamped = Math.max(boundaryPadding, Math.min(2000 - boundaryPadding, newX));
+            const newYClamped = Math.max(boundaryPadding, Math.min(2000 - boundaryPadding, newY));
+            
+            // Update player position
+            player.x = newXClamped;
+            player.y = newYClamped;
+            
+            // Find closest enemy if no target
+            if (!player.target || !player.target.alive) {
+                findClosestTarget(player);
+            }
+        }
+        
+        // Update entity AI
+        function updateEntityAI(entity) {
+            // Different AI based on entity type
+            if (entity.type === 'champion') {
+                updateChampionAI(entity);
+            } else if (entity.type === 'minion') {
+                updateMinionAI(entity);
+            } else if (entity.type === 'tower') {
+                updateTowerAI(entity);
+            }
+        }
+        
+        // Update champion AI
+        function updateChampionAI(entity) {
+            // State machine for AI
+            switch (entity.aiState) {
+                case 'patrolling':
+                    // Follow patrol path
+                    if (entity.pathIndex < entity.path.length) {
+                        const targetPoint = entity.path[entity.pathIndex];
+                        const distToPoint = getDistance(entity.x, entity.y, targetPoint.x, targetPoint.y);
+                        
+                        if (distToPoint < 20) {
+                            // Reached point, move to next or wait
+                            entity.pathIndex = (entity.pathIndex + 1) % entity.path.length;
+                            entity.waitTime = Math.random() * 2000; // Random wait time up to 2 seconds
+                            entity.aiState = 'waiting';
+                        } else {
+                            // Move towards point
+                            moveTowardsPoint(entity, targetPoint.x, targetPoint.y);
+                        }
+                    }
+                    
+                    // Check for enemies
+                    findClosestTarget(entity);
+                    if (entity.target) {
+                        entity.aiState = 'attacking';
+                    }
+                    break;
+                
+                case 'waiting':
+                    // Wait at current point
+                    entity.waitTime -= 16; // Approx 16ms per frame at 60fps
+                    if (entity.waitTime <= 0) {
+                        entity.aiState = 'patrolling';
+                    }
+                    
+                    // Check for enemies
+                    findClosestTarget(entity);
+                    if (entity.target) {
+                        entity.aiState = 'attacking';
+                    }
+                    break;
+                
+                case 'attacking':
+                    // If no target or target is dead, go back to patrolling
+                    if (!entity.target || !entity.target.alive) {
+                        entity.target = null;
+                        entity.aiState = 'patrolling';
+                        break;
+                    }
+                    
+                    // Calculate distance to target
+                    const distToTarget = getDistance(entity.x, entity.y, entity.target.x, entity.target.y);
+                    
+                    // If target is out of range, move towards it
+                    if (distToTarget > entity.range) {
+                        moveTowardsPoint(entity, entity.target.x, entity.target.y);
+                    }
+                    
+                    // Use abilities sometimes (only for champions)
+                    const now = Date.now();
+                    if (now - entity.lastAbilityUse > 5000 + Math.random() * 5000) { // Random cooldown between 5-10 seconds
+                        useRandomAbility(entity);
+                        entity.lastAbilityUse = now;
+                    }
+                    break;
+                
+                case 'retreating':
+                    // Run away towards base
+                    const baseX = entity.team === 'blue' ? 200 : 1800;
+                    const baseY = entity.team === 'blue' ? 200 : 1800;
+                    
+                    moveTowardsPoint(entity, baseX, baseY);
+                    
+                    // If health is recovered enough, go back to patrolling
+                    if (entity.health > entity.maxHealth * 0.7) {
+                        entity.aiState = 'patrolling';
+                    }
+                    break;
+            }
+            
+            // Check health and retreat if low
+            if (entity.health < entity.maxHealth * 0.3 && entity.aiState !== 'retreating') {
+                entity.aiState = 'retreating';
+                entity.target = null;
+            }
+        }
+        
+        // Update minion AI
+        function updateMinionAI(entity) {
+            // Follow path
+            if (entity.pathIndex < entity.path.length) {
+                const targetPoint = entity.path[entity.pathIndex];
+                const distToPoint = getDistance(entity.x, entity.y, targetPoint.x, targetPoint.y);
+                
+                if (distToPoint < 20) {
+                    // Reached point, move to next
+                    entity.pathIndex++;
+                } else {
+                    // Move towards point
+                    moveTowardsPoint(entity, targetPoint.x, targetPoint.y);
+                }
+            }
+            
+            // Find targets
+            if (!entity.target || !entity.target.alive) {
+                findClosestTarget(entity);
+            }
+        }
+        
+        // Update tower AI
+        function updateTowerAI(entity) {
+            // Towers only attack when enemies are in range
+            if (!entity.target || !entity.target.alive) {
+                findClosestTarget(entity);
+            }
+        }
+        
+        // Move entity towards point
+        function moveTowardsPoint(entity, targetX, targetY) {
+            const dx = targetX - entity.x;
+            const dy = targetY - entity.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 0) {
+                const speed = entity.speed;
+                entity.x += (dx / distance) * speed;
+                entity.y += (dy / distance) * speed;
+            }
+        }
+        
+        // Find closest target for an entity
+        function findClosestTarget(entity) {
+            let closestDist = Infinity;
+            let closestTarget = null;
+            
+            for (const target of entities) {
+                // Skip same team, dead targets or self
+                if (target.team === entity.team || !target.alive || target === entity) continue;
+                
+                const dist = getDistance(entity.x, entity.y, target.x, target.y);
+                
+                // Check if within search range (slightly larger than attack range)
+                if (dist < entity.range * 3 && dist < closestDist) {
+                    closestDist = dist;
+                    closestTarget = target;
+                }
+            }
+            
+            if (closestTarget) {
+                entity.target = closestTarget;
+            }
+        }
+        
+        // Attack target
+        function attackTarget(attacker, target) {
+            const damage = attacker.damage;
+            target.health -= damage;
+            
+            // Show damage text
+            showFloatingText(`-${damage}`, target.x, target.y, '#ff0000');
+            
+            // Check if target died
+            if (target.health <= 0) {
+                killEntity(target, attacker);
+            }
+        }
+        
+        // Use ability
+        function useAbility(abilityKey) {
+            if (!player || !player.alive) return;
+            
+            const ability = abilities[abilityKey];
+            const now = Date.now();
+            
+            // Check cooldown
+            if (now - ability.lastUsed < ability.cooldown) return;
+            
+            // Check mana
+            if (player.mana < 30) {
+                showFloatingText("Không đủ năng lượng!", player.x, player.y, '#0000ff');
                 return;
             }
             
-            // Connect to WebSocket server
-            connectToServer();
+            // Use mana
+            player.mana -= 30;
             
-            socket.onopen = function() {
-                // Send join room message
-                socket.send(JSON.stringify({
-                    type: "join",
-                    room: roomCode,
-                    player: {
-                        id: player.id,
-                        name: playerName,
-                        color: playerColor
+            // Update cooldown
+            ability.lastUsed = now;
+            updateCooldownUI(abilityKey);
+            
+            // Different ability types
+            switch (ability.type) {
+                case 'burst':
+                    // Burst damage around player
+                    for (const entity of entities) {
+                        if (entity.team !== player.team && entity.alive) {
+                            const dist = getDistance(player.x, player.y, entity.x, entity.y);
+                            if (dist <= ability.range) {
+                                const damage = ability.damage;
+                                entity.health -= damage;
+                                showFloatingText(`-${damage}`, entity.x, entity.y, '#ff9900');
+                                
+                                // Check if entity died
+                                if (entity.health <= 0) {
+                                    killEntity(entity, player);
+                                }
+                            }
+                        }
                     }
-                }));
+                    
+                    // Show visual effect
+                    showAbilityEffect('burst', player.x, player.y, ability.range);
+                    break;
+                
+                case 'projectile':
+                    // Create projectile towards target or direction
+                    if (player.target && player.target.alive) {
+                        createProjectile(player, player.target, ability.damage);
+                    } else {
+                        // Shoot in movement direction or forward
+                        const angle = joystickActive ? Math.atan2(joystickData.y, joystickData.x) : 0;
+                        const targetX = player.x + Math.cos(angle) * 500;
+                        const targetY = player.y + Math.sin(angle) * 500;
+                        
+                        createProjectile(player, { x: targetX, y: targetY }, ability.damage);
+                    }
+                    break;
+                
+                case 'area':
+                    // Area effect at target location or in front of player
+                    let targetX, targetY;
+                    
+                    if (player.target && player.target.alive) {
+                        targetX = player.target.x;
+                        targetY = player.target.y;
+                    } else {
+                        // Place in movement direction or forward
+                        const angle = joystickActive ? Math.atan2(joystickData.y, joystickData.x) : 0;
+                        targetX = player.x + Math.cos(angle) * 300;
+                        targetY = player.y + Math.sin(angle) * 300;
+                    }
+                    
+                    // Show area effect
+                    showAbilityEffect('area', targetX, targetY, 150);
+                    
+                    // Damage entities in area
+                    for (const entity of entities) {
+                        if (entity.team !== player.team && entity.alive) {
+                            const dist = getDistance(targetX, targetY, entity.x, entity.y);
+                            if (dist <= 150) { // Area radius
+                                const damage = ability.damage;
+                                entity.health -= damage;
+                                showFloatingText(`-${damage}`, entity.x, entity.y, '#00ffff');
+                                
+                                // Check if entity died
+                                if (entity.health <= 0) {
+                                    killEntity(entity, player);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                
+                case 'buff':
+                    // Buff the player
+                    player.damage *= 1.5; // Increase damage by 50%
+                    player.speed *= 1.3; // Increase speed by 30%
+                    
+                    // Show buff effect
+                    showAbilityEffect('buff', player.x, player.y, 50);
+                    
+                    // Reset after 10 seconds
+                    setTimeout(() => {
+                        if (player && player.alive) {
+                            player.damage /= 1.5;
+                            player.speed /= 1.3;
+                        }
+                    }, 10000);
+                    break;
+            }
+        }
+        
+        // Use random ability for AI
+        function useRandomAbility(entity) {
+            if (!entity.alive) return;
+            
+            // Choose a random ability type
+            const abilityTypes = ['burst', 'projectile', 'area'];
+            const abilityType = abilityTypes[Math.floor(Math.random() * abilityTypes.length)];
+            
+            // Check if there's a target
+            if (!entity.target || !entity.target.alive) return;
+            
+            // Different ability types
+            switch (abilityType) {
+                case 'burst':
+                    // Burst damage around entity
+                    for (const target of entities) {
+                        if (target.team !== entity.team && target.alive) {
+                            const dist = getDistance(entity.x, entity.y, target.x, target.y);
+                            if (dist <= 200) {
+                                const damage = 30;
+                                target.health -= damage;
+                                showFloatingText(`-${damage}`, target.x, target.y, '#ff9900');
+                                
+                                // Check if target died
+                                if (target.health <= 0) {
+                                    killEntity(target, entity);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Show visual effect
+                    showAbilityEffect('burst', entity.x, entity.y, 200);
+                    break;
+                
+                case 'projectile':
+                    // Create projectile towards target
+                    createProjectile(entity, entity.target, 50);
+                    break;
+                
+                case 'area':
+                    // Area effect at target location
+                    const targetX = entity.target.x;
+                    const targetY = entity.target.y;
+                    
+                    // Show area effect
+                    showAbilityEffect('area', targetX, targetY, 150);
+                    
+                    // Damage entities in area
+                    for (const target of entities) {
+                        if (target.team !== entity.team && target.alive) {
+                            const dist = getDistance(targetX, targetY, target.x, target.y);
+                            if (dist <= 150) { // Area radius
+                                const damage = 40;
+                                target.health -= damage;
+                                showFloatingText(`-${damage}`, target.x, target.y, '#00ffff');
+                                
+                                // Check if target died
+                                if (target.health <= 0) {
+                                    killEntity(target, entity);
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+        
+        // Create projectile
+        function createProjectile(source, target, damage) {
+            const projectileGraphics = new PIXI.Graphics();
+            projectileGraphics.beginFill(source.team === 'blue' ? 0x00ffff : 0xff5555);
+            projectileGraphics.drawCircle(0, 0, 10);
+            projectileGraphics.endFill();
+            
+            app.stage.addChild(projectileGraphics);
+            
+            // Calculate direction
+            let targetX, targetY;
+            if (typeof target.x === 'number') {
+                // Target is a point or entity
+                targetX = target.x;
+                targetY = target.y;
+            } else {
+                // Default direction if no valid target
+                targetX = source.x + 100;
+                targetY = source.y;
+            }
+            
+            const dx = targetX - source.x;
+            const dy = targetY - source.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const normalizedDx = dx / distance;
+            const normalizedDy = dy / distance;
+            
+            // Create projectile object
+            const projectile = {
+                sprite: projectileGraphics,
+                x: source.x,
+                y: source.y,
+                dx: normalizedDx,
+                dy: normalizedDy,
+                speed: 10,
+                damage: damage,
+                source: source,
+                target: typeof target.alive === 'boolean' ? target : null,
+                radius: 10,
+                traveled: 0,
+                maxRange: 600
             };
+            
+            projectiles.push(projectile);
         }
         
-        function connectToServer() {
-            // For real implementation, uncomment this line and comment out the mockSocket
-             socket = new WebSocket('wss://serversocket-production.up.railway.app');
-            
-            // For preview, use the mockSocket
-            socket = mockSocket;
-            socket.connect();
-            
-            // Setup WebSocket event handlers
-            socket.onmessage = handleServerMessage;
-            
-            socket.onclose = function() {
-                console.log('WebSocket connection closed');
-                // Handle reconnection or show error message
-            };
-            
-            socket.onerror = function(error) {
-                console.error('WebSocket error:', error);
-                // Show error message
-            };
-        }
-        
-        function handleServerMessage(event) {
-            const message = JSON.parse(event.data);
-            console.log("Received message:", message);
-            
-            switch(message.type) {
-                case "createSuccess":
-                    handleCreateSuccess(message);
-                    break;
-                case "joinSuccess":
-                    handleJoinSuccess(message);
-                    break;
-                case "playerJoined":
-                    handlePlayerJoined(message);
-                    break;
-                case "playerLeft":
-                    handlePlayerLeft(message);
-                    break;
-                case "gameStart":
-                    handleGameStart(message);
-                    break;
-                case "playerMove":
-                    handlePlayerMove(message);
-                    break;
-                case "flowerCollected":
-                    handleFlowerCollected(message);
-                    break;
-                case "newFlower":
-                    handleNewFlower(message);
-                    break;
-                case "updateSafeZone":
-                    handleUpdateSafeZone(message);
-                    break;
-                case "playerHit":
-                    handlePlayerHit(message);
-                    break;
-                case "playerEliminated":
-                    handlePlayerEliminated(message);
-                    break;
-                case "gameOver":
-                    handleGameOver(message);
-                    break;
-                case "error":
-                    handleError(message);
-                    break;
-            }
-        }
-        
-        function handleCreateSuccess(message) {
-            roomCode = message.room;
-            isHost = message.isHost;
-            roomCodeDisplay.textContent = roomCode;
-            
-            // Initialize other players
-            otherPlayers = {};
-            message.players.forEach(p => {
-                if (p.id !== player.id) {
-                    otherPlayers[p.id] = {
-                        id: p.id,
-                        x: 0,
-                        y: 0,
-                        vx: 0,
-                        vy: 0,
-                        color: p.color,
-                        name: p.name,
-                        health: 100,
-                        flowers: 0,
-                        alive: true
-                    };
-                }
-            });
-            
-            // Update UI
-            updateLobbyPlayersList(message.players);
-            waitingRoom.style.display = 'block';
-            
-            // Show start button if host
-            if (isHost) {
-                startGameBtn.style.display = 'block';
-                waitingMessage.style.display = 'none';
-            }
-        }
-        
-        function handleJoinSuccess(message) {
-            roomCode = message.room;
-            isHost = message.isHost;
-            roomCodeDisplay.textContent = roomCode;
-            
-            // Initialize other players
-            otherPlayers = {};
-            message.players.forEach(p => {
-                if (p.id !== player.id) {
-                    otherPlayers[p.id] = {
-                        id: p.id,
-                        x: 0,
-                        y: 0,
-                        vx: 0,
-                        vy: 0,
-                        color: p.color,
-                        name: p.name,
-                        health: 100,
-                        flowers: 0,
-                        alive: true
-                    };
-                }
-            });
-            
-            // Update UI
-            updateLobbyPlayersList(message.players);
-            waitingRoom.style.display = 'block';
-            
-            // Show start button if host
-            if (isHost) {
-                startGameBtn.style.display = 'block';
-                waitingMessage.style.display = 'none';
-            }
-        }
-        
-        function handlePlayerJoined(message) {
-            const newPlayer = message.player;
-            
-            // Add to other players if not self
-            if (newPlayer.id !== player.id) {
-                otherPlayers[newPlayer.id] = {
-                    id: newPlayer.id,
-                    x: 0,
-                    y: 0,
-                    vx: 0,
-                    vy: 0,
-                    color: newPlayer.color,
-                    name: newPlayer.name,
-                    health: 100,
-                    flowers: 0,
-                    alive: true
-                };
+        // Update projectiles
+        function updateProjectiles() {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const projectile = projectiles[i];
                 
-                // Update UI
-                const allPlayers = [player, ...Object.values(otherPlayers)];
-                updateLobbyPlayersList(allPlayers);
+                // Move projectile
+                projectile.x += projectile.dx * projectile.speed;
+                projectile.y += projectile.dy * projectile.speed;
+                projectile.traveled += projectile.speed;
                 
-                // Enable start button if host and enough players
-                if (isHost && allPlayers.length >= 2) {
-                    startGameBtn.disabled = false;
+                // Update sprite position
+                projectile.sprite.position.x = projectile.x;
+                projectile.sprite.position.y = projectile.y;
+                
+                // Check for collision with entities
+                for (const entity of entities) {
+                    // Skip same team or dead entities
+                    if (entity.team === projectile.source.team || !entity.alive) continue;
+                    
+                    // Check collision
+                    const dist = getDistance(projectile.x, projectile.y, entity.x, entity.y);
+                    if (dist < projectile.radius + entity.width / 2) {
+                        // Hit entity
+                        entity.health -= projectile.damage;
+                        showFloatingText(`-${projectile.damage}`, entity.x, entity.y, '#ff5555');
+                        
+                        // Check if entity died
+                        if (entity.health <= 0) {
+                            killEntity(entity, projectile.source);
+                        }
+                        
+                        // Remove projectile
+                        app.stage.removeChild(projectile.sprite);
+                        projectiles.splice(i, 1);
+                        break;
+                    }
+                }
+                
+                // Check if projectile reached max range
+                if (projectile.traveled >= projectile.maxRange) {
+                    app.stage.removeChild(projectile.sprite);
+                    projectiles.splice(i, 1);
                 }
             }
         }
         
-        function handlePlayerLeft(message) {
-            const playerId = message.playerId;
+        // Show ability effect
+        function showAbilityEffect(type, x, y, radius) {
+            const effectGraphics = new PIXI.Graphics();
             
-            // Remove from other players
-            if (otherPlayers[playerId]) {
-                delete otherPlayers[playerId];
+            switch (type) {
+                case 'burst':
+                    effectGraphics.lineStyle(3, 0xff9900, 0.8);
+                    effectGraphics.drawCircle(0, 0, radius);
+                    effectGraphics.beginFill(0xff9900, 0.3);
+                    effectGraphics.drawCircle(0, 0, radius);
+                    effectGraphics.endFill();
+                    break;
                 
-                // Update UI
-                const allPlayers = [player, ...Object.values(otherPlayers)];
-                updateLobbyPlayersList(allPlayers);
+                case 'area':
+                    effectGraphics.lineStyle(3, 0x00ffff, 0.8);
+                    effectGraphics.drawCircle(0, 0, radius);
+                    effectGraphics.beginFill(0x00ffff, 0.3);
+                    effectGraphics.drawCircle(0, 0, radius);
+                    effectGraphics.endFill();
+                    break;
                 
-                // Disable start button if not enough players
-                if (isHost && allPlayers.length < 2) {
-                    startGameBtn.disabled = true;
-                }
-            }
-        }
-        
-        function handleGameStart(message) {
-            // Hide lobby, show game screen
-            lobbyScreen.style.display = 'none';
-            gameScreen.style.display = 'block';
-            
-            // Set up game map
-            const map = message.map;
-            gameAreaWidth = map.width;
-            gameAreaHeight = map.height;
-            flowers = map.flowers;
-            obstacles = map.obstacles;
-            safeZone = map.safeZone;
-            
-            // Set player positions
-            player.x = map.playerPositions[player.id].x;
-            player.y = map.playerPositions[player.id].y;
-            
-            for (const id in otherPlayers) {
-                if (map.playerPositions[id]) {
-                    otherPlayers[id].x = map.playerPositions[id].x;
-                    otherPlayers[id].y = map.playerPositions[id].y;
-                }
+                case 'buff':
+                    effectGraphics.beginFill(0xffff00, 0.5);
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i / 8) * Math.PI * 2;
+                        effectGraphics.moveTo(0, 0);
+                        effectGraphics.lineTo(
+                            Math.cos(angle) * radius,
+                            Math.sin(angle) * radius
+                        );
+                    }
+                    effectGraphics.endFill();
+                    break;
             }
             
-            // Start countdown
-            startCountdown(message.countdown || 3);
+            effectGraphics.position.set(x, y);
+            app.stage.addChild(effectGraphics);
+            
+            // Animate and remove effect
+            let alpha = 1;
+            let scale = 1;
+            
+            const effectInterval = setInterval(() => {
+                alpha -= 0.05;
+                scale += 0.05;
+                
+                effectGraphics.alpha = alpha;
+                effectGraphics.scale.set(scale);
+                
+                if (alpha <= 0) {
+                    clearInterval(effectInterval);
+                    app.stage.removeChild(effectGraphics);
+                }
+            }, 50);
         }
         
-        function startCountdown(seconds) {
-            let count = seconds;
-            countdownElement.textContent = count;
-            countdownElement.style.opacity = 1;
+        // Kill entity
+        function killEntity(entity, killer) {
+            entity.alive = false;
+            entity.health = 0;
             
-            const interval = setInterval(() => {
-                count--;
+            // Update sprite to show death
+            entity.sprite.alpha = 0.5;
+            
+            // Award points/gold
+            if (killer) {
+                if (entity.type === 'champion' || entity.type === 'tower') {
+                    if (killer.team === 'blue') {
+                        gameState.blueScore += entity.type === 'champion' ? 1 : 5;
+                    } else {
+                        gameState.redScore += entity.type === 'champion' ? 1 : 5;
+                    }
+                }
                 
-                if (count > 0) {
-                    countdownElement.textContent = count;
+                // Show kill message
+                if (entity.type === 'champion' || entity.type === 'tower') {
+                    const messageContainer = document.createElement('div');
+                    messageContainer.className = 'floating-text';
+                    messageContainer.style.left = `${window.innerWidth / 2}px`;
+                    messageContainer.style.top = `${100}px`;
+                    messageContainer.textContent = `${killer.team === 'blue' ? 'Đội Xanh' : 'Đội Đỏ'} đã tiêu diệt ${entity.type === 'champion' ? entity.character.name : (entity.team === 'blue' ? 'Trụ Xanh' : 'Trụ Đỏ')}!`;
+                    document.body.appendChild(messageContainer);
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(messageContainer);
+                    }, 3000);
+                }
+                
+                // Player stats
+                if (killer === player && (entity.type === 'champion' || entity.type === 'tower')) {
+                    player.kills++;
+                }
+            }
+            
+            // Remove entity after animation
+            setTimeout(() => {
+                // If entity is player, respawn after delay
+                if (entity === player) {
+                    player.deaths++;
+                    respawnPlayer();
                 } else {
-                    clearInterval(interval);
-                    countdownElement.style.opacity = 0;
-                    gameStarted = true;
+                    // Remove from stage
+                    app.stage.removeChild(entity.sprite);
                     
-                    // Start game loop
-                    requestAnimationFrame(gameLoop);
+                    // Remove from entities array (find index first)
+                    const index = entities.indexOf(entity);
+                    if (index !== -1) {
+                        entities.splice(index, 1);
+                    }
                     
-                    // Start safe zone shrinking
-                    scheduleSafeZoneShrink();
+                    // Respawn if it's a champion or tower
+                    if (entity.type === 'champion') {
+                        setTimeout(() => {
+                            createEnemy(entity.character, entity.team, 
+                                entity.team === 'blue' ? 200 + Math.random() * 200 : 1800 - Math.random() * 200,
+                                entity.team === 'blue' ? 200 + Math.random() * 200 : 1800 - Math.random() * 200);
+                        }, 10000); // 10 second respawn time
+                    } else if (entity.type === 'tower') {
+                        // Towers respawn after longer delay
+                        setTimeout(() => {
+                            createTowers([{
+                                x: entity.x,
+                                y: entity.y,
+                                team: entity.team
+                            }]);
+                        }, 30000); // 30 second respawn time
+                    }
                 }
             }, 1000);
         }
         
-        function scheduleSafeZoneShrink() {
+        // Respawn player
+        function respawnPlayer() {
+            if (!player) return;
+            
             setTimeout(() => {
-                if (!gameOver) {
-                    // Simulate server sending safe zone update
-                    socket._sendMessage({
-                        type: "updateSafeZone",
-                        safeZone: {
-                            x: safeZone.x,
-                            y: safeZone.y,
-                            radius: safeZone.nextRadius,
-                            nextRadius: safeZone.nextRadius * 0.7
-                        }
-                    });
-                    
-                    // Schedule next shrink if not too small
-                    if (safeZone.nextRadius * 0.7 > 100) {
-                        scheduleSafeZoneShrink();
-                    } else {
-                        // Game is almost over, start eliminating players outside zone
-                        schedulePlayerElimination();
-                    }
-                }
-            }, 20000); // 20 seconds between zone shrinks
+                player.alive = true;
+                player.health = player.maxHealth;
+                player.mana = player.maxMana;
+                player.x = 200;
+                player.y = 200;
+                player.sprite.alpha = 1;
+                
+                // Show respawn message
+                showFloatingText("Hồi sinh!", player.x, player.y, '#00ff00');
+            }, 5000); // 5 second respawn time
         }
         
-        function schedulePlayerElimination() {
-            const eliminationInterval = setInterval(() => {
-                if (gameOver) {
-                    clearInterval(eliminationInterval);
-                    return;
-                }
-                
-                // Check if only one player left
-                const activePlayers = [player, ...Object.values(otherPlayers)].filter(p => p.alive).length;
-                if (activePlayers <= 3) {
-                    // End the game with remaining players as winners
-                    const winners = [player, ...Object.values(otherPlayers)]
-                        .filter(p => p.alive)
-                        .sort((a, b) => b.flowers - a.flowers);
-                    
-                    socket._sendMessage({
-                        type: "gameOver",
-                        winners: winners.map(p => ({
-                            id: p.id,
-                            name: p.name,
-                            color: p.color,
-                            flowers: p.flowers
-                        }))
-                    });
-                    
-                    clearInterval(eliminationInterval);
-                    return;
-                }
-                
-                // Find players outside the safe zone
-                for (const id in otherPlayers) {
-                    if (otherPlayers[id].alive) {
-                        const distance = Math.sqrt(
-                            Math.pow(otherPlayers[id].x - safeZone.x, 2) + 
-                            Math.pow(otherPlayers[id].y - safeZone.y, 2)
-                        );
-                        
-                        if (distance > safeZone.radius) {
-                            // Damage player
-                            socket._sendMessage({
-                                type: "playerHit",
-                                playerId: id,
-                                damage: 25
-                            });
-                        }
-                    }
-                }
-                
-                // Check if player is outside safe zone
-                if (player.alive) {
-                    const distance = Math.sqrt(
-                        Math.pow(player.x - safeZone.x, 2) + 
-                        Math.pow(player.y - safeZone.y, 2)
-                    );
-                    
-                    if (distance > safeZone.radius) {
-                        // Damage player
-                        socket._sendMessage({
-                            type: "playerHit",
-                            playerId: player.id,
-                            damage: 25
-                        });
-                    }
-                }
-            }, 3000);
-        }
-        
-        function handlePlayerMove(message) {
-            const playerId = message.playerId;
+        // Center camera on player
+        function centerCamera() {
+            if (!player) return;
             
-            if (playerId === player.id) {
-                // This is our player, update position
-                player.x = message.x;
-                player.y = message.y;
-            } else if (otherPlayers[playerId]) {
-                // Update other player position
-                otherPlayers[playerId].x = message.x;
-                otherPlayers[playerId].y = message.y;
-                otherPlayers[playerId].vx = message.vx;
-                otherPlayers[playerId].vy = message.vy;
+            // Calculate position to center player on screen
+            const targetX = -player.x + window.innerWidth / 2;
+            const targetY = -player.y + window.innerHeight / 2;
+            
+            // Clamp to map boundaries
+            const clampedX = Math.min(0, Math.max(-(2000 - window.innerWidth), targetX));
+            const clampedY = Math.min(0, Math.max(-(2000 - window.innerHeight), targetY));
+            
+            // Set position
+            app.stage.position.set(clampedX, clampedY);
+        }
+        
+        // Update UI elements
+        function updateUI() {
+            if (!player) return;
+            
+            // Update health bar
+            const healthFill = document.querySelector('.health-fill');
+            const healthText = document.querySelector('.health-text');
+            const healthPercent = player.health / player.maxHealth * 100;
+            
+            healthFill.style.width = `${healthPercent}%`;
+            healthText.textContent = `${Math.floor(player.health)}/${player.maxHealth}`;
+            
+            // Update mana bar
+            const manaFill = document.querySelector('.mana-fill');
+            const manaText = document.querySelector('.mana-text');
+            const manaPercent = player.mana / player.maxMana * 100;
+            
+            manaFill.style.width = `${manaPercent}%`;
+            manaText.textContent = `${Math.floor(player.mana)}/${player.maxMana}`;
+            
+            // Update score display
+            const blueScore = document.querySelector('.team-score.team-blue');
+            const redScore = document.querySelector('.team-score.team-red');
+            
+            blueScore.textContent = gameState.blueScore;
+            redScore.textContent = gameState.redScore;
+            
+            // Regenerate mana over time
+            if (player.mana < player.maxMana) {
+                player.mana += 0.1; // Adjust regen rate as needed
+                if (player.mana > player.maxMana) {
+                    player.mana = player.maxMana;
+                }
+            }
+            
+            // Regenerate health over time
+            if (player.health < player.maxHealth && player.alive) {
+                player.health += 0.05; // Adjust regen rate as needed
+                if (player.health > player.maxHealth) {
+                    player.health = player.maxHealth;
+                }
+            }
+            
+            // Update minimap (simplified)
+            updateMinimap();
+        }
+        
+        // Update ability cooldown UI
+        function updateCooldownUI(abilityKey) {
+            const ability = abilities[abilityKey];
+            const abilityBtn = document.querySelector(`.ability-btn[data-ability="${abilityKey}"]`);
+            const cooldownOverlay = abilityBtn.querySelector('.ability-cooldown');
+            
+            // Full height = full cooldown
+            cooldownOverlay.style.height = '100%';
+            
+            // Animate cooldown
+            const startTime = Date.now();
+            const cooldownTime = ability.cooldown;
+            
+            const cooldownInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, cooldownTime - elapsed);
+                const percentage = (remaining / cooldownTime) * 100;
+                
+                cooldownOverlay.style.height = `${percentage}%`;
+                
+                if (remaining <= 0) {
+                    clearInterval(cooldownInterval);
+                }
+            }, 100);
+        }
+        
+        // Update minimap
+        function updateMinimap() {
+            const minimap = document.querySelector('.minimap');
+            minimap.innerHTML = '';
+            
+            // Calculate scale factor for minimap (map is 2000x2000)
+            const scale = minimap.offsetWidth / 2000;
+            
+            // Draw entities on minimap
+            for (const entity of entities) {
+                if (!entity.alive) continue;
+                
+                const dot = document.createElement('div');
+                dot.style.position = 'absolute';
+                dot.style.width = '6px';
+                dot.style.height = '6px';
+                dot.style.borderRadius = '50%';
+                dot.style.backgroundColor = entity.team === 'blue' ? '#00f' : '#f00';
+                
+                // Special style for player
+                if (entity === player) {
+                    dot.style.width = '8px';
+                    dot.style.height = '8px';
+                    dot.style.border = '1px solid white';
+                }
+                
+                // Position on minimap
+                dot.style.left = `${entity.x * scale - 3}px`;
+                dot.style.top = `${entity.y * scale - 3}px`;
+                
+                minimap.appendChild(dot);
             }
         }
         
-        function handleFlowerCollected(message) {
-            const playerId = message.playerId;
-            const flowerIndex = message.flowerIndex;
+        // Show floating text at position
+        function showFloatingText(text, x, y, color = '#ffffff') {
+            // Convert game coordinates to screen coordinates
+            const screenX = x + app.stage.position.x;
+            const screenY = y + app.stage.position.y;
             
-            // Remove the flower
-            if (flowerIndex >= 0 && flowerIndex < flowers.length) {
-                flowers[flowerIndex] = null;
-            }
+            const textElement = document.createElement('div');
+            textElement.className = 'floating-text';
+            textElement.style.left = `${screenX}px`;
+            textElement.style.top = `${screenY - 50}px`;
+            textElement.style.color = color;
+            textElement.textContent = text;
             
-            // Update player flower count
-            if (playerId === player.id) {
-                player.flowers = message.flowerCount;
-                flowersCollected.textContent = `Hoa: ${player.flowers}`;
-            } else if (otherPlayers[playerId]) {
-                otherPlayers[playerId].flowers = message.flowerCount;
-            }
+            document.body.appendChild(textElement);
+            
+            setTimeout(() => {
+                document.body.removeChild(textElement);
+            }, 1000);
         }
         
-        function handleNewFlower(message) {
-            const flowerIndex = message.index;
-            
-            // Add new flower
-            if (flowerIndex >= 0 && flowerIndex < flowers.length) {
-                flowers[flowerIndex] = message.flower;
-            }
-        }
-        
-        function handleUpdateSafeZone(message) {
-            safeZone = message.safeZone;
-        }
-        
-        function handlePlayerHit(message) {
-            const playerId = message.playerId;
-            const damage = message.damage;
-            
-            if (playerId === player.id) {
-                player.health -= damage;
+        // Check if game should end
+        function checkGameEnd() {
+            if (gameState.blueScore >= 30 || gameState.redScore >= 30) {
+                // Game over
+                clearInterval(gameLoop);
+                gameStarted = false;
                 
-                if (player.health <= 0) {
-                    player.health = 0;
-                    
-                    // Player eliminated
-                    socket._sendMessage({
-                        type: "playerEliminated",
-                        playerId: player.id
-                    });
-                }
-            } else if (otherPlayers[playerId]) {
-                otherPlayers[playerId].health -= damage;
+                // Show game over message
+                const gameOver = document.createElement('div');
+                gameOver.className = 'game-over';
+                gameOver.innerHTML = `
+                    <h2>Trò Chơi Kết Thúc</h2>
+                    <p>${gameState.blueScore >= 30 ? 'Đội Xanh' : 'Đội Đỏ'} Chiến Thắng!</p>
+                    <p>Điểm số: ${gameState.blueScore} - ${gameState.redScore}</p>
+                    <button class="btn" id="restart-game-btn">Chơi Lại</button>
+                `;
+                document.body.appendChild(gameOver);
                 
-                if (otherPlayers[playerId].health <= 0) {
-                    otherPlayers[playerId].health = 0;
-                    
-                    // Other player eliminated
-                    socket._sendMessage({
-                        type: "playerEliminated",
-                        playerId: playerId
-                    });
-                }
-            }
-        }
-        
-        function handlePlayerEliminated(message) {
-            const playerId = message.playerId;
-            
-            if (playerId === player.id) {
-                player.alive = false;
-                // Show death overlay or message
-            } else if (otherPlayers[playerId]) {
-                otherPlayers[playerId].alive = false;
-            }
-            
-            // Update players count
-            const activePlayers = [player, ...Object.values(otherPlayers)].filter(p => p.alive).length;
-            playersCount.textContent = `Người chơi: ${activePlayers}/5`;
-        }
-        
-        function handleGameOver(message) {
-            gameOver = true;
-            gameStarted = false;
-            
-            // Display game over screen with winners
-            displayWinners(message.winners);
-            
-            gameScreen.style.display = 'none';
-            gameOverScreen.style.display = 'flex';
-        }
-        
-        function handleError(message) {
-            console.error("Error:", message.message);
-            alert(`Lỗi: ${message.message}`);
-        }
-        
-        function updateLobbyPlayersList(players) {
-            // Update player count
-            playerCountElement.textContent = players.length;
-            playersCount.textContent = `Người chơi: ${players.length}/5`;
-            
-            // Clear current list
-            playersList.innerHTML = '';
-            
-            // Add each player
-            players.forEach(p => {
-                const playerItem = document.createElement('li');
-                playerItem.className = 'flex items-center';
-                
-                const playerColor = document.createElement('div');
-                playerColor.className = 'w-4 h-4 rounded-full mr-2';
-                playerColor.style.backgroundColor = p.color;
-                
-                const playerName = document.createElement('span');
-                playerName.textContent = p.name;
-                if (p.id === player.id) {
-                    playerName.className = 'font-bold';
-                    playerName.textContent += ' (Bạn)';
-                }
-                
-                playerItem.appendChild(playerColor);
-                playerItem.appendChild(playerName);
-                playersList.appendChild(playerItem);
-            });
-            
-            // Enable start button if host and enough players
-            if (isHost) {
-                startGameBtn.disabled = players.length < 2;
-            }
-        }
-        
-        function copyRoomCode() {
-            navigator.clipboard.writeText(roomCode)
-                .then(() => {
-                    copyCodeBtn.textContent = 'Đã sao chép!';
-                    setTimeout(() => {
-                        copyCodeBtn.textContent = 'Sao chép';
-                    }, 2000);
-                })
-                .catch(err => {
-                    console.error('Failed to copy room code:', err);
-                    alert('Không thể sao chép mã phòng. Vui lòng sao chép thủ công.');
+                // Add event listener to restart button
+                document.getElementById('restart-game-btn').addEventListener('click', () => {
+                    document.body.removeChild(gameOver);
+                    resetGame();
                 });
-        }
-        
-        function startGame() {
-            // Send start game message
-            socket.send(JSON.stringify({
-                type: "start",
-                room: roomCode
-            }));
-        }
-        
-        function gameLoop() {
-            if (!gameStarted) return;
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Update player position
-            updatePlayerPosition();
-            
-            // Draw game
-            drawGame();
-            
-            // Check for collisions
-            checkCollisions();
-            
-            // Request next frame
-            requestAnimationFrame(gameLoop);
-        }
-        
-        function updatePlayerPosition() {
-            if (!player.alive) return;
-            
-            // Update position based on velocity
-            player.x += player.vx;
-            player.y += player.vy;
-            
-            // Constrain to game boundaries
-            player.x = Math.max(25, Math.min(gameAreaWidth - 25, player.x));
-            player.y = Math.max(25, Math.min(gameAreaHeight - 25, player.y));
-        }
-        
-        function drawGame() {
-            // Calculate the camera offset to center on player
-            const cameraOffsetX = canvas.width / 2 - player.x;
-            const cameraOffsetY = canvas.height / 2 - player.y;
-            
-            // Draw danger zone (outside safe zone)
-            ctx.beginPath();
-            ctx.arc(safeZone.x + cameraOffsetX, safeZone.y + cameraOffsetY, gameAreaWidth, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(239, 71, 111, 0.2)';
-            ctx.fill();
-            
-            // Draw safe zone boundary
-            ctx.beginPath();
-            ctx.arc(safeZone.x + cameraOffsetX, safeZone.y + cameraOffsetY, safeZone.radius, 0, Math.PI * 2);
-            ctx.strokeStyle = '#8A4FFF';
-            ctx.setLineDash([5, 5]);
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            // Draw next safe zone boundary (dashed)
-            ctx.beginPath();
-            ctx.arc(safeZone.x + cameraOffsetX, safeZone.y + cameraOffsetY, safeZone.nextRadius, 0, Math.PI * 2);
-            ctx.strokeStyle = '#06D6A0';
-            ctx.setLineDash([2, 4]);
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            // Draw obstacles
-            obstacles.forEach(obstacle => {
-                ctx.beginPath();
-                ctx.arc(
-                    obstacle.x + cameraOffsetX,
-                    obstacle.y + cameraOffsetY,
-                    obstacle.radius,
-                    0,
-                    Math.PI * 2
-                );
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-                ctx.fill();
-            });
-            
-            // Draw flowers
-            flowers.forEach((flower, index) => {
-                if (flower) {
-                    drawFlower(
-                        flower.x + cameraOffsetX,
-                        flower.y + cameraOffsetY,
-                        flower.type,
-                        index
-                    );
-                }
-            });
-            
-            // Draw other players
-            for (const id in otherPlayers) {
-                if (otherPlayers[id].alive) {
-                    drawPlayer(
-                        otherPlayers[id],
-                        cameraOffsetX,
-                        cameraOffsetY
-                    );
-                }
-            }
-            
-            // Draw player
-            if (player.alive) {
-                drawPlayer(player, cameraOffsetX, cameraOffsetY);
             }
         }
         
-        function drawPlayer(player, offsetX, offsetY) {
-            // Draw player circle
-            ctx.beginPath();
-            ctx.arc(
-                player.x + offsetX,
-                player.y + offsetY,
-                25,
-                0,
-                Math.PI * 2
-            );
-            ctx.fillStyle = player.color;
-            ctx.fill();
+        // Reset game
+        function resetGame() {
+            // Stop game loop
+            clearInterval(gameLoop);
             
-            // Draw player face (simple eyes and smile)
-            const eyeRadius = 5;
-            const eyeOffsetX = 8;
-            const eyeOffsetY = -5;
-            
-            // Draw eyes
-            ctx.beginPath();
-            ctx.arc(
-                player.x + offsetX - eyeOffsetX,
-                player.y + offsetY + eyeOffsetY,
-                eyeRadius,
-                0,
-                Math.PI * 2
-            );
-            ctx.fillStyle = 'white';
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.arc(
-                player.x + offsetX + eyeOffsetX,
-                player.y + offsetY + eyeOffsetY,
-                eyeRadius,
-                0,
-                Math.PI * 2
-            );
-            ctx.fillStyle = 'white';
-            ctx.fill();
-            
-            // Draw pupils
-            ctx.beginPath();
-            ctx.arc(
-                player.x + offsetX - eyeOffsetX,
-                player.y + offsetY + eyeOffsetY,
-                eyeRadius / 2,
-                0,
-                Math.PI * 2
-            );
-            ctx.fillStyle = 'black';
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.arc(
-                player.x + offsetX + eyeOffsetX,
-                player.y + offsetY + eyeOffsetY,
-                eyeRadius / 2,
-                0,
-                Math.PI * 2
-            );
-            ctx.fillStyle = 'black';
-            ctx.fill();
-            
-            // Draw smile
-            ctx.beginPath();
-            ctx.arc(
-                player.x + offsetX,
-                player.y + offsetY + 5,
-                10,
-                0,
-                Math.PI,
-                false
-            );
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Draw player name
-            ctx.font = '12px Arial';
-            ctx.fillStyle = 'black';
-            ctx.textAlign = 'center';
-            ctx.fillText(
-                player.name,
-                player.x + offsetX,
-                player.y + offsetY - 30
-            );
-            
-            // Draw health bar
-            const healthBarWidth = 40;
-            const healthBarHeight = 5;
-            
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(
-                player.x + offsetX - healthBarWidth / 2,
-                player.y + offsetY + 30,
-                healthBarWidth,
-                healthBarHeight
-            );
-            
-            ctx.fillStyle = player.health > 30 ? '#06D6A0' : '#EF476F';
-            ctx.fillRect(
-                player.x + offsetX - healthBarWidth / 2,
-                player.y + offsetY + 30,
-                healthBarWidth * (player.health / 100),
-                healthBarHeight
-            );
-            
-            // Draw flower count
-            const flowerSize = 10;
-            ctx.font = '10px Arial';
-            ctx.fillStyle = 'black';
-            
-            // Draw flower icon
-            ctx.beginPath();
-            ctx.arc(
-                player.x + offsetX - 15,
-                player.y + offsetY + 40,
-                flowerSize / 2,
-                0,
-                Math.PI * 2
-            );
-            ctx.fillStyle = '#FF6B9D';
-            ctx.fill();
-            
-            // Draw flower count
-            ctx.fillStyle = 'black';
-            ctx.textAlign = 'left';
-            ctx.fillText(
-                `x${player.flowers}`,
-                player.x + offsetX - 10,
-                player.y + offsetY + 43
-            );
-        }
-        
-        function drawFlower(x, y, type, index) {
-            const size = 15;
-            const colors = ['#FF6B9D', '#8A4FFF', '#06D6A0'];
-            const color = colors[type % colors.length];
-            
-            // Draw petals
-            for (let i = 0; i < 8; i++) {
-                const angle = (i / 8) * Math.PI * 2;
-                const petalX = x + Math.cos(angle) * size;
-                const petalY = y + Math.sin(angle) * size;
-                
-                ctx.beginPath();
-                ctx.arc(petalX, petalY, size / 2, 0, Math.PI * 2);
-                ctx.fillStyle = color;
-                ctx.fill();
-            }
-            
-            // Draw center
-            ctx.beginPath();
-            ctx.arc(x, y, size / 2, 0, Math.PI * 2);
-            ctx.fillStyle = '#FFD166';
-            ctx.fill();
-            
-            // Animate the flower with a subtle pulsing effect
-            const pulseAmount = Math.sin(Date.now() / 500 + index) * 2;
-            
-            ctx.beginPath();
-            ctx.arc(x, y, (size / 4) + pulseAmount, 0, Math.PI * 2);
-            ctx.fillStyle = '#FFA500';
-            ctx.fill();
-        }
-        
-        function checkCollisions() {
-            if (!player.alive) return;
-            
-            // Check flower collisions
-            flowers.forEach((flower, index) => {
-                if (flower) {
-                    const distance = Math.sqrt(
-                        Math.pow(player.x - flower.x, 2) + 
-                        Math.pow(player.y - flower.y, 2)
-                    );
-                    
-                    if (distance < 35) { // Player radius + flower radius
-                        // Collect flower
-                        socket.send(JSON.stringify({
-                            type: "collectFlower",
-                            playerId: player.id,
-                            flowerIndex: index
-                        }));
-                    }
-                }
-            });
-            
-            // Check player-player collisions (for pushing)
-            for (const id in otherPlayers) {
-                if (otherPlayers[id].alive) {
-                    const otherPlayer = otherPlayers[id];
-                    const distance = Math.sqrt(
-                        Math.pow(player.x - otherPlayer.x, 2) + 
-                        Math.pow(player.y - otherPlayer.y, 2)
-                    );
-                    
-                    if (distance < 50) { // Two player radiuses
-                        // Calculate push direction
-                        const angle = Math.atan2(player.y - otherPlayer.y, player.x - otherPlayer.x);
-                        const pushX = Math.cos(angle) * 2;
-                        const pushY = Math.sin(angle) * 2;
-                        
-                        // Apply push to player
-                        player.x += pushX;
-                        player.y += pushY;
-                        
-                        // Constrain to game boundaries
-                        player.x = Math.max(25, Math.min(gameAreaWidth - 25, player.x));
-                        player.y = Math.max(25, Math.min(gameAreaHeight - 25, player.y));
-                        
-                        // Send updated position
-                        sendPlayerMove();
-                    }
-                }
-            }
-            
-            // Check obstacle collisions
-            obstacles.forEach(obstacle => {
-                const distance = Math.sqrt(
-                    Math.pow(player.x - obstacle.x, 2) + 
-                    Math.pow(player.y - obstacle.y, 2)
-                );
-                
-                if (distance < 25 + obstacle.radius) {
-                    // Calculate bounce direction
-                    const angle = Math.atan2(player.y - obstacle.y, player.x - obstacle.x);
-                    const bounceX = Math.cos(angle) * 5;
-                    const bounceY = Math.sin(angle) * 5;
-                    
-                    // Apply bounce to player
-                    player.x += bounceX;
-                    player.y += bounceY;
-                    
-                    // Constrain to game boundaries
-                    player.x = Math.max(25, Math.min(gameAreaWidth - 25, player.x));
-                    player.y = Math.max(25, Math.min(gameAreaHeight - 25, player.y));
-                    
-                    // Send updated position
-                    sendPlayerMove();
-                }
-            });
-        }
-        
-        function sendPlayerMove() {
-            socket.send(JSON.stringify({
-                type: "move",
-                player: {
-                    id: player.id
-                },
-                x: player.x,
-                y: player.y,
-                vx: player.vx,
-                vy: player.vy
-            }));
-        }
-        
-        function displayWinners(winners) {
-            // Clear existing winners
-            winnersContainer.innerHTML = '';
-            
-            // Set game result message
-            const isPlayerWinner = winners.some(w => w.id === player.id);
-            if (isPlayerWinner) {
-                gameResult.textContent = 'Chúc mừng! Bạn là một trong những người thắng cuộc!';
-                gameResult.classList.add('text-success');
-                
-                // Add confetti animation
-                createConfetti();
-            } else {
-                gameResult.textContent = 'Tiếc quá! Bạn không phải là người thắng cuộc.';
-                gameResult.classList.add('text-danger');
-            }
-            
-            // Add winners to the list
-            winners.forEach((winner, index) => {
-                const winnerElement = document.createElement('div');
-                winnerElement.className = 'flex items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg';
-                
-                const rankElement = document.createElement('div');
-                rankElement.className = 'text-2xl font-bold mr-3';
-                rankElement.textContent = `#${index + 1}`;
-                
-                const colorElement = document.createElement('div');
-                colorElement.className = 'w-10 h-10 rounded-full mr-3';
-                colorElement.style.backgroundColor = winner.color;
-                
-                const infoElement = document.createElement('div');
-                infoElement.className = 'flex-1';
-                
-                const nameElement = document.createElement('div');
-                nameElement.className = 'font-semibold';
-                nameElement.textContent = winner.name;
-                if (winner.id === player.id) {
-                    nameElement.textContent += ' (Bạn)';
-                    nameElement.className += ' text-primary dark:text-dark-primary';
-                }
-                
-                const flowerElement = document.createElement('div');
-                flowerElement.className = 'text-sm';
-                flowerElement.textContent = `Hoa: ${winner.flowers}`;
-                
-                infoElement.appendChild(nameElement);
-                infoElement.appendChild(flowerElement);
-                
-                winnerElement.appendChild(rankElement);
-                winnerElement.appendChild(colorElement);
-                winnerElement.appendChild(infoElement);
-                
-                winnersContainer.appendChild(winnerElement);
-            });
-        }
-        
-        function createConfetti() {
-            const colors = ['#FF6B9D', '#8A4FFF', '#06D6A0', '#FFD166', '#EF476F'];
-            const totalConfetti = 100;
-            
-            for (let i = 0; i < totalConfetti; i++) {
-                setTimeout(() => {
-                    const confetti = document.createElement('div');
-                    confetti.className = 'confetti';
-                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.left = `${Math.random() * 100}%`;
-                    confetti.style.top = '-10px';
-                    confetti.style.width = `${Math.random() * 10 + 5}px`;
-                    confetti.style.height = `${Math.random() * 10 + 5}px`;
-                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-                    
-                    document.body.appendChild(confetti);
-                    
-                    // Animate confetti falling
-                    const animationDuration = Math.random() * 3 + 2;
-                    const animationDelay = Math.random() * 5;
-                    
-                    confetti.animate([
-                        { top: '-10px', left: `${parseFloat(confetti.style.left)}`, transform: `rotate(0deg)` },
-                        { top: '100%', left: `${parseFloat(confetti.style.left) + (Math.random() * 20 - 10)}%`, transform: `rotate(${Math.random() * 720}deg)` }
-                    ], {
-                        duration: animationDuration * 1000,
-                        delay: animationDelay * 1000,
-                        easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-                        fill: 'forwards'
-                    });
-                    
-                    // Remove confetti after animation
-                    setTimeout(() => {
-                        confetti.remove();
-                    }, (animationDuration + animationDelay) * 1000 + 500);
-                }, Math.random() * 2000);
-            }
-        }
-        
-        function returnToLobby() {
             // Reset game state
-            gameOver = false;
-            gameStarted = false;
-            player.health = 100;
-            player.flowers = 0;
-            player.alive = true;
+            gameState.blueScore = 0;
+            gameState.redScore = 0;
             
-            // Show lobby screen
-            gameOverScreen.style.display = 'none';
-            lobbyScreen.style.display = 'flex';
-            waitingRoom.style.display = 'none';
+            // Clear entities
+            for (const entity of entities) {
+                app.stage.removeChild(entity.sprite);
+            }
+            entities = [];
             
-            // Reset game result classes
-            gameResult.classList.remove('text-success', 'text-danger');
+            // Clear projectiles
+            for (const projectile of projectiles) {
+                app.stage.removeChild(projectile.sprite);
+            }
+            projectiles = [];
             
-            // Reconnect to server
-            if (socket.readyState !== 1) {
-                connectToServer();
+            // Reset player
+            player = null;
+            
+            // Clear stage
+            while (app.stage.children.length > 0) {
+                app.stage.removeChild(app.stage.children[0]);
+            }
+            
+            // Recreate map
+            createMap();
+            
+            // Show character selection menu
+            document.getElementById('character-menu').style.display = 'flex';
+        }
+        
+        // Handle joystick controls
+        function initJoystick() {
+            const joystickArea = document.querySelector('.control-area');
+            const joystick = document.querySelector('.joystick');
+            const joystickRadius = joystickArea.offsetWidth / 2;
+            const centerX = joystickRadius;
+            const centerY = joystickRadius;
+            
+            // Touch start
+            joystickArea.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleJoystickStart(e.touches[0].clientX, e.touches[0].clientY);
+            });
+            
+            // Mouse down
+            joystickArea.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                handleJoystickStart(e.clientX, e.clientY);
+                
+                // Add temporary mouse move and up handlers
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+            });
+            
+            // Touch move
+            joystickArea.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
+            });
+            
+            // Touch end
+            joystickArea.addEventListener('touchend', () => {
+                handleJoystickEnd();
+            });
+            
+            // Mouse move handler (temporary)
+            function handleMouseMove(e) {
+                e.preventDefault();
+                handleJoystickMove(e.clientX, e.clientY);
+            }
+            
+            // Mouse up handler (temporary)
+            function handleMouseUp(e) {
+                e.preventDefault();
+                handleJoystickEnd();
+                
+                // Remove temporary handlers
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            }
+            
+            // Start joystick
+            function handleJoystickStart(clientX, clientY) {
+                joystickActive = true;
+                const rect = joystickArea.getBoundingClientRect();
+                updateJoystickPosition(clientX - rect.left, clientY - rect.top);
+            }
+            
+            // Move joystick
+            function handleJoystickMove(clientX, clientY) {
+                if (!joystickActive) return;
+                
+                const rect = joystickArea.getBoundingClientRect();
+                updateJoystickPosition(clientX - rect.left, clientY - rect.top);
+            }
+            
+            // End joystick
+            function handleJoystickEnd() {
+                joystickActive = false;
+                joystick.style.transform = `translate(-50%, -50%)`;
+                joystickData = { x: 0, y: 0 };
+            }
+            
+            // Update joystick position
+            function updateJoystickPosition(x, y) {
+                // Calculate distance from center
+                const dx = x - centerX;
+                const dy = y - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Normalize to unit vector
+                let normalizedX = dx / distance;
+                let normalizedY = dy / distance;
+                
+                // Clamp to joystick radius
+                const clampedDistance = Math.min(distance, joystickRadius - 25);
+                const clampedX = normalizedX * clampedDistance;
+                const clampedY = normalizedY * clampedDistance;
+                
+                // Update joystick position
+                joystick.style.transform = `translate(calc(-50% + ${clampedX}px), calc(-50% + ${clampedY}px))`;
+                
+                // Update joystick data for movement
+                joystickData = {
+                    x: normalizedX,
+                    y: normalizedY
+                };
             }
         }
         
-        function generateId() {
-            return 'id_' + Math.random().toString(36).substr(2, 9);
+        // Handle ability buttons
+        function initAbilityButtons() {
+            const abilityButtons = document.querySelectorAll('.ability-btn');
+            
+            abilityButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const abilityKey = button.getAttribute('data-ability');
+                    useAbility(abilityKey);
+                });
+                
+                button.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const abilityKey = button.getAttribute('data-ability');
+                    useAbility(abilityKey);
+                });
+            });
         }
         
-        // Initialize the game
-        window.addEventListener('load', initGame);
+        // Initialize character selection
+        function initCharacterSelection() {
+            const characterSelection = document.querySelector('.character-selection');
+            
+            characters.forEach(character => {
+                const card = document.createElement('div');
+                card.className = 'character-card';
+                card.dataset.id = character.id;
+                
+                // Create character image
+                const imageDiv = document.createElement('div');
+                imageDiv.className = 'character-image';
+                imageDiv.style.backgroundColor = `#${character.color.toString(16).padStart(6, '0')}`;
+                
+                // Add simple face
+                const face = document.createElement('div');
+                face.style.width = '100%';
+                face.style.height = '100%';
+                face.style.position = 'relative';
+                
+                // Eyes
+                const leftEye = document.createElement('div');
+                leftEye.style.position = 'absolute';
+                leftEye.style.width = '10px';
+                leftEye.style.height = '10px';
+                leftEye.style.backgroundColor = 'white';
+                leftEye.style.borderRadius = '50%';
+                leftEye.style.top = '30px';
+                leftEye.style.left = '25px';
+                
+                const rightEye = document.createElement('div');
+                rightEye.style.position = 'absolute';
+                rightEye.style.width = '10px';
+                rightEye.style.height = '10px';
+                rightEye.style.backgroundColor = 'white';
+                rightEye.style.borderRadius = '50%';
+                rightEye.style.top = '30px';
+                rightEye.style.right = '25px';
+                
+                // Mouth
+                const mouth = document.createElement('div');
+                mouth.style.position = 'absolute';
+                mouth.style.width = '30px';
+                mouth.style.height = '10px';
+                mouth.style.backgroundColor = 'black';
+                mouth.style.borderRadius = '0 0 10px 10px';
+                mouth.style.top = '50px';
+                mouth.style.left = '25px';
+                
+                face.appendChild(leftEye);
+                face.appendChild(rightEye);
+                face.appendChild(mouth);
+                imageDiv.appendChild(face);
+                
+                // Character name
+                const name = document.createElement('div');
+                name.className = 'text-sm font-bold mt-2';
+                name.textContent = character.name;
+                
+                // Stats
+                const stats = document.createElement('div');
+                stats.className = 'text-xs mt-1';
+                stats.innerHTML = `
+                    HP: ${character.health}<br>
+                    Sát thương: ${character.damage}<br>
+                    Tầm đánh: ${character.range < 200 ? 'Cận chiến' : 'Xa'}
+                `;
+                
+                card.appendChild(imageDiv);
+                card.appendChild(name);
+                card.appendChild(stats);
+                
+                // Add click event
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.character-card').forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    card.classList.add('selected');
+                    selectedCharacter = character;
+                });
+                
+                characterSelection.appendChild(card);
+            });
+        }
+        
+        // Get distance between two points
+        function getDistance(x1, y1, x2, y2) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+        
+        // Get health color based on percentage
+        function getHealthColor(percent) {
+            if (percent > 0.6) {
+                return 0x00ff00; // Green
+            } else if (percent > 0.3) {
+                return 0xffff00; // Yellow
+            } else {
+                return 0xff0000; // Red
+            }
+        }
+        
+        // Handle window resize
+        function onResize() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            app.renderer.resize(width, height);
+            
+            // Adjust UI elements for mobile/desktop
+            if (width < 768) {
+                document.querySelector('.control-area').style.width = '120px';
+                document.querySelector('.control-area').style.height = '120px';
+                document.querySelector('.joystick').style.width = '40px';
+                document.querySelector('.joystick').style.height = '40px';
+                
+                document.querySelector('.minimap').style.width = '100px';
+                document.querySelector('.minimap').style.height = '100px';
+            } else {
+                document.querySelector('.control-area').style.width = '150px';
+                document.querySelector('.control-area').style.height = '150px';
+                document.querySelector('.joystick').style.width = '50px';
+                document.querySelector('.joystick').style.height = '50px';
+                
+                document.querySelector('.minimap').style.width = '150px';
+                document.querySelector('.minimap').style.height = '150px';
+            }
+            
+            // Update minimap
+            updateMinimap();
+            
+            // Center camera on player if game started
+            if (gameStarted && player) {
+                centerCamera();
+            }
+        }
+        
+        // Initialize game
+        function init() {
+            // Start loading sequence
+            startLoading();
+            
+            // Initialize PixiJS
+            initPixi();
+            
+            // Initialize character selection
+            initCharacterSelection();
+            
+            // Initialize joystick controls
+            initJoystick();
+            
+            // Initialize ability buttons
+            initAbilityButtons();
+            
+            // Add event listeners for buttons
+            document.getElementById('start-game-btn').addEventListener('click', () => {
+                document.getElementById('main-menu').style.display = 'none';
+                document.getElementById('character-menu').style.display = 'flex';
+            });
+            
+            document.getElementById('how-to-play-btn').addEventListener('click', () => {
+                document.getElementById('main-menu').style.display = 'none';
+                document.getElementById('how-to-play').style.display = 'flex';
+            });
+            
+            document.getElementById('back-to-menu-btn').addEventListener('click', () => {
+                document.getElementById('how-to-play').style.display = 'none';
+                document.getElementById('main-menu').style.display = 'flex';
+            });
+            
+            document.getElementById('start-battle-btn').addEventListener('click', () => {
+                if (!selectedCharacter) {
+                    alert('Vui lòng chọn tướng!');
+                    return;
+                }
+                
+                startGame();
+            });
+        }
+        
+        // Initialize on document load
+        window.addEventListener('load', init);
     </script>
 </body>
 </html>
