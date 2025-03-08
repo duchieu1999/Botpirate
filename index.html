@@ -3,638 +3,574 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hiếu Gà - Hoa Phượng Đỏ</title>
+    <title>Hiếu Gà - Hoa Đua Sắc</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
-        
-        :root {
-            --primary: #FF6B8B;
-            --primary-dark: #E54B6B;
-            --secondary: #FFC2D1;
-            --accent: #8A2BE2;
-            --background: #FFF5F7;
-            --text: #333333;
-            --success: #4CAF50;
-            --warning: #FF9800;
-            --danger: #F44336;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B9D',
+                        secondary: '#8A4FFF',
+                        accent: '#FFD166',
+                        background: '#FFFAFC',
+                        success: '#06D6A0',
+                        danger: '#EF476F',
+                        dark: {
+                            primary: '#FF4D8D',
+                            secondary: '#7839FF',
+                            background: '#241C2C',
+                            text: '#F0E6FF'
+                        }
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'shine': 'shine 1.5s ease-in-out infinite',
+                        'flower-rotate': 'flower-rotate 8s linear infinite',
+                        'bounce-slow': 'bounce 2s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        shine: {
+                            '0%': { opacity: '0.5' },
+                            '50%': { opacity: '1' },
+                            '100%': { opacity: '0.5' }
+                        },
+                        'flower-rotate': {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' }
+                        }
+                    }
+                }
+            }
         }
-        
+    </script>
+    <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Quicksand', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-        
-        html, body {
-            width: 100%;
-            height: 100%;
+
+        body {
+            font-family: 'Montserrat', sans-serif;
             overflow: hidden;
             touch-action: none;
-            background-color: var(--background);
-            color: var(--text);
-        }
-        
-        .dark {
-            --primary: #FF6B8B;
-            --primary-dark: #E54B6B;
-            --secondary: #8A2BE2;
-            --accent: #FFC2D1;
-            --background: #1E1E2E;
-            --text: #F8F8F2;
-        }
-        
-        #game-container {
+            background-color: #FFFAFC;
+            color: #333;
             position: relative;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
         }
-        
-        canvas {
-            display: block;
+
+        .dark body {
+            background-color: #241C2C;
+            color: #F0E6FF;
+        }
+
+        #game-canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-        }
-        
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        button:hover {
-            background-color: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
-        }
-        
-        button:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .screen {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
             z-index: 10;
-            background-color: var(--background);
-            transition: opacity 0.5s;
         }
-        
-        #loading-screen {
-            justify-content: center;
-            background-color: var(--background);
-            display: flex;
-        }
-        
-        #logo-container {
-            width: 200px;
-            height: 200px;
-            position: relative;
-            margin-bottom: 20px;
-        }
-        
-        .progress-bar {
-            width: 80%;
-            max-width: 300px;
-            height: 12px;
-            background-color: rgba(255, 255, 255, 0.3);
-            border-radius: 6px;
-            overflow: hidden;
-            margin-top: 20px;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background-color: var(--primary);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 6px;
-        }
-        
-        #menu-screen {
-            padding: 20px;
-            opacity: 0;
-            pointer-events: none;
-            display: none;
-        }
-        
-        .menu-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 40px;
-            text-align: center;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .menu-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            width: 100%;
-            max-width: 300px;
-        }
-        
-        #room-screen {
-            padding: 20px;
-            opacity: 0;
-            pointer-events: none;
-            display: none;
-        }
-        
-        .room-container {
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 16px;
-            padding: 24px;
-            width: 90%;
-            max-width: 420px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        .room-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 24px;
-            text-align: center;
-        }
-        
-        .room-code {
-            background-color: rgba(0, 0, 0, 0.05);
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-        }
-        
-        .player-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 24px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .player-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 12px;
-            background-color: rgba(0, 0, 0, 0.05);
-            border-radius: 8px;
-        }
-        
-        .player-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            margin-right: 12px;
-            background-color: var(--accent);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-weight: 700;
-        }
-        
-        .player-ready {
-            margin-left: auto;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-        }
-        
-        .ready {
-            background-color: var(--success);
-        }
-        
-        .not-ready {
-            background-color: var(--warning);
-        }
-        
-        .room-footer {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-        }
-        
-        .room-footer button {
-            flex: 1;
-        }
-        
-        #join-room-container {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            width: 100%;
-            max-width: 300px;
-        }
-        
-        #join-room-input {
-            padding: 12px;
-            border-radius: 8px;
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            font-size: 16px;
-            text-align: center;
-            letter-spacing: 2px;
-        }
-        
-        #join-room-input:focus {
-            border-color: var(--primary);
-            outline: none;
-        }
-        
-        #game-screen {
-            opacity: 0;
-            pointer-events: none;
-            display: none;
-        }
-        
-        #controls {
-            position: absolute;
+
+        .joystick-container {
+            position: fixed;
             bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 20;
-            display: flex;
-            gap: 20px;
+            left: 20px;
+            width: 150px;
+            height: 150px;
+            z-index: 50;
+            touch-action: none;
+            opacity: 0.7;
         }
-        
-        .joystick {
-            width: 120px;
-            height: 120px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            position: relative;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-        }
-        
-        .joystick-handle {
-            width: 50px;
-            height: 50px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
+
+        .joystick-background {
             position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .joystick-thumb {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.8);
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            border: 2px solid rgba(0, 0, 0, 0.1);
         }
-        
-        .action-button {
-            width: 80px;
-            height: 80px;
-            background-color: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-weight: 700;
-            font-size: 14px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            border: none;
+
+        .chicken-logo {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 0 auto;
         }
-        
-        #game-ui {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            padding: 16px;
-            z-index: 20;
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .player-stats {
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 12px;
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .player-health {
+
+        .chicken-body {
             width: 100px;
-            height: 8px;
-            background-color: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
+            height: 100px;
+            background-color: #FFC36B;
+            border-radius: 50%;
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            z-index: 1;
+        }
+
+        .chicken-head {
+            width: 70px;
+            height: 70px;
+            background-color: #FFA500;
+            border-radius: 50%;
+            position: absolute;
+            top: 30px;
+            left: 70px;
+            z-index: 2;
+        }
+
+        .chicken-eye {
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 3;
+        }
+
+        .chicken-eye::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background-color: black;
+            border-radius: 50%;
+            position: absolute;
+            top: 5px;
+            left: 5px;
+        }
+
+        .chicken-comb {
+            width: 15px;
+            height: 30px;
+            background-color: #FF5555;
+            position: absolute;
+            top: -25px;
+            left: 30px;
+            border-radius: 10px 10px 0 0;
+            z-index: 2;
+        }
+
+        .chicken-beak {
+            width: 30px;
+            height: 15px;
+            background-color: #FF9500;
+            position: absolute;
+            top: 35px;
+            left: 55px;
+            border-radius: 50%;
+            transform: rotate(10deg);
+            z-index: 3;
+        }
+
+        .chicken-legs {
+            width: 10px;
+            height: 30px;
+            background-color: #FF9500;
+            position: absolute;
+            bottom: -25px;
+            left: 70px;
+            z-index: 0;
+        }
+
+        .chicken-legs::before {
+            content: '';
+            width: 10px;
+            height: 30px;
+            background-color: #FF9500;
+            position: absolute;
+            bottom: 0;
+            left: -30px;
+        }
+
+        .chicken-wing {
+            width: 40px;
+            height: 60px;
+            background-color: #FFDB99;
+            border-radius: 50% 50% 0 50%;
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            transform: rotate(-30deg);
+            z-index: 0;
+        }
+
+        .flower {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+        }
+
+        .petal {
+            width: 15px;
+            height: 15px;
+            background-color: #FF6B9D;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .petal:nth-child(1) { top: 0; left: 12.5px; }
+        .petal:nth-child(2) { top: 6px; left: 22px; }
+        .petal:nth-child(3) { top: 12.5px; left: 25px; }
+        .petal:nth-child(4) { top: 22px; left: 22px; }
+        .petal:nth-child(5) { top: 25px; left: 12.5px; }
+        .petal:nth-child(6) { top: 22px; left: 3px; }
+        .petal:nth-child(7) { top: 12.5px; left: 0; }
+        .petal:nth-child(8) { top: 6px; left: 3px; }
+
+        .flower-center {
+            width: 15px;
+            height: 15px;
+            background-color: #FFD166;
+            border-radius: 50%;
+            position: absolute;
+            top: 12.5px;
+            left: 12.5px;
+            z-index: 2;
+        }
+
+        .flower-alt .petal {
+            background-color: #8A4FFF;
+        }
+
+        .flower-alt-2 .petal {
+            background-color: #06D6A0;
+        }
+
+        .bouncing-btn {
+            animation: bounce-slow 2s infinite;
+        }
+        
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .border-pulse {
+            animation: border-pulse 2s infinite;
+        }
+        
+        @keyframes border-pulse {
+            0%, 100% { border-color: rgba(255, 107, 157, 0.5); }
+            50% { border-color: rgba(255, 107, 157, 1); }
+        }
+        
+        .typing-animation::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .player {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            transition: transform 0.1s linear;
+        }
+
+        .player-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
             overflow: hidden;
         }
-        
-        .health-fill {
-            height: 100%;
-            background-color: var(--success);
-            width: 100%;
-            transition: width 0.3s ease;
-        }
-        
-        .player-flowers {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-        }
-        
-        .flower-icon {
-            width: 16px;
-            height: 16px;
-            background-color: var(--primary);
-            border-radius: 50%;
-        }
-        
-        .time-left {
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 12px;
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        #results-screen {
-            opacity: 0;
-            pointer-events: none;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: none;
-        }
-        
-        .results-container {
-            background-color: white;
-            border-radius: 16px;
-            padding: 24px;
-            width: 90%;
-            max-width: 420px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .results-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 24px;
-            text-align: center;
-        }
-        
-        .winners-list {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .winner-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            background-color: rgba(0, 0, 0, 0.05);
-            border-radius: 8px;
-        }
-        
-        .winner-position {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: 700;
-            margin-right: 16px;
-        }
-        
-        .position-1 {
-            background-color: gold;
-            color: black;
-        }
-        
-        .position-2 {
-            background-color: silver;
-            color: black;
-        }
-        
-        .position-3 {
-            background-color: #CD7F32;
-            color: white;
-        }
-        
-        .winner-name {
-            font-weight: 600;
-        }
-        
-        .winner-score {
-            margin-left: auto;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        
-        #server-status {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 10px;
-            font-size: 12px;
-            z-index: 1000;
-        }
-        
-        #username-screen {
-            display: flex;
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        #username-container {
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 16px;
-            padding: 24px;
-            width: 90%;
-            max-width: 420px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        #username-input {
-            padding: 12px;
-            border-radius: 8px;
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            font-size: 16px;
-            width: 100%;
-            margin-bottom: 16px;
-            text-align: center;
-        }
-        
-        #username-input:focus {
-            border-color: var(--primary);
-            outline: none;
-        }
-        
-        #network-error {
-            position: fixed;
-            top: 10px;
+
+        .player-name {
+            position: absolute;
+            top: -20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: var(--danger);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            z-index: 1001;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            display: none;
+            white-space: nowrap;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            text-shadow: 0 0 3px #FFF, 0 0 3px #FFF, 0 0 3px #FFF;
+        }
+
+        .player-health {
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background-color: #ccc;
+            border-radius: 2px;
+        }
+
+        .player-health-inner {
+            height: 100%;
+            background-color: #06D6A0;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .game-item {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            z-index: 5;
+        }
+
+        .safe-zone {
+            position: absolute;
+            border: 2px dashed #8A4FFF;
+            border-radius: 50%;
+            opacity: 0.7;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .danger-zone {
+            position: absolute;
+            background-color: rgba(239, 71, 111, 0.2);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        #flowers-collected {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 20;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+
+        #players-count {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 20;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+
+        #countdown {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 25;
+            font-size: 80px;
+            font-weight: bold;
+            color: #FF6B9D;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #FF6B9D;
+            opacity: 0.8;
+            z-index: 100;
         }
     </style>
 </head>
 <body>
-    <div id="game-container">
-        <!-- Loading Screen -->
-        <div id="loading-screen" class="screen">
-            <div id="logo-container">
-                <svg id="chicken-logo" width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="100" cy="100" r="95" fill="#FFF5F7" stroke="#FF6B8B" stroke-width="6"/>
-                    <path d="M100,45 C85,45 68,60 70,85 C72,110 90,120 100,120 C110,120 128,110 130,85 C132,60 115,45 100,45Z" fill="#FF6B8B"/>
-                    <path d="M70,80 C60,78 50,85 55,95 C60,105 70,100 70,90 Z" fill="white"/>
-                    <path d="M130,80 C140,78 150,85 145,95 C140,105 130,100 130,90 Z" fill="white"/>
-                    <circle cx="75" cy="87" r="5" fill="#333"/>
-                    <circle cx="125" cy="87" r="5" fill="#333"/>
-                    <path d="M100,100 Q110,110 100,120 Q90,110 100,100Z" fill="#E54B6B"/>
-                    <path d="M90,140 L100,130 L110,140 L100,150 Z" fill="#E54B6B"/>
-                    <path d="M85,140 Q65,150 65,170 Q85,160 90,162 Z" fill="#FF6B8B"/>
-                    <path d="M115,140 Q135,150 135,170 Q115,160 110,162 Z" fill="#FF6B8B"/>
-                </svg>
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="fixed inset-0 flex flex-col items-center justify-center bg-background dark:bg-dark-background z-50">
+        <div class="chicken-logo animate-float mb-4">
+            <div class="chicken-body"></div>
+            <div class="chicken-wing"></div>
+            <div class="chicken-head">
+                <div class="chicken-eye"></div>
+                <div class="chicken-comb"></div>
+                <div class="chicken-beak"></div>
             </div>
-            <h1 class="text-3xl font-bold text-center text-pink-500 mb-4">Hiếu Gà</h1>
-            <p class="text-lg text-center text-gray-600 mb-6">Hoa Phượng Đỏ</p>
-            <div class="progress-bar">
-                <div class="progress-fill" id="loading-progress"></div>
+            <div class="chicken-legs"></div>
+        </div>
+        <h1 class="text-3xl font-bold text-primary dark:text-dark-primary mb-2">Hiếu Gà</h1>
+        <h2 class="text-xl font-semibold text-secondary dark:text-dark-secondary mb-6">Hoa Đua Sắc</h2>
+        <p class="text-gray-600 dark:text-dark-text mb-8 text-center px-4">Chào mừng ngày 8/3! <br>Hãy cùng tham gia trận chiến sắc hoa!</p>
+        <button id="play-button" class="bg-primary hover:bg-opacity-90 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition duration-300 hover:scale-105 bouncing-btn">
+            Bắt Đầu Chơi
+        </button>
+        
+        <div class="mt-8 flex justify-center space-x-2">
+            <div class="flower animate-flower-rotate">
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="flower-center"></div>
+            </div>
+            <div class="flower flower-alt animate-flower-rotate" style="animation-delay: 0.5s">
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="flower-center"></div>
+            </div>
+            <div class="flower flower-alt-2 animate-flower-rotate" style="animation-delay: 1s">
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="flower-center"></div>
             </div>
         </div>
-        
-        <!-- Username Screen -->
-        <div id="username-screen" class="screen">
-            <div id="username-container">
-                <h2 class="text-xl font-bold mb-4">Nhập tên người chơi</h2>
-                <input type="text" id="username-input" placeholder="Nhập tên của bạn" maxlength="15">
-                <button id="confirm-username-btn">Xác Nhận</button>
-            </div>
-        </div>
-        
-        <!-- Menu Screen -->
-        <div id="menu-screen" class="screen">
-            <h1 class="menu-title">Hiếu Gà<br><span class="text-xl">Hoa Phượng Đỏ</span></h1>
-            <div class="menu-buttons">
-                <button id="create-room-btn">Tạo Phòng</button>
-                <button id="join-room-btn">Vào Phòng</button>
-                <div id="join-room-container" style="display: none;">
-                    <input type="text" id="join-room-input" placeholder="Nhập mã phòng" maxlength="6">
-                    <button id="confirm-join-btn">Xác Nhận</button>
-                    <button id="back-to-menu-btn">Quay Lại</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Room Screen -->
-        <div id="room-screen" class="screen">
-            <div class="room-container">
-                <h2 class="room-title">Phòng Chờ</h2>
-                <div class="room-code" id="room-code">ABC123</div>
-                <p class="text-center mb-4">Chia sẻ mã phòng với bạn bè</p>
-                <div class="player-list" id="player-list">
-                    <!-- Players will be added dynamically -->
-                </div>
-                <p class="text-center mb-4" id="player-count">Đang chờ người chơi... (1/5)</p>
-                <div class="room-footer">
-                    <button id="leave-room-btn" class="bg-gray-500">Rời Phòng</button>
-                    <button id="start-game-btn">Bắt Đầu</button>
-                    <button id="ready-btn">Sẵn Sàng</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Game Screen -->
-        <div id="game-screen" class="screen">
-            <div id="game-ui">
-                <div class="player-stats">
-                    <div class="player-avatar" style="width: 24px; height: 24px;">H</div>
-                    <div class="player-health">
-                        <div class="health-fill" id="health-bar"></div>
+    </div>
+
+    <!-- Lobby Screen -->
+    <div id="lobby-screen" class="fixed inset-0 flex flex-col items-center justify-center bg-background dark:bg-dark-background z-40 hidden">
+        <div class="w-full max-w-md p-6 bg-white dark:bg-dark-background rounded-xl shadow-lg">
+            <div class="flex items-center justify-center mb-6">
+                <div class="chicken-logo" style="transform: scale(0.6);">
+                    <div class="chicken-body"></div>
+                    <div class="chicken-wing"></div>
+                    <div class="chicken-head">
+                        <div class="chicken-eye"></div>
+                        <div class="chicken-comb"></div>
+                        <div class="chicken-beak"></div>
                     </div>
-                    <div class="player-flowers">
-                        <div class="flower-icon"></div>
-                        <span id="flower-count">0</span>
-                    </div>
+                    <div class="chicken-legs"></div>
                 </div>
-                <div class="time-left">
-                    <span id="time-display">2:00</span>
+                <div>
+                    <h2 class="text-2xl font-bold text-primary dark:text-dark-primary">Hiếu Gà</h2>
+                    <h3 class="text-lg font-semibold text-secondary dark:text-dark-secondary">Hoa Đua Sắc</h3>
                 </div>
+            </div>
+
+            <div class="mb-6">
+                <label for="player-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tên của bạn:</label>
+                <input type="text" id="player-name" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 dark:text-white text-base" placeholder="Nhập tên của bạn" maxlength="10">
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chọn màu nhân vật:</label>
+                <div class="flex flex-wrap gap-2 justify-center">
+                    <div class="w-10 h-10 rounded-full bg-pink-500 cursor-pointer color-option border-2 border-transparent hover:border-gray-400" data-color="#EC4899"></div>
+                    <div class="w-10 h-10 rounded-full bg-purple-500 cursor-pointer color-option border-2 border-transparent hover:border-gray-400" data-color="#8B5CF6"></div>
+                    <div class="w-10 h-10 rounded-full bg-blue-500 cursor-pointer color-option border-2 border-transparent hover:border-gray-400" data-color="#3B82F6"></div>
+                    <div class="w-10 h-10 rounded-full bg-green-500 cursor-pointer color-option border-2 border-transparent hover:border-gray-400" data-color="#10B981"></div>
+                    <div class="w-10 h-10 rounded-full bg-yellow-500 cursor-pointer color-option border-2 border-transparent hover:border-gray-400" data-color="#F59E0B"></div>
+                    <div class="w-10 h-10 rounded-full bg-red-500 cursor-pointer color-option border-2 border-transparent hover:border-gray-400" data-color="#EF4444"></div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-4">
+                <button id="create-room-btn" class="w-full bg-primary hover:bg-opacity-90 text-white font-bold py-3 px-6 rounded-lg shadow transition duration-300">
+                    Tạo phòng mới
+                </button>
+                <div class="relative">
+                    <input type="text" id="room-code" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 dark:text-white text-base" placeholder="Nhập mã phòng">
+                    <button id="join-room-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-secondary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                        Vào
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="waiting-room" class="w-full max-w-md p-6 bg-white dark:bg-dark-background rounded-xl shadow-lg mt-4 hidden">
+            <h3 class="text-xl font-bold text-center mb-4">Phòng chờ</h3>
+            <div class="mb-4 flex justify-between items-center">
+                <span>Mã phòng: </span>
+                <span id="room-code-display" class="font-mono bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded">ABCDE</span>
+                <button id="copy-code-btn" class="text-secondary dark:text-dark-secondary hover:text-opacity-80">Sao chép</button>
             </div>
             
-            <div id="controls">
-                <div class="joystick" id="joystick">
-                    <div class="joystick-handle" id="joystick-handle"></div>
-                </div>
-                <button class="action-button" id="action-button">Hoa</button>
+            <div class="mb-6">
+                <h4 class="font-semibold mb-2">Người chơi (<span id="player-count">1</span>/5):</h4>
+                <ul id="players-list" class="space-y-2 max-h-40 overflow-y-auto">
+                    <!-- Players will be added here dynamically -->
+                </ul>
+            </div>
+            
+            <div class="text-center">
+                <button id="start-game-btn" class="bg-success hover:bg-opacity-90 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed hidden">
+                    Bắt đầu trò chơi
+                </button>
+                <p id="waiting-message" class="text-gray-600 dark:text-gray-400 font-medium typing-animation">Đang chờ người chơi khác...</p>
             </div>
         </div>
-        
-        <!-- Results Screen -->
-        <div id="results-screen" class="screen">
-            <div class="results-container">
-                <h2 class="results-title">Kết Quả</h2>
-                <div class="winners-list" id="winners-list">
-                    <!-- Winners will be added dynamically -->
-                </div>
-                <button id="back-to-menu-from-results">Quay Lại Menu</button>
-            </div>
-        </div>
-        
-        <!-- Server Status Indicator -->
-        <div id="server-status">Đang kết nối...</div>
-        
-        <!-- Network Error Message -->
-        <div id="network-error">Lỗi kết nối, đang thử lại...</div>
-        
-        <!-- Game Canvas -->
-        <canvas id="game-canvas"></canvas>
     </div>
-    
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="fixed inset-0 bg-background dark:bg-dark-background z-30 hidden">
+        <canvas id="game-canvas"></canvas>
+        <div id="flowers-collected">Hoa: 0</div>
+        <div id="players-count">Người chơi: 0/5</div>
+        <div id="countdown">3</div>
+        
+        <div class="joystick-container">
+            <div class="joystick-background"></div>
+            <div class="joystick-thumb"></div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="fixed inset-0 flex flex-col items-center justify-center bg-background dark:bg-dark-background z-35 hidden">
+        <h2 class="text-3xl font-bold text-primary dark:text-dark-primary mb-4">Trò chơi kết thúc!</h2>
+        <div id="game-result" class="text-2xl font-semibold mb-6">Kết quả</div>
+        
+        <div id="winners-list" class="w-full max-w-md p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-8">
+            <h3 class="text-xl font-bold mb-4 text-center">Top 3 người thắng cuộc</h3>
+            <div class="space-y-4" id="winners-container">
+                <!-- Winners will be dynamically added here -->
+            </div>
+        </div>
+        
+        <button id="play-again-btn" class="bg-primary hover:bg-opacity-90 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition duration-300 hover:scale-105">
+            Chơi lại
+        </button>
+    </div>
+
     <script>
-        // Detect dark mode
+        // Check for dark mode
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
         }
-        
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
             if (event.matches) {
                 document.documentElement.classList.add('dark');
@@ -642,1270 +578,1525 @@
                 document.documentElement.classList.remove('dark');
             }
         });
-        
-        // Sound effects
-        const sounds = {
-            click: new Howl({
-                src: ['data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+NAwAAAAAAAAAAAAFhpbmcAAAAPAAAAAwAABBgAa2trawAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/jYMQAEvgiwl9DAAAAO1ALSItIfLvC+HwfB8HwfT8Pz8Hqpq+HEPTnP/0gDLGiEhGYeAMYjGIxiBMAkCQJAkCSRJ8/jj+HEHDHEEAE4UAQBAHw+D8fl8HwfBIBgQDhwQDgwBCqaUiES0ppUPkApkFPkAiMKuIIb0GgMWvJzsACTk6mOfbN0PCF5oHGk3iwjVc5iNaClcGvOmXGo5lHUFSa8qR2MDqpqMHDaijM5y8lmrEoiGh6Azg7KFkW+dQnFAMGMk43J9jlPBaEEhKRZI4TZDTlG5KR7JcRGxNyj6F4TUVkWkSRGEukSEzJcRRGHklyhGJIhGJEpEkZlSBCSR//8iQlIfQhEiETP0SIhkQkRf/ixL//xIi+RIn/+JEX//EiL//iRF//xiRF//xiRF//pERf/6REX//OIn/+cRP/84if/5xE//ziJJEkiSRJIkkP/8IYcEOIM4QgwbUV2GKhBhAQIYYmDFrhS0VWFLmYiRCJkkRJIiSREkiJJEX/+JEX/+JEkSSIkkRf/4kRf/4kRJIiSREkiJJESf/4kRJIiX0ISIl9CEiIWkqS0iSJIAA'],
-                volume: 0.5
-            }),
-            flower: new Howl({
-                src: ['data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+NAwAAAAAAAAAAAAFhpbmcAAAAPAAAAAwAABBgAa2trawAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/jYMQAEvgiwl9DAAAAO1ALSItIfLvC+HwfB8HwfT8Pz8Hqpq+HEPTnP/0gDLGiEhGYeAMYjGIxiBMAkCQJAkCSRJ8/jj+HEHDHEEAE4UAQBAHw+D8fl8HwfBIBgQDhwQDgwBCqaUiES0ppUPkApkFPkAcMo5MIcL2c0JKLmgyFwbNlTqJdIrF5WEgUcpwLVhWWCpHh2VSkGS+ItQZIdJWbC2zrGwxqIzBhEMGtQ8O1JYdLhdQhQZVSRJQaiTTokwxhCVK0xXJE0l0VMi8jqJstO0+ixIk8k8SWHUnMkyMRYeRkSPEmRXJ6TibI3kxIjSXyTREYSWJCETImRNEYkSITNEQiRIhExKSInSJf/8SJCRFKEhCRGJmVMSEUkRf/9CL//kSL//iRF//JEX/+JEX//GJF//xiRF//pERf/6REX//OIn/+cRP/84if/5xE//ziJ//nET//OIn/+cRP/84if/5EgghxBBhGJGIYYdJx2MOkREESRJIkmSRJMkySZJkkyTJJkmSbJIhwQZEcY4hxO4YQw5yFDBniCGDPDiYQeGKQdFTJJESSIknCJIif/4kRJIiSRE//xIiSRF//iRF//iRF//iRF//iRF//JEX/+JETSJI0iSNIif/4kRf/4kRJIiSREkiJJESf/4AP'],
-                volume: 0.3
-            }),
-            damage: new Howl({
-                src: ['data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+NAwAAAAAAAAAAAAFhpbmcAAAAPAAAAAwAABBgAa2trawAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/jYMQAEvgiwl9DAAAAO1ALSItIfLvC+HwfB8HwfT8Pz8Hqpq+HEPTnP/0gDLGiEhGYeAMYjGIxiBMAkCQJAkCSRJ8/jj+HEHDHEEAE4UAQBAHw+D8fl8HwfBIBgQDhwQDgwBCqaUiES0ppUPkApkFPkAcMZACodIRQGt5r3w4ZiV4eFhKG1xwM4rNJhUWDQ9FgnN51JuEhSNCsXEglNR4JzEYiIxFAuNhcVCY1HY6LBsKRUbTYVCgzFokKRsblpkPh4akZkLjMUDIxKxCO0wHZCLxGGTiZS4jBpVLzMhIxMUTA0FQkOUsJT5UiSJyiYGZNJHkPiaR8iVkXiS0l9FWRWJI0khhKSJ4jEiSMynZEiEzJMi+RiLJORJEYizf/+RIi+hCJExMymZkSEjEiL/+hF//yJF//xIi//kiL//EiL//jEi//4xIi//0iIv/9IiL//nET//OIn/+cRP/84if/5xE//ziJ//nET//OIn/+cRP/84i//xiMJBDiCDCdxjCFqGMMGb0IQgIQRLjjnCEqYQoAciSTJKkiSRJEkSLJEZ//JxIcGBGEMMI2GEMIUIcY1qIxJEkSJJkSSJJkSSZJkmSZJsEiL/+SIkkRJIiSRJxE//xIiT/4kRJIiSREkiJJESf/4AP'],
-                volume: 0.4
-            }),
-            win: new Howl({
-                src: ['data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+NAwAAAAAAAAAAAAFhpbmcAAAAPAAAAAwAABBgAa2trawAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/jYMQAEvgiwl9DAAAAO1ALSItIfLvC+HwfB8HwfT8Pz8Hqpq+HEPTnP/0gDLGiEhGYeAMYjGIxiBMAkCQJAkCSRJ8/jj+HEHDHEEAE4UAQBAHw+D8fl8HwfBIBgQDhwQDgwBCqaUiES0ppUPkApkFPkAcMZRQcPFAjFRkLhgaE5mOh4bF4zFwkExgLhoamgiGhaNhSZmRYJzcRDYpGwlGRqOBiWiEQmQuLDMXDA3HR2SCU2mguLDIdCcxHSKVkgmMhWSkQuNSGZiQbGYjGJNIxIWFUqMhsYiMak8kN56MBELSImFxONTAdFJWSF8lIx2TmAmFh0UC4amo4JRCNCQjNJ6JxkZDomJCcUkBEJCY6IRWWmhdKy4mEYj/+JGRIn//IyJE///JF//5Iv//JF//5E//5Iv//JF//5Iv//JMiRMTEsiL//yJicmJ//xJEv/6Iv//JP//kS//8kS//8iX//Ii//5Ev/+RL//iS//4kcQ4g4l/EIRx2MQtSpLq1QiYnJ5BiccmGEqRHEkVKjEViRKkRRJEqRMkTEsSR//0RL//iJf/8RL//iJf/8RL//SJf/6RL//SE//yE//xEQQz/8ERBDiDiCPiHGFTEFTDiKtLHSXEmVJkyIbEmVJlSZMmTJkyZMmUJkyZQmUJlCZMoP/8AA'],
-                volume: 0.6
-            }),
-            connect: new Howl({
-                src: ['data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+NAwAAAAAAAAAAAAFhpbmcAAAAPAAAAAwAABBgAa2trawAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/jYMQAEvgiwl9DAAAAO1ALSItIfLvC+HwfB8HwfT8Pz8Hqpq+HEPTnP/0gDLGiEhGYeAMYjGIxiBMAkCQJAkCSRJ8/jj+HEHDHEEAE4UAQBAHw+D8fl8HwfBIBgQDhwQDgwBCqaUiES0ppUPkApkFPkAcJGQkMHg0ODgNhwHBoLiwXnI7NRQKDAOk3NzERC0RFo9IRWIRGOhoKBCaDIcE4YHYlHgsF4lKBKFTQZCrxHiEjD/xiRkTJGRJExP/+JEiRF//iRIkRJE//4kSJEX//EiRIiSJkTJCb/0I//MiZGSJP/9IX/9CP/+JEiRF//iREkSJEn/+JE//4kSJESSJEiL//ESRESNIkIxQJQoJQwJQ4L1YKRSRKGvEpE4kU04dJE2lkSXxIpLEiZImSJkmLJWkRRJfI+kT/+Jk//+JkjI//xImSIkib//Eif/8SJkSJJEiRF//yJF//xIiSJ//iJF//xIl//xIl//xIn/+IkX/+Ii//yIn//GIn/+Ikp4h0EQgS0EQg6EIQ7iohKEuoiEIQ5UIQpCEIQpCn4QpCFISpCEIQpDYWKsKZxCEKXpCnxCEMcpSFIQpTYhCGP/Eh/+4Sh14iqn4Q5ClPTxE1QlD4Qz/8Q//8c//kPhSP/zDr/3D//xD/8Yn/+MMviEOg7/8QhD4Qzm0hDv/xELjELj/+MR///En//ER//GI3/+IjiREkSJESf/4kSJESSJEiL//iRIkRJIkSIv//AA=='],
-                volume: 0.3
-            }),
-            disconnect: new Howl({
-                src: ['data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+NAwAAAAAAAAAAAAFhpbmcAAAAPAAAAAwAABBgAa2trawAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/jYMQAEvgiwl9DAAAAO1ALSItIfLvC+HwfB8HwfT8Pz8Hqpq+HEPTnP/0gDLGiEhGYeAMYjGIxiBMAkCQJAkCSRJ8/jj+HEHDHEEAE4UAQBAHw+D8fl8HwfBIBgQDhwQDgwBCqaUiES0ppUPkApkFPkAcKjQ0MDg4ODsYmYvJSwUCsXjEOiYYCDx3o0MRcURmbEo4IRsSkooHSQTicoio2JRgaCwUicJBWOygUigSkYnKBKEzQZCsOE4iE4f/ER/+Jk5MiZIiSJ//iREkSJEn/+JESRMkRJE3/+RMkRJESRMkRJK//yJkiJImSJkiJJX/+REkTJESRF//kRJESREkRf/5ESREkRJEX/+REkRJESRF//kRIkRIiiUZSLUq1tVIq0JQoJQ4JQwJQoKQwHcRLUlEsTiUTSU1ZQHQUBwTjIjC4lHwiLReCIvE4QEoiE5xL5rqtIi+TOJSIRNI0inPImkpqSTUJSJnEpixHMRyM5EIjEIjfURIjeREWojmv/yIv/8iN/8iL/+In/+Inr4jfPiN6+I3z4imIhCFIZCFKZSFKayFKZDIQpDKZDYQpkNhCmQyGwhCmQ2EKQyGQhSGUyEMhnMpDIQpkNpCFMptIQpTKbCFMpkMhDKZDIZDqZT//EQ//Ec//Mf//ET//Ec//MP/yH/7D//yH/7h//5D/9y//8h//Zf/+Q//c3//If/2b//iH/9l//5j//yH/7mP/4iLYhEnUitP/5ESRLSESREkRJESf/4kRJESRIn/+JERJEkRJESf/8AA='],
-                volume: 0.3
-            })
-        };
-        
-        // Game Assets
-        const ASSETS = {
-            chickenAvatar: 'data:image/svg+xml;utf8,<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="19" fill="%23FFF5F7" stroke="%23FF6B8B" stroke-width="2"/><path d="M20,9 C17,9 13.6,12 14,17 C14.4,22 18,24 20,24 C22,24 25.6,22 26,17 C26.4,12 23,9 20,9Z" fill="%23FF6B8B"/><path d="M14,16 C12,15.6 10,17 11,19 C12,21 14,20 14,18 Z" fill="white"/><path d="M26,16 C28,15.6 30,17 29,19 C28,21 26,20 26,18 Z" fill="white"/><circle cx="15" cy="17.4" r="1" fill="%23333"/><circle cx="25" cy="17.4" r="1" fill="%23333"/><path d="M20,20 Q22,22 20,24 Q18,22 20,20Z" fill="%23E54B6B"/><path d="M18,28 L20,26 L22,28 L20,30 Z" fill="%23E54B6B"/><path d="M17,28 Q13,30 13,34 Q17,32 18,32.4 Z" fill="%23FF6B8B"/><path d="M23,28 Q27,30 27,34 Q23,32 22,32.4 Z" fill="%23FF6B8B"/></svg>',
-            flower: 'data:image/svg+xml;utf8,<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="5" fill="%23FF6B8B"/><circle cx="10" cy="10" r="3" fill="%23FFC2D1"/><path d="M10,3 Q12,6 15,5 Q13,7 15,10 Q12,9 10,12 Q8,9 5,10 Q7,7 5,5 Q8,6 10,3Z" fill="%23FF6B8B"/></svg>',
-            powerup: 'data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="%238A2BE2" fill-opacity="0.7"/><path d="M12,6 L14,10 L18,11 L15,14 L16,18 L12,16 L8,18 L9,14 L6,11 L10,10 Z" fill="white"/></svg>',
-            heart: 'data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12,21 C12,21 4,16 4,10 C4,7 6,5 9,5 C10.5,5 12,6 12,7.5 C12,6 13.5,5 15,5 C18,5 20,7 20,10 C20,16 12,21 12,21 Z" fill="%23F44336"/></svg>',
-            obstacleTree: 'data:image/svg+xml;utf8,<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M30,10 Q40,20 40,40 L35,40 L35,55 L25,55 L25,40 L20,40 Q20,20 30,10Z" fill="%23795548"/><circle cx="30" cy="20" r="15" fill="%23FF6B8B"/></svg>',
-            obstacleBush: 'data:image/svg+xml;utf8,<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="20" cy="25" rx="18" ry="12" fill="%234CAF50"/><ellipse cx="20" cy="20" rx="15" ry="13" fill="%238BC34A"/><ellipse cx="20" cy="15" rx="12" ry="8" fill="%234CAF50"/><circle cx="20" cy="10" r="5" fill="%238BC34A"/></svg>',
-            obstacleRock: 'data:image/svg+xml;utf8,<svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10,35 L15,20 L25,15 L35,20 L40,30 L35,40 L20,45 L10,35Z" fill="%23607D8B"/><path d="M15,25 L25,20 L35,25 L35,35 L25,40 L15,35 Z" fill="%2378909C"/></svg>'
-        };
-        
-        // WebSocket connection
-        let socket;
-        let socketReconnectTimer;
-        let isRoomHost = false;
-        let currentRoomCode = null;
-        let playerId = null;
-        let playerSessionId = null;
-        let isConnecting = false;
-        let serverUrl = 'wss://serversocket-production.up.railway.app'; // Change to your WebSocket server URL
-        
+
         // Game variables
-        let app;
-        let gameState = 'loading';
-        let playerEntity;
-        let entities = [];
-        let gameTimer = 120; // 2 minutes in seconds
-        let safeRadius = 1000;
-        let playerName = "Hiếu Gà";
-        let flowerCount = 0;
-        let playerHealth = 100;
-        let remotePlayers = new Map(); // Map of player ID to player data
-        let isPlayerReady = false;
-        let timerInterval = null;
+        let canvas, ctx;
+        let playerColor = "#EC4899"; // Default color
+        let playerName = "";
+        let roomCode = "";
+        let isHost = false;
+        let gameStarted = false;
+        let gameOver = false;
         
-        // Game setup
-        window.addEventListener('load', () => {
-            initLoadingScreen();
-        });
+        // Player and game state
+        let player = {
+            id: generateId(),
+            x: 0,
+            y: 0,
+            vx: 0,
+            vy: 0,
+            speed: 5,
+            color: playerColor,
+            name: "",
+            health: 100,
+            flowers: 0,
+            alive: true
+        };
         
-        function initLoadingScreen() {
-            console.log("Starting loading screen");
-            // Initialize game first to avoid timing issues
-            initGame();
-            setupEventListeners();
+        let otherPlayers = {};
+        let flowers = [];
+        let obstacles = [];
+        let safeZone = { x: 0, y: 0, radius: 0, nextRadius: 0 };
+        let gameAreaWidth = 2000;
+        let gameAreaHeight = 2000;
+        
+        // Touch controls
+        let joystick = {
+            active: false,
+            startX: 0,
+            startY: 0,
+            moveX: 0,
+            moveY: 0,
+            deltaX: 0,
+            deltaY: 0
+        };
+        
+        // WebSocket simulation for preview
+        let mockSocket = {
+            readyState: 0, // 0 = CONNECTING, 1 = OPEN
+            onopen: null,
+            onmessage: null,
+            onclose: null,
+            onerror: null,
             
-            const progressBar = document.getElementById('loading-progress');
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 5;
-                progressBar.style.width = `${progress}%`;
+            send: function(data) {
+                console.log("Sending data:", data);
                 
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    console.log("Loading complete, transitioning to menu");
-                    // Use direct style changes instead of relying on opacity transitions
-                    document.getElementById('loading-screen').style.display = 'none';
-                    document.getElementById('username-screen').style.display = 'flex';
-                    document.getElementById('username-screen').style.opacity = '1';
-                    document.getElementById('username-screen').style.pointerEvents = 'auto';
-                    gameState = 'username';
+                // Simulate server response
+                const message = JSON.parse(data);
+                
+                setTimeout(() => {
+                    if (this.readyState === 1) {
+                        switch(message.type) {
+                            case "join":
+                                this._simulateJoin(message);
+                                break;
+                            case "create":
+                                this._simulateCreate(message);
+                                break;
+                            case "start":
+                                this._simulateStart(message);
+                                break;
+                            case "move":
+                                this._simulateMove(message);
+                                break;
+                            case "collectFlower":
+                                this._simulateCollectFlower(message);
+                                break;
+                        }
+                    }
+                }, 200);
+            },
+            
+            close: function() {
+                this.readyState = 3; // CLOSED
+                if (this.onclose) this.onclose({ code: 1000 });
+            },
+            
+            connect: function() {
+                this.readyState = 0; // CONNECTING
+                
+                setTimeout(() => {
+                    this.readyState = 1; // OPEN
+                    if (this.onopen) this.onopen();
+                }, 500);
+            },
+            
+            // Simulation methods
+            _simulateJoin: function(message) {
+                const room = message.room;
+                if (room === "DEMO" || room === "TEST") {
+                    // Create some fake players
+                    const fakePlayers = [
+                        { id: generateId(), name: "Hạnh Hoa", color: "#8B5CF6" },
+                        { id: generateId(), name: "Lan Anh", color: "#3B82F6" },
+                        { id: generateId(), name: "Thanh Xuân", color: "#10B981" }
+                    ];
                     
-                    // Try to connect to WebSocket server
-                    connectToServer();
+                    // Send join success
+                    this._sendMessage({
+                        type: "joinSuccess",
+                        room: room,
+                        players: [...fakePlayers, {
+                            id: player.id,
+                            name: message.player.name,
+                            color: message.player.color
+                        }],
+                        isHost: false
+                    });
+                    
+                    // Notify other players
+                    setTimeout(() => {
+                        this._sendMessage({
+                            type: "playerJoined",
+                            player: {
+                                id: fakePlayers[0].id,
+                                name: fakePlayers[0].name,
+                                color: fakePlayers[0].color
+                            }
+                        });
+                    }, 2000);
+                } else {
+                    // Simulate error for invalid room
+                    this._sendMessage({
+                        type: "error",
+                        message: "Không tìm thấy phòng!"
+                    });
                 }
-            }, 250); // 5 seconds total loading time
-        }
+            },
+            
+            _simulateCreate: function(message) {
+                this._sendMessage({
+                    type: "createSuccess",
+                    room: "DEMO",
+                    players: [{
+                        id: player.id,
+                        name: message.player.name,
+                        color: message.player.color
+                    }],
+                    isHost: true
+                });
+            },
+            
+            _simulateStart: function(message) {
+                // Generate game map and items
+                const gameMap = this._generateGameMap();
+                
+                this._sendMessage({
+                    type: "gameStart",
+                    map: gameMap,
+                    countdown: 3
+                });
+            },
+            
+            _simulateMove: function(message) {
+                // For demo, we'll simulate movement of other players
+                const playerId = message.player.id;
+                
+                // Only echo back the player's own movement
+                if (playerId === player.id) {
+                    this._sendMessage({
+                        type: "playerMove",
+                        playerId: playerId,
+                        x: message.x,
+                        y: message.y,
+                        vx: message.vx,
+                        vy: message.vy
+                    });
+                }
+                
+                // Simulate other players movement
+                for (const id in otherPlayers) {
+                    if (id !== player.id) {
+                        // Random movement
+                        const randomX = otherPlayers[id].x + (Math.random() * 20 - 10);
+                        const randomY = otherPlayers[id].y + (Math.random() * 20 - 10);
+                        
+                        // Keep within boundaries
+                        const constrainedX = Math.max(50, Math.min(gameAreaWidth - 50, randomX));
+                        const constrainedY = Math.max(50, Math.min(gameAreaHeight - 50, randomY));
+                        
+                        this._sendMessage({
+                            type: "playerMove",
+                            playerId: id,
+                            x: constrainedX,
+                            y: constrainedY,
+                            vx: constrainedX - otherPlayers[id].x,
+                            vy: constrainedY - otherPlayers[id].y
+                        });
+                        
+                        otherPlayers[id].x = constrainedX;
+                        otherPlayers[id].y = constrainedY;
+                    }
+                }
+            },
+            
+            _simulateCollectFlower: function(message) {
+                const flowerIndex = message.flowerIndex;
+                
+                if (flowerIndex >= 0 && flowerIndex < flowers.length) {
+                    // Send collect success
+                    this._sendMessage({
+                        type: "flowerCollected",
+                        playerId: player.id,
+                        flowerIndex: flowerIndex,
+                        flowerCount: player.flowers + 1
+                    });
+                    
+                    // Generate a new flower
+                    setTimeout(() => {
+                        const newFlower = this._generateRandomFlower();
+                        this._sendMessage({
+                            type: "newFlower",
+                            flower: newFlower,
+                            index: flowerIndex
+                        });
+                    }, 2000);
+                }
+            },
+            
+            _generateGameMap: function() {
+                const flowers = [];
+                const obstacles = [];
+                
+                // Generate flowers
+                for (let i = 0; i < 20; i++) {
+                    flowers.push({
+                        x: Math.random() * (gameAreaWidth - 100) + 50,
+                        y: Math.random() * (gameAreaHeight - 100) + 50,
+                        type: Math.floor(Math.random() * 3)
+                    });
+                }
+                
+                // Generate obstacles
+                for (let i = 0; i < 10; i++) {
+                    obstacles.push({
+                        x: Math.random() * (gameAreaWidth - 200) + 100,
+                        y: Math.random() * (gameAreaHeight - 200) + 100,
+                        radius: Math.random() * 30 + 20
+                    });
+                }
+                
+                // Setup safe zone
+                const safeZone = {
+                    x: gameAreaWidth / 2,
+                    y: gameAreaHeight / 2,
+                    radius: gameAreaWidth / 2,
+                    nextRadius: gameAreaWidth / 2.5
+                };
+                
+                // Setup player positions
+                const playerPositions = {};
+                
+                // Main player
+                playerPositions[player.id] = {
+                    x: gameAreaWidth / 2 + (Math.random() * 200 - 100),
+                    y: gameAreaHeight / 2 + (Math.random() * 200 - 100)
+                };
+                
+                // Other players
+                for (const id in otherPlayers) {
+                    playerPositions[id] = {
+                        x: gameAreaWidth / 2 + (Math.random() * 400 - 200),
+                        y: gameAreaHeight / 2 + (Math.random() * 400 - 200)
+                    };
+                }
+                
+                return {
+                    width: gameAreaWidth,
+                    height: gameAreaHeight,
+                    flowers: flowers,
+                    obstacles: obstacles,
+                    safeZone: safeZone,
+                    playerPositions: playerPositions
+                };
+            },
+            
+            _generateRandomFlower: function() {
+                return {
+                    x: Math.random() * (gameAreaWidth - 100) + 50,
+                    y: Math.random() * (gameAreaHeight - 100) + 50,
+                    type: Math.floor(Math.random() * 3)
+                };
+            },
+            
+            _sendMessage: function(data) {
+                if (this.onmessage) {
+                    this.onmessage({ data: JSON.stringify(data) });
+                }
+            }
+        };
         
+        // Initialize WebSocket (will be mockSocket for Canvas preview)
+        let socket = mockSocket;
+        
+        // UI Elements
+        const splashScreen = document.getElementById('splash-screen');
+        const lobbyScreen = document.getElementById('lobby-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const playButton = document.getElementById('play-button');
+        const playerNameInput = document.getElementById('player-name');
+        const colorOptions = document.querySelectorAll('.color-option');
+        const createRoomBtn = document.getElementById('create-room-btn');
+        const joinRoomBtn = document.getElementById('join-room-btn');
+        const roomCodeInput = document.getElementById('room-code');
+        const waitingRoom = document.getElementById('waiting-room');
+        const roomCodeDisplay = document.getElementById('room-code-display');
+        const copyCodeBtn = document.getElementById('copy-code-btn');
+        const playerCountElement = document.getElementById('player-count');
+        const playersList = document.getElementById('players-list');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const waitingMessage = document.getElementById('waiting-message');
+        const flowersCollected = document.getElementById('flowers-collected');
+        const playersCount = document.getElementById('players-count');
+        const countdownElement = document.getElementById('countdown');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const gameResult = document.getElementById('game-result');
+        const winnersContainer = document.getElementById('winners-container');
+        
+        // Game initialization
         function initGame() {
-            // Initialize PIXI.js
-            app = new PIXI.Application({ 
-                width: window.innerWidth, 
-                height: window.innerHeight,
-                backgroundAlpha: 0,
-                antialias: true,
-                resolution: window.devicePixelRatio || 1
+            // Setup canvas
+            canvas = document.getElementById('game-canvas');
+            ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // Initialize joystick
+            initJoystick();
+            
+            // Setup event listeners
+            playButton.addEventListener('click', showLobby);
+            
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    colorOptions.forEach(opt => opt.classList.remove('border-primary', 'border-2'));
+                    this.classList.add('border-primary', 'border-2');
+                    playerColor = this.getAttribute('data-color');
+                    player.color = playerColor;
+                });
             });
             
-            document.getElementById('game-canvas').appendChild(app.view);
+            createRoomBtn.addEventListener('click', createRoom);
+            joinRoomBtn.addEventListener('click', joinRoom);
+            copyCodeBtn.addEventListener('click', copyRoomCode);
+            startGameBtn.addEventListener('click', startGame);
+            playAgainBtn.addEventListener('click', returnToLobby);
             
-            // Handle resize
-            window.addEventListener('resize', () => {
-                app.renderer.resize(window.innerWidth, window.innerHeight);
-                if (playerEntity && gameState === 'playing') {
-                    centerCamera();
-                }
-            });
+            // Select the first color by default
+            colorOptions[0].click();
+            
+            // Setup window resize event
+            window.addEventListener('resize', handleResize);
         }
         
-        function setupEventListeners() {
-            // Username screen
-            document.getElementById('confirm-username-btn').addEventListener('click', () => {
-                sounds.click.play();
-                const username = document.getElementById('username-input').value.trim();
-                if (username.length > 0) {
-                    playerName = username;
-                    document.getElementById('username-screen').style.opacity = '0';
-                    document.getElementById('username-screen').style.pointerEvents = 'none';
-                    document.getElementById('menu-screen').style.display = 'flex';
-                    document.getElementById('menu-screen').style.opacity = '1';
-                    document.getElementById('menu-screen').style.pointerEvents = 'auto';
-                    gameState = 'menu';
+        function handleResize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        function initJoystick() {
+            const joystickContainer = document.querySelector('.joystick-container');
+            const joystickThumb = document.querySelector('.joystick-thumb');
+            
+            // Touch events for joystick
+            joystickContainer.addEventListener('touchstart', handleJoystickStart);
+            joystickContainer.addEventListener('touchmove', handleJoystickMove);
+            joystickContainer.addEventListener('touchend', handleJoystickEnd);
+            
+            // Mouse events for joystick (for testing on desktop)
+            joystickContainer.addEventListener('mousedown', handleJoystickStart);
+            document.addEventListener('mousemove', handleJoystickMove);
+            document.addEventListener('mouseup', handleJoystickEnd);
+        }
+        
+        function handleJoystickStart(e) {
+            e.preventDefault();
+            joystick.active = true;
+            
+            const container = document.querySelector('.joystick-container');
+            const rect = container.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            // Get touch or mouse position
+            if (e.type === 'touchstart') {
+                joystick.startX = e.touches[0].clientX;
+                joystick.startY = e.touches[0].clientY;
+            } else { // mousedown
+                joystick.startX = e.clientX;
+                joystick.startY = e.clientY;
+            }
+            
+            joystick.moveX = joystick.startX;
+            joystick.moveY = joystick.startY;
+            updateJoystickPosition();
+        }
+        
+        function handleJoystickMove(e) {
+            if (!joystick.active) return;
+            e.preventDefault();
+            
+            // Get touch or mouse position
+            if (e.type === 'touchmove') {
+                joystick.moveX = e.touches[0].clientX;
+                joystick.moveY = e.touches[0].clientY;
+            } else { // mousemove
+                joystick.moveX = e.clientX;
+                joystick.moveY = e.clientY;
+            }
+            
+            updateJoystickPosition();
+        }
+        
+        function handleJoystickEnd(e) {
+            if (!joystick.active) return;
+            e.preventDefault();
+            
+            joystick.active = false;
+            joystick.deltaX = 0;
+            joystick.deltaY = 0;
+            
+            // Reset thumb position
+            const thumb = document.querySelector('.joystick-thumb');
+            thumb.style.transform = 'translate(-50%, -50%)';
+            
+            // Update player velocity
+            player.vx = 0;
+            player.vy = 0;
+            
+            if (gameStarted && !gameOver) {
+                sendPlayerMove();
+            }
+        }
+        
+        function updateJoystickPosition() {
+            const thumb = document.querySelector('.joystick-thumb');
+            const container = document.querySelector('.joystick-container');
+            const rect = container.getBoundingClientRect();
+            
+            // Calculate the center of the joystick
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            // Calculate the distance from the center
+            joystick.deltaX = joystick.moveX - centerX;
+            joystick.deltaY = joystick.moveY - centerY;
+            
+            // Limit the joystick movement to the container radius
+            const maxDistance = rect.width / 2 - 30; // 30 is half the thumb width
+            const distance = Math.sqrt(joystick.deltaX * joystick.deltaX + joystick.deltaY * joystick.deltaY);
+            
+            if (distance > maxDistance) {
+                const angle = Math.atan2(joystick.deltaY, joystick.deltaX);
+                joystick.deltaX = Math.cos(angle) * maxDistance;
+                joystick.deltaY = Math.sin(angle) * maxDistance;
+            }
+            
+            // Update thumb position
+            thumb.style.transform = `translate(calc(-50% + ${joystick.deltaX}px), calc(-50% + ${joystick.deltaY}px))`;
+            
+            // Update player velocity based on joystick position (normalized)
+            if (distance > 0) {
+                const normalizedDeltaX = joystick.deltaX / maxDistance;
+                const normalizedDeltaY = joystick.deltaY / maxDistance;
+                
+                player.vx = normalizedDeltaX * player.speed;
+                player.vy = normalizedDeltaY * player.speed;
+            } else {
+                player.vx = 0;
+                player.vy = 0;
+            }
+            
+            if (gameStarted && !gameOver) {
+                sendPlayerMove();
+            }
+        }
+        
+        function showLobby() {
+            splashScreen.style.display = 'none';
+            lobbyScreen.style.display = 'flex';
+        }
+        
+        function createRoom() {
+            playerName = playerNameInput.value.trim() || `Người chơi ${Math.floor(Math.random() * 1000)}`;
+            player.name = playerName;
+            
+            // Connect to WebSocket server
+            connectToServer();
+            
+            socket.onopen = function() {
+                // Send create room message
+                socket.send(JSON.stringify({
+                    type: "create",
+                    player: {
+                        id: player.id,
+                        name: playerName,
+                        color: playerColor
+                    }
+                }));
+            };
+        }
+        
+        function joinRoom() {
+            playerName = playerNameInput.value.trim() || `Người chơi ${Math.floor(Math.random() * 1000)}`;
+            player.name = playerName;
+            
+            roomCode = roomCodeInput.value.trim().toUpperCase();
+            if (!roomCode) {
+                alert("Vui lòng nhập mã phòng!");
+                return;
+            }
+            
+            // Connect to WebSocket server
+            connectToServer();
+            
+            socket.onopen = function() {
+                // Send join room message
+                socket.send(JSON.stringify({
+                    type: "join",
+                    room: roomCode,
+                    player: {
+                        id: player.id,
+                        name: playerName,
+                        color: playerColor
+                    }
+                }));
+            };
+        }
+        
+        function connectToServer() {
+            // For real implementation, uncomment this line and comment out the mockSocket
+             socket = new WebSocket('wss://serversocket-production.up.railway.app');
+            
+            // For preview, use the mockSocket
+            socket = mockSocket;
+            socket.connect();
+            
+            // Setup WebSocket event handlers
+            socket.onmessage = handleServerMessage;
+            
+            socket.onclose = function() {
+                console.log('WebSocket connection closed');
+                // Handle reconnection or show error message
+            };
+            
+            socket.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                // Show error message
+            };
+        }
+        
+        function handleServerMessage(event) {
+            const message = JSON.parse(event.data);
+            console.log("Received message:", message);
+            
+            switch(message.type) {
+                case "createSuccess":
+                    handleCreateSuccess(message);
+                    break;
+                case "joinSuccess":
+                    handleJoinSuccess(message);
+                    break;
+                case "playerJoined":
+                    handlePlayerJoined(message);
+                    break;
+                case "playerLeft":
+                    handlePlayerLeft(message);
+                    break;
+                case "gameStart":
+                    handleGameStart(message);
+                    break;
+                case "playerMove":
+                    handlePlayerMove(message);
+                    break;
+                case "flowerCollected":
+                    handleFlowerCollected(message);
+                    break;
+                case "newFlower":
+                    handleNewFlower(message);
+                    break;
+                case "updateSafeZone":
+                    handleUpdateSafeZone(message);
+                    break;
+                case "playerHit":
+                    handlePlayerHit(message);
+                    break;
+                case "playerEliminated":
+                    handlePlayerEliminated(message);
+                    break;
+                case "gameOver":
+                    handleGameOver(message);
+                    break;
+                case "error":
+                    handleError(message);
+                    break;
+            }
+        }
+        
+        function handleCreateSuccess(message) {
+            roomCode = message.room;
+            isHost = message.isHost;
+            roomCodeDisplay.textContent = roomCode;
+            
+            // Initialize other players
+            otherPlayers = {};
+            message.players.forEach(p => {
+                if (p.id !== player.id) {
+                    otherPlayers[p.id] = {
+                        id: p.id,
+                        x: 0,
+                        y: 0,
+                        vx: 0,
+                        vy: 0,
+                        color: p.color,
+                        name: p.name,
+                        health: 100,
+                        flowers: 0,
+                        alive: true
+                    };
+                }
+            });
+            
+            // Update UI
+            updateLobbyPlayersList(message.players);
+            waitingRoom.style.display = 'block';
+            
+            // Show start button if host
+            if (isHost) {
+                startGameBtn.style.display = 'block';
+                waitingMessage.style.display = 'none';
+            }
+        }
+        
+        function handleJoinSuccess(message) {
+            roomCode = message.room;
+            isHost = message.isHost;
+            roomCodeDisplay.textContent = roomCode;
+            
+            // Initialize other players
+            otherPlayers = {};
+            message.players.forEach(p => {
+                if (p.id !== player.id) {
+                    otherPlayers[p.id] = {
+                        id: p.id,
+                        x: 0,
+                        y: 0,
+                        vx: 0,
+                        vy: 0,
+                        color: p.color,
+                        name: p.name,
+                        health: 100,
+                        flowers: 0,
+                        alive: true
+                    };
+                }
+            });
+            
+            // Update UI
+            updateLobbyPlayersList(message.players);
+            waitingRoom.style.display = 'block';
+            
+            // Show start button if host
+            if (isHost) {
+                startGameBtn.style.display = 'block';
+                waitingMessage.style.display = 'none';
+            }
+        }
+        
+        function handlePlayerJoined(message) {
+            const newPlayer = message.player;
+            
+            // Add to other players if not self
+            if (newPlayer.id !== player.id) {
+                otherPlayers[newPlayer.id] = {
+                    id: newPlayer.id,
+                    x: 0,
+                    y: 0,
+                    vx: 0,
+                    vy: 0,
+                    color: newPlayer.color,
+                    name: newPlayer.name,
+                    health: 100,
+                    flowers: 0,
+                    alive: true
+                };
+                
+                // Update UI
+                const allPlayers = [player, ...Object.values(otherPlayers)];
+                updateLobbyPlayersList(allPlayers);
+                
+                // Enable start button if host and enough players
+                if (isHost && allPlayers.length >= 2) {
+                    startGameBtn.disabled = false;
+                }
+            }
+        }
+        
+        function handlePlayerLeft(message) {
+            const playerId = message.playerId;
+            
+            // Remove from other players
+            if (otherPlayers[playerId]) {
+                delete otherPlayers[playerId];
+                
+                // Update UI
+                const allPlayers = [player, ...Object.values(otherPlayers)];
+                updateLobbyPlayersList(allPlayers);
+                
+                // Disable start button if not enough players
+                if (isHost && allPlayers.length < 2) {
+                    startGameBtn.disabled = true;
+                }
+            }
+        }
+        
+        function handleGameStart(message) {
+            // Hide lobby, show game screen
+            lobbyScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            
+            // Set up game map
+            const map = message.map;
+            gameAreaWidth = map.width;
+            gameAreaHeight = map.height;
+            flowers = map.flowers;
+            obstacles = map.obstacles;
+            safeZone = map.safeZone;
+            
+            // Set player positions
+            player.x = map.playerPositions[player.id].x;
+            player.y = map.playerPositions[player.id].y;
+            
+            for (const id in otherPlayers) {
+                if (map.playerPositions[id]) {
+                    otherPlayers[id].x = map.playerPositions[id].x;
+                    otherPlayers[id].y = map.playerPositions[id].y;
+                }
+            }
+            
+            // Start countdown
+            startCountdown(message.countdown || 3);
+        }
+        
+        function startCountdown(seconds) {
+            let count = seconds;
+            countdownElement.textContent = count;
+            countdownElement.style.opacity = 1;
+            
+            const interval = setInterval(() => {
+                count--;
+                
+                if (count > 0) {
+                    countdownElement.textContent = count;
+                } else {
+                    clearInterval(interval);
+                    countdownElement.style.opacity = 0;
+                    gameStarted = true;
                     
-                    // Register player with server
-                    if (socket && socket.readyState === WebSocket.OPEN) {
+                    // Start game loop
+                    requestAnimationFrame(gameLoop);
+                    
+                    // Start safe zone shrinking
+                    scheduleSafeZoneShrink();
+                }
+            }, 1000);
+        }
+        
+        function scheduleSafeZoneShrink() {
+            setTimeout(() => {
+                if (!gameOver) {
+                    // Simulate server sending safe zone update
+                    socket._sendMessage({
+                        type: "updateSafeZone",
+                        safeZone: {
+                            x: safeZone.x,
+                            y: safeZone.y,
+                            radius: safeZone.nextRadius,
+                            nextRadius: safeZone.nextRadius * 0.7
+                        }
+                    });
+                    
+                    // Schedule next shrink if not too small
+                    if (safeZone.nextRadius * 0.7 > 100) {
+                        scheduleSafeZoneShrink();
+                    } else {
+                        // Game is almost over, start eliminating players outside zone
+                        schedulePlayerElimination();
+                    }
+                }
+            }, 20000); // 20 seconds between zone shrinks
+        }
+        
+        function schedulePlayerElimination() {
+            const eliminationInterval = setInterval(() => {
+                if (gameOver) {
+                    clearInterval(eliminationInterval);
+                    return;
+                }
+                
+                // Check if only one player left
+                const activePlayers = [player, ...Object.values(otherPlayers)].filter(p => p.alive).length;
+                if (activePlayers <= 3) {
+                    // End the game with remaining players as winners
+                    const winners = [player, ...Object.values(otherPlayers)]
+                        .filter(p => p.alive)
+                        .sort((a, b) => b.flowers - a.flowers);
+                    
+                    socket._sendMessage({
+                        type: "gameOver",
+                        winners: winners.map(p => ({
+                            id: p.id,
+                            name: p.name,
+                            color: p.color,
+                            flowers: p.flowers
+                        }))
+                    });
+                    
+                    clearInterval(eliminationInterval);
+                    return;
+                }
+                
+                // Find players outside the safe zone
+                for (const id in otherPlayers) {
+                    if (otherPlayers[id].alive) {
+                        const distance = Math.sqrt(
+                            Math.pow(otherPlayers[id].x - safeZone.x, 2) + 
+                            Math.pow(otherPlayers[id].y - safeZone.y, 2)
+                        );
+                        
+                        if (distance > safeZone.radius) {
+                            // Damage player
+                            socket._sendMessage({
+                                type: "playerHit",
+                                playerId: id,
+                                damage: 25
+                            });
+                        }
+                    }
+                }
+                
+                // Check if player is outside safe zone
+                if (player.alive) {
+                    const distance = Math.sqrt(
+                        Math.pow(player.x - safeZone.x, 2) + 
+                        Math.pow(player.y - safeZone.y, 2)
+                    );
+                    
+                    if (distance > safeZone.radius) {
+                        // Damage player
+                        socket._sendMessage({
+                            type: "playerHit",
+                            playerId: player.id,
+                            damage: 25
+                        });
+                    }
+                }
+            }, 3000);
+        }
+        
+        function handlePlayerMove(message) {
+            const playerId = message.playerId;
+            
+            if (playerId === player.id) {
+                // This is our player, update position
+                player.x = message.x;
+                player.y = message.y;
+            } else if (otherPlayers[playerId]) {
+                // Update other player position
+                otherPlayers[playerId].x = message.x;
+                otherPlayers[playerId].y = message.y;
+                otherPlayers[playerId].vx = message.vx;
+                otherPlayers[playerId].vy = message.vy;
+            }
+        }
+        
+        function handleFlowerCollected(message) {
+            const playerId = message.playerId;
+            const flowerIndex = message.flowerIndex;
+            
+            // Remove the flower
+            if (flowerIndex >= 0 && flowerIndex < flowers.length) {
+                flowers[flowerIndex] = null;
+            }
+            
+            // Update player flower count
+            if (playerId === player.id) {
+                player.flowers = message.flowerCount;
+                flowersCollected.textContent = `Hoa: ${player.flowers}`;
+            } else if (otherPlayers[playerId]) {
+                otherPlayers[playerId].flowers = message.flowerCount;
+            }
+        }
+        
+        function handleNewFlower(message) {
+            const flowerIndex = message.index;
+            
+            // Add new flower
+            if (flowerIndex >= 0 && flowerIndex < flowers.length) {
+                flowers[flowerIndex] = message.flower;
+            }
+        }
+        
+        function handleUpdateSafeZone(message) {
+            safeZone = message.safeZone;
+        }
+        
+        function handlePlayerHit(message) {
+            const playerId = message.playerId;
+            const damage = message.damage;
+            
+            if (playerId === player.id) {
+                player.health -= damage;
+                
+                if (player.health <= 0) {
+                    player.health = 0;
+                    
+                    // Player eliminated
+                    socket._sendMessage({
+                        type: "playerEliminated",
+                        playerId: player.id
+                    });
+                }
+            } else if (otherPlayers[playerId]) {
+                otherPlayers[playerId].health -= damage;
+                
+                if (otherPlayers[playerId].health <= 0) {
+                    otherPlayers[playerId].health = 0;
+                    
+                    // Other player eliminated
+                    socket._sendMessage({
+                        type: "playerEliminated",
+                        playerId: playerId
+                    });
+                }
+            }
+        }
+        
+        function handlePlayerEliminated(message) {
+            const playerId = message.playerId;
+            
+            if (playerId === player.id) {
+                player.alive = false;
+                // Show death overlay or message
+            } else if (otherPlayers[playerId]) {
+                otherPlayers[playerId].alive = false;
+            }
+            
+            // Update players count
+            const activePlayers = [player, ...Object.values(otherPlayers)].filter(p => p.alive).length;
+            playersCount.textContent = `Người chơi: ${activePlayers}/5`;
+        }
+        
+        function handleGameOver(message) {
+            gameOver = true;
+            gameStarted = false;
+            
+            // Display game over screen with winners
+            displayWinners(message.winners);
+            
+            gameScreen.style.display = 'none';
+            gameOverScreen.style.display = 'flex';
+        }
+        
+        function handleError(message) {
+            console.error("Error:", message.message);
+            alert(`Lỗi: ${message.message}`);
+        }
+        
+        function updateLobbyPlayersList(players) {
+            // Update player count
+            playerCountElement.textContent = players.length;
+            playersCount.textContent = `Người chơi: ${players.length}/5`;
+            
+            // Clear current list
+            playersList.innerHTML = '';
+            
+            // Add each player
+            players.forEach(p => {
+                const playerItem = document.createElement('li');
+                playerItem.className = 'flex items-center';
+                
+                const playerColor = document.createElement('div');
+                playerColor.className = 'w-4 h-4 rounded-full mr-2';
+                playerColor.style.backgroundColor = p.color;
+                
+                const playerName = document.createElement('span');
+                playerName.textContent = p.name;
+                if (p.id === player.id) {
+                    playerName.className = 'font-bold';
+                    playerName.textContent += ' (Bạn)';
+                }
+                
+                playerItem.appendChild(playerColor);
+                playerItem.appendChild(playerName);
+                playersList.appendChild(playerItem);
+            });
+            
+            // Enable start button if host and enough players
+            if (isHost) {
+                startGameBtn.disabled = players.length < 2;
+            }
+        }
+        
+        function copyRoomCode() {
+            navigator.clipboard.writeText(roomCode)
+                .then(() => {
+                    copyCodeBtn.textContent = 'Đã sao chép!';
+                    setTimeout(() => {
+                        copyCodeBtn.textContent = 'Sao chép';
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy room code:', err);
+                    alert('Không thể sao chép mã phòng. Vui lòng sao chép thủ công.');
+                });
+        }
+        
+        function startGame() {
+            // Send start game message
+            socket.send(JSON.stringify({
+                type: "start",
+                room: roomCode
+            }));
+        }
+        
+        function gameLoop() {
+            if (!gameStarted) return;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Update player position
+            updatePlayerPosition();
+            
+            // Draw game
+            drawGame();
+            
+            // Check for collisions
+            checkCollisions();
+            
+            // Request next frame
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function updatePlayerPosition() {
+            if (!player.alive) return;
+            
+            // Update position based on velocity
+            player.x += player.vx;
+            player.y += player.vy;
+            
+            // Constrain to game boundaries
+            player.x = Math.max(25, Math.min(gameAreaWidth - 25, player.x));
+            player.y = Math.max(25, Math.min(gameAreaHeight - 25, player.y));
+        }
+        
+        function drawGame() {
+            // Calculate the camera offset to center on player
+            const cameraOffsetX = canvas.width / 2 - player.x;
+            const cameraOffsetY = canvas.height / 2 - player.y;
+            
+            // Draw danger zone (outside safe zone)
+            ctx.beginPath();
+            ctx.arc(safeZone.x + cameraOffsetX, safeZone.y + cameraOffsetY, gameAreaWidth, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(239, 71, 111, 0.2)';
+            ctx.fill();
+            
+            // Draw safe zone boundary
+            ctx.beginPath();
+            ctx.arc(safeZone.x + cameraOffsetX, safeZone.y + cameraOffsetY, safeZone.radius, 0, Math.PI * 2);
+            ctx.strokeStyle = '#8A4FFF';
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw next safe zone boundary (dashed)
+            ctx.beginPath();
+            ctx.arc(safeZone.x + cameraOffsetX, safeZone.y + cameraOffsetY, safeZone.nextRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = '#06D6A0';
+            ctx.setLineDash([2, 4]);
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw obstacles
+            obstacles.forEach(obstacle => {
+                ctx.beginPath();
+                ctx.arc(
+                    obstacle.x + cameraOffsetX,
+                    obstacle.y + cameraOffsetY,
+                    obstacle.radius,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fill();
+            });
+            
+            // Draw flowers
+            flowers.forEach((flower, index) => {
+                if (flower) {
+                    drawFlower(
+                        flower.x + cameraOffsetX,
+                        flower.y + cameraOffsetY,
+                        flower.type,
+                        index
+                    );
+                }
+            });
+            
+            // Draw other players
+            for (const id in otherPlayers) {
+                if (otherPlayers[id].alive) {
+                    drawPlayer(
+                        otherPlayers[id],
+                        cameraOffsetX,
+                        cameraOffsetY
+                    );
+                }
+            }
+            
+            // Draw player
+            if (player.alive) {
+                drawPlayer(player, cameraOffsetX, cameraOffsetY);
+            }
+        }
+        
+        function drawPlayer(player, offsetX, offsetY) {
+            // Draw player circle
+            ctx.beginPath();
+            ctx.arc(
+                player.x + offsetX,
+                player.y + offsetY,
+                25,
+                0,
+                Math.PI * 2
+            );
+            ctx.fillStyle = player.color;
+            ctx.fill();
+            
+            // Draw player face (simple eyes and smile)
+            const eyeRadius = 5;
+            const eyeOffsetX = 8;
+            const eyeOffsetY = -5;
+            
+            // Draw eyes
+            ctx.beginPath();
+            ctx.arc(
+                player.x + offsetX - eyeOffsetX,
+                player.y + offsetY + eyeOffsetY,
+                eyeRadius,
+                0,
+                Math.PI * 2
+            );
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(
+                player.x + offsetX + eyeOffsetX,
+                player.y + offsetY + eyeOffsetY,
+                eyeRadius,
+                0,
+                Math.PI * 2
+            );
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            
+            // Draw pupils
+            ctx.beginPath();
+            ctx.arc(
+                player.x + offsetX - eyeOffsetX,
+                player.y + offsetY + eyeOffsetY,
+                eyeRadius / 2,
+                0,
+                Math.PI * 2
+            );
+            ctx.fillStyle = 'black';
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(
+                player.x + offsetX + eyeOffsetX,
+                player.y + offsetY + eyeOffsetY,
+                eyeRadius / 2,
+                0,
+                Math.PI * 2
+            );
+            ctx.fillStyle = 'black';
+            ctx.fill();
+            
+            // Draw smile
+            ctx.beginPath();
+            ctx.arc(
+                player.x + offsetX,
+                player.y + offsetY + 5,
+                10,
+                0,
+                Math.PI,
+                false
+            );
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw player name
+            ctx.font = '12px Arial';
+            ctx.fillStyle = 'black';
+            ctx.textAlign = 'center';
+            ctx.fillText(
+                player.name,
+                player.x + offsetX,
+                player.y + offsetY - 30
+            );
+            
+            // Draw health bar
+            const healthBarWidth = 40;
+            const healthBarHeight = 5;
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(
+                player.x + offsetX - healthBarWidth / 2,
+                player.y + offsetY + 30,
+                healthBarWidth,
+                healthBarHeight
+            );
+            
+            ctx.fillStyle = player.health > 30 ? '#06D6A0' : '#EF476F';
+            ctx.fillRect(
+                player.x + offsetX - healthBarWidth / 2,
+                player.y + offsetY + 30,
+                healthBarWidth * (player.health / 100),
+                healthBarHeight
+            );
+            
+            // Draw flower count
+            const flowerSize = 10;
+            ctx.font = '10px Arial';
+            ctx.fillStyle = 'black';
+            
+            // Draw flower icon
+            ctx.beginPath();
+            ctx.arc(
+                player.x + offsetX - 15,
+                player.y + offsetY + 40,
+                flowerSize / 2,
+                0,
+                Math.PI * 2
+            );
+            ctx.fillStyle = '#FF6B9D';
+            ctx.fill();
+            
+            // Draw flower count
+            ctx.fillStyle = 'black';
+            ctx.textAlign = 'left';
+            ctx.fillText(
+                `x${player.flowers}`,
+                player.x + offsetX - 10,
+                player.y + offsetY + 43
+            );
+        }
+        
+        function drawFlower(x, y, type, index) {
+            const size = 15;
+            const colors = ['#FF6B9D', '#8A4FFF', '#06D6A0'];
+            const color = colors[type % colors.length];
+            
+            // Draw petals
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                const petalX = x + Math.cos(angle) * size;
+                const petalY = y + Math.sin(angle) * size;
+                
+                ctx.beginPath();
+                ctx.arc(petalX, petalY, size / 2, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+            
+            // Draw center
+            ctx.beginPath();
+            ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFD166';
+            ctx.fill();
+            
+            // Animate the flower with a subtle pulsing effect
+            const pulseAmount = Math.sin(Date.now() / 500 + index) * 2;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, (size / 4) + pulseAmount, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFA500';
+            ctx.fill();
+        }
+        
+        function checkCollisions() {
+            if (!player.alive) return;
+            
+            // Check flower collisions
+            flowers.forEach((flower, index) => {
+                if (flower) {
+                    const distance = Math.sqrt(
+                        Math.pow(player.x - flower.x, 2) + 
+                        Math.pow(player.y - flower.y, 2)
+                    );
+                    
+                    if (distance < 35) { // Player radius + flower radius
+                        // Collect flower
                         socket.send(JSON.stringify({
-                            type: 'register',
-                            name: playerName
+                            type: "collectFlower",
+                            playerId: player.id,
+                            flowerIndex: index
                         }));
                     }
                 }
             });
             
-            // Menu buttons
-            document.getElementById('create-room-btn').addEventListener('click', () => {
-                sounds.click.play();
-                createRoom();
-            });
-            
-            document.getElementById('join-room-btn').addEventListener('click', () => {
-                sounds.click.play();
-                document.querySelector('.menu-buttons').style.display = 'none';
-                document.getElementById('join-room-container').style.display = 'flex';
-            });
-            
-            document.getElementById('confirm-join-btn').addEventListener('click', () => {
-                sounds.click.play();
-                const roomCode = document.getElementById('join-room-input').value.toUpperCase();
-                if (roomCode.length === 6) {
-                    joinRoom(roomCode);
-                }
-            });
-            
-            document.getElementById('back-to-menu-btn').addEventListener('click', () => {
-                sounds.click.play();
-                document.getElementById('join-room-container').style.display = 'none';
-                document.querySelector('.menu-buttons').style.display = 'flex';
-            });
-            
-            // Room buttons
-            document.getElementById('leave-room-btn').addEventListener('click', () => {
-                sounds.click.play();
-                leaveRoom();
-            });
-            
-            document.getElementById('start-game-btn').addEventListener('click', () => {
-                sounds.click.play();
-                startGame();
-            });
-            
-            document.getElementById('ready-btn').addEventListener('click', () => {
-                sounds.click.play();
-                toggleReady();
-            });
-            
-            // Results buttons
-            document.getElementById('back-to-menu-from-results').addEventListener('click', () => {
-                sounds.click.play();
-                document.getElementById('results-screen').style.opacity = '0';
-                document.getElementById('results-screen').style.pointerEvents = 'none';
-                document.getElementById('results-screen').style.display = 'none';
-                document.getElementById('menu-screen').style.display = 'flex';
-                document.getElementById('menu-screen').style.opacity = '1';
-                document.getElementById('menu-screen').style.pointerEvents = 'auto';
-                gameState = 'menu';
-            });
-            
-            // Touch controls
-            setupTouchControls();
-        }
-        
-        function setupTouchControls() {
-            const joystick = document.getElementById('joystick');
-            const handle = document.getElementById('joystick-handle');
-            const actionButton = document.getElementById('action-button');
-            
-            let joystickActive = false;
-            let joystickPos = { x: 0, y: 0 };
-            const joystickRadius = 60;
-            
-            joystick.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                const rect = joystick.getBoundingClientRect();
-                joystickActive = true;
-                updateJoystickPosition(touch, rect);
-            });
-            
-            joystick.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                if (joystickActive) {
-                    const touch = e.touches[0];
-                    const rect = joystick.getBoundingClientRect();
-                    updateJoystickPosition(touch, rect);
-                }
-            });
-            
-            joystick.addEventListener('touchend', () => {
-                joystickActive = false;
-                handle.style.transform = 'translate(-50%, -50%)';
-                joystickPos = { x: 0, y: 0 };
-                
-                // Send stop movement to server
-                if (socket && socket.readyState === WebSocket.OPEN && gameState === 'playing') {
-                    socket.send(JSON.stringify({
-                        type: 'move',
-                        vx: 0,
-                        vy: 0
-                    }));
-                }
-            });
-            
-            actionButton.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                actionButton.style.transform = 'scale(0.9)';
-                collectFlower();
-            });
-            
-            actionButton.addEventListener('touchend', () => {
-                actionButton.style.transform = 'scale(1)';
-            });
-            
-            function updateJoystickPosition(touch, rect) {
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                
-                let dx = touch.clientX - centerX;
-                let dy = touch.clientY - centerY;
-                
-                // Calculate distance from center
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                // Normalize if outside of radius
-                if (distance > joystickRadius) {
-                    dx = (dx / distance) * joystickRadius;
-                    dy = (dy / distance) * joystickRadius;
-                }
-                
-                // Update handle position
-                handle.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-                
-                // Normalize joystick position for game input (-1 to 1)
-                joystickPos = {
-                    x: dx / joystickRadius,
-                    y: dy / joystickRadius
-                };
-                
-                // Send movement to server
-                if (socket && socket.readyState === WebSocket.OPEN && gameState === 'playing') {
-                    socket.send(JSON.stringify({
-                        type: 'move',
-                        vx: joystickPos.x * 5, // Speed factor
-                        vy: joystickPos.y * 5  // Speed factor
-                    }));
+            // Check player-player collisions (for pushing)
+            for (const id in otherPlayers) {
+                if (otherPlayers[id].alive) {
+                    const otherPlayer = otherPlayers[id];
+                    const distance = Math.sqrt(
+                        Math.pow(player.x - otherPlayer.x, 2) + 
+                        Math.pow(player.y - otherPlayer.y, 2)
+                    );
+                    
+                    if (distance < 50) { // Two player radiuses
+                        // Calculate push direction
+                        const angle = Math.atan2(player.y - otherPlayer.y, player.x - otherPlayer.x);
+                        const pushX = Math.cos(angle) * 2;
+                        const pushY = Math.sin(angle) * 2;
+                        
+                        // Apply push to player
+                        player.x += pushX;
+                        player.y += pushY;
+                        
+                        // Constrain to game boundaries
+                        player.x = Math.max(25, Math.min(gameAreaWidth - 25, player.x));
+                        player.y = Math.max(25, Math.min(gameAreaHeight - 25, player.y));
+                        
+                        // Send updated position
+                        sendPlayerMove();
+                    }
                 }
             }
             
-            // Update player movement based on joystick input
-            app.ticker.add(() => {
-                if (gameState === 'playing' && playerEntity && joystickActive) {
-                    const speed = 5;
-                    playerEntity.vx = joystickPos.x * speed;
-                    playerEntity.vy = joystickPos.y * speed;
-                } else if (gameState === 'playing' && playerEntity && !joystickActive) {
-                    playerEntity.vx = 0;
-                    playerEntity.vy = 0;
+            // Check obstacle collisions
+            obstacles.forEach(obstacle => {
+                const distance = Math.sqrt(
+                    Math.pow(player.x - obstacle.x, 2) + 
+                    Math.pow(player.y - obstacle.y, 2)
+                );
+                
+                if (distance < 25 + obstacle.radius) {
+                    // Calculate bounce direction
+                    const angle = Math.atan2(player.y - obstacle.y, player.x - obstacle.x);
+                    const bounceX = Math.cos(angle) * 5;
+                    const bounceY = Math.sin(angle) * 5;
+                    
+                    // Apply bounce to player
+                    player.x += bounceX;
+                    player.y += bounceY;
+                    
+                    // Constrain to game boundaries
+                    player.x = Math.max(25, Math.min(gameAreaWidth - 25, player.x));
+                    player.y = Math.max(25, Math.min(gameAreaHeight - 25, player.y));
+                    
+                    // Send updated position
+                    sendPlayerMove();
                 }
             });
         }
         
-        function connectToServer() {
-            if (isConnecting) return;
-            isConnecting = true;
-            
-            updateServerStatus('Đang kết nối...');
-            
-            // Close existing connection if any
-            if (socket) {
-                socket.close();
-            }
-            
-            // Create new WebSocket connection
-            socket = new WebSocket(serverUrl);
-            
-            socket.onopen = function() {
-                console.log('Connected to server');
-                sounds.connect.play();
-                updateServerStatus('Đã kết nối');
-                hideNetworkError();
-                isConnecting = false;
-                
-                // Generate a session ID if we don't have one
-                if (!playerSessionId) {
-                    playerSessionId = generateSessionId();
-                }
-                
-                // Register player if already has a name
-                if (gameState !== 'username' && playerName) {
-                    socket.send(JSON.stringify({
-                        type: 'register',
-                        name: playerName,
-                        sessionId: playerSessionId
-                    }));
-                }
-                
-                // Rejoin room if was in a room
-                if (currentRoomCode) {
-                    socket.send(JSON.stringify({
-                        type: isRoomHost ? 'create_room' : 'join_room',
-                        roomCode: currentRoomCode,
-                        name: playerName,
-                        sessionId: playerSessionId
-                    }));
-                }
-            };
-            
-            socket.onclose = function() {
-                console.log('Disconnected from server');
-                sounds.disconnect.play();
-                updateServerStatus('Mất kết nối');
-                showNetworkError();
-                isConnecting = false;
-                
-                // Try to reconnect after a delay
-                if (!socketReconnectTimer) {
-                    socketReconnectTimer = setTimeout(() => {
-                        socketReconnectTimer = null;
-                        connectToServer();
-                    }, 3000);
-                }
-            };
-            
-            socket.onerror = function(error) {
-                console.error('WebSocket error:', error);
-                isConnecting = false;
-                showNetworkError();
-            };
-            
-            socket.onmessage = function(event) {
-                handleServerMessage(event.data);
-            };
-        }
-        
-        function updateServerStatus(status) {
-            const statusElement = document.getElementById('server-status');
-            statusElement.textContent = status;
-        }
-        
-        function showNetworkError() {
-            const errorElement = document.getElementById('network-error');
-            errorElement.style.display = 'block';
-        }
-        
-        function hideNetworkError() {
-            const errorElement = document.getElementById('network-error');
-            errorElement.style.display = 'none';
-        }
-        
-        function handleServerMessage(data) {
-            try {
-                const message = JSON.parse(data);
-                console.log('Received message:', message.type);
-                
-                switch (message.type) {
-                    case 'registered':
-                        playerId = message.playerId;
-                        break;
-                        
-                    case 'room_created':
-                        handleRoomCreated(message);
-                        break;
-                        
-                    case 'room_joined':
-                        handleRoomJoined(message);
-                        break;
-                        
-                    case 'player_joined':
-                        handlePlayerJoined(message);
-                        break;
-                        
-                    case 'player_left':
-                        handlePlayerLeft(message);
-                        break;
-                        
-                    case 'player_ready':
-                        handlePlayerReady(message);
-                        break;
-                        
-                    case 'game_starting':
-                        handleGameStarting(message);
-                        break;
-                        
-                    case 'game_state':
-                        handleGameState(message);
-                        break;
-                        
-                    case 'game_over':
-                        handleGameOver(message);
-                        break;
-                        
-                    case 'error':
-                        handleError(message);
-                        break;
-                }
-            } catch (error) {
-                console.error('Error parsing message:', error);
-            }
-        }
-        
-        function handleRoomCreated(message) {
-            currentRoomCode = message.roomCode;
-            isRoomHost = true;
-            
-            document.getElementById('room-code').textContent = currentRoomCode;
-            document.getElementById('menu-screen').style.opacity = '0';
-            document.getElementById('menu-screen').style.pointerEvents = 'none';
-            document.getElementById('menu-screen').style.display = 'none';
-            document.getElementById('room-screen').style.display = 'flex';
-            document.getElementById('room-screen').style.opacity = '1';
-            document.getElementById('room-screen').style.pointerEvents = 'auto';
-            
-            // Show host controls
-            document.getElementById('start-game-btn').style.display = 'block';
-            document.getElementById('ready-btn').style.display = 'none';
-            
-            // Update player list
-            updatePlayerList(message.players);
-            
-            gameState = 'room';
-        }
-        
-        function handleRoomJoined(message) {
-            currentRoomCode = message.roomCode;
-            isRoomHost = false;
-            
-            document.getElementById('room-code').textContent = currentRoomCode;
-            document.getElementById('menu-screen').style.opacity = '0';
-            document.getElementById('menu-screen').style.pointerEvents = 'none';
-            document.getElementById('menu-screen').style.display = 'none';
-            document.getElementById('room-screen').style.display = 'flex';
-            document.getElementById('room-screen').style.opacity = '1';
-            document.getElementById('room-screen').style.pointerEvents = 'auto';
-            
-            // Show player controls
-            document.getElementById('start-game-btn').style.display = 'none';
-            document.getElementById('ready-btn').style.display = 'block';
-            
-            // Update player list
-            updatePlayerList(message.players);
-            
-            gameState = 'room';
-        }
-        
-        function handlePlayerJoined(message) {
-            // Update player list
-            updatePlayerList(message.players);
-            sounds.connect.play();
-        }
-        
-        function handlePlayerLeft(message) {
-            // Update player list
-            updatePlayerList(message.players);
-            sounds.disconnect.play();
-            
-            // If player was in game, remove their entity
-            if (gameState === 'playing' && message.playerId) {
-                removePlayerEntity(message.playerId);
-            }
-        }
-        
-        function handlePlayerReady(message) {
-            // Update player list
-            updatePlayerList(message.players);
-        }
-        
-        function handleGameStarting(message) {
-            startGameFromServer(message.gameState);
-        }
-        
-        function handleGameState(message) {
-            if (gameState !== 'playing') return;
-            
-            // Update game timer
-            if (message.gameTimer !== undefined) {
-                gameTimer = message.gameTimer;
-                document.getElementById('time-display').textContent = formatTime(gameTimer);
-                
-                // Update safe radius
-                safeRadius = message.safeRadius || safeRadius;
-            }
-            
-            // Update entities
-            if (message.entities) {
-                updateEntitiesFromServer(message.entities);
-            }
-            
-            // Update players
-            if (message.players) {
-                updatePlayersFromServer(message.players);
-            }
-        }
-        
-        function handleGameOver(message) {
-            endGameFromServer(message.winners);
-        }
-        
-        function handleError(message) {
-            console.error('Server error:', message.error);
-            
-            // Handle specific errors
-            if (message.error === 'Room not found') {
-                alert('Phòng không tồn tại hoặc đã đóng.');
-                document.getElementById('room-screen').style.opacity = '0';
-                document.getElementById('room-screen').style.pointerEvents = 'none';
-                document.getElementById('room-screen').style.display = 'none';
-                document.getElementById('menu-screen').style.display = 'flex';
-                document.getElementById('menu-screen').style.opacity = '1';
-                document.getElementById('menu-screen').style.pointerEvents = 'auto';
-                currentRoomCode = null;
-                gameState = 'menu';
-            }
-        }
-        
-        function createRoom() {
-            if (!socket || socket.readyState !== WebSocket.OPEN) {
-                alert('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
-                return;
-            }
-            
+        function sendPlayerMove() {
             socket.send(JSON.stringify({
-                type: 'create_room',
-                name: playerName,
-                sessionId: playerSessionId
+                type: "move",
+                player: {
+                    id: player.id
+                },
+                x: player.x,
+                y: player.y,
+                vx: player.vx,
+                vy: player.vy
             }));
         }
         
-        function joinRoom(roomCode) {
-            if (!socket || socket.readyState !== WebSocket.OPEN) {
-                alert('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
-                return;
-            }
+        function displayWinners(winners) {
+            // Clear existing winners
+            winnersContainer.innerHTML = '';
             
-            socket.send(JSON.stringify({
-                type: 'join_room',
-                roomCode: roomCode,
-                name: playerName,
-                sessionId: playerSessionId
-            }));
-        }
-        
-        function leaveRoom() {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    type: 'leave_room'
-                }));
-            }
-            
-            document.getElementById('room-screen').style.opacity = '0';
-            document.getElementById('room-screen').style.pointerEvents = 'none';
-            document.getElementById('room-screen').style.display = 'none';
-            document.getElementById('menu-screen').style.display = 'flex';
-            document.getElementById('menu-screen').style.opacity = '1';
-            document.getElementById('menu-screen').style.pointerEvents = 'auto';
-            document.getElementById('join-room-container').style.display = 'none';
-            document.querySelector('.menu-buttons').style.display = 'flex';
-            
-            currentRoomCode = null;
-            isRoomHost = false;
-            isPlayerReady = false;
-            gameState = 'menu';
-        }
-        
-        function toggleReady() {
-            if (!socket || socket.readyState !== WebSocket.OPEN) return;
-            
-            isPlayerReady = !isPlayerReady;
-            
-            socket.send(JSON.stringify({
-                type: 'toggle_ready',
-                ready: isPlayerReady
-            }));
-            
-            // Update local UI
-            const playerList = document.getElementById('player-list');
-            const players = playerList.querySelectorAll('.player-item');
-            
-            for (let i = 0; i < players.length; i++) {
-                const player = players[i];
-                if (player.dataset.playerId === playerId) {
-                    const readyIndicator = player.querySelector('.player-ready');
-                    if (isPlayerReady) {
-                        readyIndicator.classList.remove('not-ready');
-                        readyIndicator.classList.add('ready');
-                    } else {
-                        readyIndicator.classList.remove('ready');
-                        readyIndicator.classList.add('not-ready');
-                    }
-                    break;
-                }
-            }
-        }
-        
-        function startGame() {
-            if (!socket || socket.readyState !== WebSocket.OPEN) return;
-            
-            socket.send(JSON.stringify({
-                type: 'start_game'
-            }));
-        }
-        
-        function updatePlayerList(players) {
-            const playerList = document.getElementById('player-list');
-            playerList.innerHTML = '';
-            
-            players.forEach(player => {
-                const playerItem = document.createElement('div');
-                playerItem.className = 'player-item';
-                playerItem.dataset.playerId = player.id;
+            // Set game result message
+            const isPlayerWinner = winners.some(w => w.id === player.id);
+            if (isPlayerWinner) {
+                gameResult.textContent = 'Chúc mừng! Bạn là một trong những người thắng cuộc!';
+                gameResult.classList.add('text-success');
                 
-                const isCurrentPlayer = player.id === playerId;
-                
-                playerItem.innerHTML = `
-                    <div class="player-avatar">${player.name.charAt(0)}</div>
-                    <div class="player-name">${player.name}${isCurrentPlayer ? ' (Bạn)' : ''}</div>
-                    <div class="player-ready ${player.ready ? 'ready' : 'not-ready'}"></div>
-                `;
-                
-                playerList.appendChild(playerItem);
-            });
-            
-            document.getElementById('player-count').textContent = `Đang chờ người chơi... (${players.length}/5)`;
-            
-            // Enable start button if host and at least 2 players and all are ready
-            if (isRoomHost) {
-                const allReady = players.every(player => player.ready || player.id === playerId);
-                const startBtn = document.getElementById('start-game-btn');
-                
-                if (players.length >= 2 && allReady) {
-                    startBtn.disabled = false;
-                    startBtn.classList.remove('opacity-50');
-                } else {
-                    startBtn.disabled = true;
-                    startBtn.classList.add('opacity-50');
-                }
-            }
-        }
-        
-        function startGameFromServer(initialGameState) {
-            // Prepare game world
-            app.stage.removeChildren();
-            
-            // Create game world container
-            const world = new PIXI.Container();
-            app.stage.addChild(world);
-            
-            // Create background
-            createBackground(world);
-            
-            // Create game entities from server data
-            createEntitiesFromServer(world, initialGameState);
-            
-            // Update UI
-            document.getElementById('health-bar').style.width = '100%';
-            document.getElementById('flower-count').textContent = '0';
-            document.getElementById('time-display').textContent = formatTime(initialGameState.gameTimer || 120);
-            
-            // Switch to game screen
-            document.getElementById('room-screen').style.opacity = '0';
-            document.getElementById('room-screen').style.pointerEvents = 'none';
-            document.getElementById('room-screen').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'flex';
-            document.getElementById('game-screen').style.opacity = '1';
-            document.getElementById('game-screen').style.pointerEvents = 'auto';
-            
-            // Start game loop
-            gameState = 'playing';
-            gameTimer = initialGameState.gameTimer || 120;
-            safeRadius = initialGameState.safeRadius || 1000;
-            
-            // Set up game loop
-            app.ticker.add(gameLoop);
-            
-            // Center camera on player
-            centerCamera();
-        }
-        
-        function createEntitiesFromServer(world, gameState) {
-            entities = [];
-            remotePlayers = new Map();
-            
-            // Create player entities
-            gameState.players.forEach(playerData => {
-                const isCurrentPlayer = playerData.id === playerId;
-                const player = createPlayer(playerData.x, playerData.y, playerData.name, isCurrentPlayer);
-                
-                world.addChild(player.sprite);
-                entities.push(player);
-                
-                if (isCurrentPlayer) {
-                    playerEntity = player;
-                    playerHealth = playerData.health;
-                    flowerCount = playerData.flowers;
-                } else {
-                    remotePlayers.set(playerData.id, player);
-                }
-                
-                // Update player stats
-                player.health = playerData.health;
-                player.flowers = playerData.flowers;
-                player.updateHealth();
-            });
-            
-            // Create obstacles
-            gameState.obstacles.forEach(obstacle => {
-                const obstacleEntity = createObstacle(obstacle.x, obstacle.y, obstacle.type);
-                world.addChild(obstacleEntity.sprite);
-                entities.push(obstacleEntity);
-            });
-            
-            // Create flowers
-            gameState.flowers.forEach(flower => {
-                const flowerEntity = createFlower(flower.x, flower.y);
-                flowerEntity.id = flower.id;
-                flowerEntity.collected = flower.collected;
-                
-                if (flowerEntity.collected) {
-                    flowerEntity.sprite.visible = false;
-                }
-                
-                world.addChild(flowerEntity.sprite);
-                entities.push(flowerEntity);
-            });
-            
-            // Create power-ups
-            gameState.powerups.forEach(powerup => {
-                const powerupEntity = createPowerup(powerup.x, powerup.y);
-                powerupEntity.id = powerup.id;
-                powerupEntity.collected = powerup.collected;
-                
-                if (powerupEntity.collected) {
-                    powerupEntity.sprite.visible = false;
-                }
-                
-                world.addChild(powerupEntity.sprite);
-                entities.push(powerupEntity);
-            });
-            
-            // Create hearts
-            gameState.hearts.forEach(heart => {
-                const heartEntity = createHeart(heart.x, heart.y);
-                heartEntity.id = heart.id;
-                heartEntity.collected = heart.collected;
-                
-                if (heartEntity.collected) {
-                    heartEntity.sprite.visible = false;
-                }
-                
-                world.addChild(heartEntity.sprite);
-                entities.push(heartEntity);
-            });
-        }
-        
-        function updateEntitiesFromServer(serverEntities) {
-            // Update collectibles
-            serverEntities.forEach(serverEntity => {
-                if (serverEntity.type === 'flower' || serverEntity.type === 'powerup' || serverEntity.type === 'heart') {
-                    const entity = entities.find(e => e.id === serverEntity.id && e.type === serverEntity.type);
-                    
-                    if (entity) {
-                        entity.collected = serverEntity.collected;
-                        entity.sprite.visible = !serverEntity.collected;
-                    } else if (!serverEntity.collected) {
-                        // New entity that we don't have yet
-                        let newEntity;
-                        
-                        if (serverEntity.type === 'flower') {
-                            newEntity = createFlower(serverEntity.x, serverEntity.y);
-                        } else if (serverEntity.type === 'powerup') {
-                            newEntity = createPowerup(serverEntity.x, serverEntity.y);
-                        } else if (serverEntity.type === 'heart') {
-                            newEntity = createHeart(serverEntity.x, serverEntity.y);
-                        }
-                        
-                        if (newEntity) {
-                            newEntity.id = serverEntity.id;
-                            app.stage.children[0].addChild(newEntity.sprite);
-                            entities.push(newEntity);
-                        }
-                    }
-                }
-            });
-        }
-        
-        function updatePlayersFromServer(players) {
-            players.forEach(playerData => {
-                if (playerData.id === playerId) {
-                    // Update local player
-                    if (playerEntity) {
-                        playerEntity.health = playerData.health;
-                        playerEntity.flowers = playerData.flowers;
-                        playerEntity.updateHealth();
-                        flowerCount = playerData.flowers;
-                        document.getElementById('flower-count').textContent = flowerCount;
-                    }
-                } else {
-                    // Update remote player
-                    const remotePlayer = remotePlayers.get(playerData.id);
-                    
-                    if (remotePlayer) {
-                        // Update position
-                        remotePlayer.x = playerData.x;
-                        remotePlayer.y = playerData.y;
-                        remotePlayer.sprite.x = playerData.x;
-                        remotePlayer.sprite.y = playerData.y;
-                        
-                        // Update stats
-                        remotePlayer.health = playerData.health;
-                        remotePlayer.flowers = playerData.flowers;
-                        remotePlayer.updateHealth();
-                        
-                        // Handle player death
-                        if (playerData.isDead) {
-                            remotePlayer.isDead = true;
-                            remotePlayer.sprite.visible = false;
-                        }
-                    }
-                }
-            });
-        }
-        
-        function removePlayerEntity(playerId) {
-            const remotePlayer = remotePlayers.get(playerId);
-            
-            if (remotePlayer) {
-                // Remove player sprite from stage
-                app.stage.children[0].removeChild(remotePlayer.sprite);
-                
-                // Remove from entities array
-                const index = entities.findIndex(e => e === remotePlayer);
-                if (index !== -1) {
-                    entities.splice(index, 1);
-                }
-                
-                // Remove from remotePlayers map
-                remotePlayers.delete(playerId);
-            }
-        }
-        
-        function createBackground(world) {
-            // Create a large rectangle for the ground
-            const ground = new PIXI.Graphics();
-            ground.beginFill(0x8BC34A);
-            ground.drawRect(-2000, -2000, 4000, 4000);
-            ground.endFill();
-            world.addChild(ground);
-            
-            // Add some decorative elements
-            for (let i = 0; i < 100; i++) {
-                const x = Math.random() * 4000 - 2000;
-                const y = Math.random() * 4000 - 2000;
-                
-                const decoration = new PIXI.Graphics();
-                decoration.beginFill(0x9CCC65);
-                decoration.drawCircle(0, 0, Math.random() * 20 + 10);
-                decoration.endFill();
-                decoration.x = x;
-                decoration.y = y;
-                world.addChild(decoration);
-            }
-            
-            // Draw the initial safe zone
-            const safeZone = new PIXI.Graphics();
-            safeZone.lineStyle(5, 0xFF6B8B, 0.8);
-            safeZone.drawCircle(0, 0, safeRadius);
-            world.addChild(safeZone);
-            
-            // Update safe zone during game
-            app.ticker.add(() => {
-                if (gameState === 'playing') {
-                    safeZone.clear();
-                    safeZone.lineStyle(5, 0xFF6B8B, 0.8);
-                    safeZone.drawCircle(0, 0, safeRadius);
-                    
-                    // Draw danger zone
-                    safeZone.beginFill(0xFF6B8B, 0.2);
-                    safeZone.drawCircle(0, 0, safeRadius);
-                    safeZone.endFill();
-                }
-            });
-        }
-        
-        function createPlayer(x, y, name, isPlayer) {
-            const texture = PIXI.Texture.from(ASSETS.chickenAvatar);
-            const sprite = new PIXI.Sprite(texture);
-            sprite.anchor.set(0.5);
-            sprite.x = x;
-            sprite.y = y;
-            
-            // Add name text
-            const nameText = new PIXI.Text(name, {
-                fontFamily: 'Quicksand',
-                fontSize: 14,
-                fill: 0x333333,
-                align: 'center',
-                fontWeight: 'bold'
-            });
-            nameText.anchor.set(0.5, 0);
-            nameText.y = 25;
-            sprite.addChild(nameText);
-            
-            // Add health bar
-            const healthBar = new PIXI.Graphics();
-            healthBar.beginFill(0x4CAF50);
-            healthBar.drawRect(-20, -30, 40, 5);
-            healthBar.endFill();
-            sprite.addChild(healthBar);
-            
-            return {
-                sprite,
-                nameText,
-                healthBar,
-                x,
-                y,
-                vx: 0,
-                vy: 0,
-                speed: isPlayer ? 5 : 4,
-                health: 100,
-                flowers: 0,
-                type: 'player',
-                isPlayer,
-                name,
-                isDead: false,
-                invulnerable: false,
-                invulnerableTimer: 0,
-                updateHealth: function() {
-                    this.healthBar.clear();
-                    this.healthBar.beginFill(0x4CAF50);
-                    this.healthBar.drawRect(-20, -30, 40 * (this.health / 100), 5);
-                    this.healthBar.endFill();
-                    
-                    if (this.isPlayer) {
-                        document.getElementById('health-bar').style.width = `${this.health}%`;
-                    }
-                }
-            };
-        }
-        
-        function createObstacle(x, y, type = null) {
-            const obstacleTypes = [ASSETS.obstacleTree, ASSETS.obstacleBush, ASSETS.obstacleRock];
-            let texture;
-            
-            if (type === 'tree') {
-                texture = PIXI.Texture.from(ASSETS.obstacleTree);
-            } else if (type === 'bush') {
-                texture = PIXI.Texture.from(ASSETS.obstacleBush);
-            } else if (type === 'rock') {
-                texture = PIXI.Texture.from(ASSETS.obstacleRock);
+                // Add confetti animation
+                createConfetti();
             } else {
-                texture = PIXI.Texture.from(obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)]);
+                gameResult.textContent = 'Tiếc quá! Bạn không phải là người thắng cuộc.';
+                gameResult.classList.add('text-danger');
             }
             
-            const sprite = new PIXI.Sprite(texture);
-            sprite.anchor.set(0.5);
-            sprite.x = x;
-            sprite.y = y;
-            
-            return {
-                sprite,
-                x,
-                y,
-                vx: 0,
-                vy: 0,
-                type: 'obstacle',
-                radius: sprite.width / 2
-            };
-        }
-        
-        function createFlower(x, y) {
-            const texture = PIXI.Texture.from(ASSETS.flower);
-            const sprite = new PIXI.Sprite(texture);
-            sprite.anchor.set(0.5);
-            sprite.x = x;
-            sprite.y = y;
-            
-            return {
-                sprite,
-                x,
-                y,
-                vx: 0,
-                vy: 0,
-                type: 'flower',
-                collected: false,
-                value: 1
-            };
-        }
-        
-        function createPowerup(x, y) {
-            const texture = PIXI.Texture.from(ASSETS.powerup);
-            const sprite = new PIXI.Sprite(texture);
-            sprite.anchor.set(0.5);
-            sprite.x = x;
-            sprite.y = y;
-            
-            // Add animation
-            app.ticker.add(() => {
-                sprite.rotation += 0.01;
-            });
-            
-            return {
-                sprite,
-                x,
-                y,
-                vx: 0,
-                vy: 0,
-                type: 'powerup',
-                collected: false
-            };
-        }
-        
-        function createHeart(x, y) {
-            const texture = PIXI.Texture.from(ASSETS.heart);
-            const sprite = new PIXI.Sprite(texture);
-            sprite.anchor.set(0.5);
-            sprite.x = x;
-            sprite.y = y;
-            
-            // Add animation
-            let scale = 1;
-            let growing = false;
-            app.ticker.add(() => {
-                if (growing) {
-                    scale += 0.005;
-                    if (scale >= 1.2) growing = false;
-                } else {
-                    scale -= 0.005;
-                    if (scale <= 0.8) growing = true;
+            // Add winners to the list
+            winners.forEach((winner, index) => {
+                const winnerElement = document.createElement('div');
+                winnerElement.className = 'flex items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg';
+                
+                const rankElement = document.createElement('div');
+                rankElement.className = 'text-2xl font-bold mr-3';
+                rankElement.textContent = `#${index + 1}`;
+                
+                const colorElement = document.createElement('div');
+                colorElement.className = 'w-10 h-10 rounded-full mr-3';
+                colorElement.style.backgroundColor = winner.color;
+                
+                const infoElement = document.createElement('div');
+                infoElement.className = 'flex-1';
+                
+                const nameElement = document.createElement('div');
+                nameElement.className = 'font-semibold';
+                nameElement.textContent = winner.name;
+                if (winner.id === player.id) {
+                    nameElement.textContent += ' (Bạn)';
+                    nameElement.className += ' text-primary dark:text-dark-primary';
                 }
-                sprite.scale.set(scale);
+                
+                const flowerElement = document.createElement('div');
+                flowerElement.className = 'text-sm';
+                flowerElement.textContent = `Hoa: ${winner.flowers}`;
+                
+                infoElement.appendChild(nameElement);
+                infoElement.appendChild(flowerElement);
+                
+                winnerElement.appendChild(rankElement);
+                winnerElement.appendChild(colorElement);
+                winnerElement.appendChild(infoElement);
+                
+                winnersContainer.appendChild(winnerElement);
             });
-            
-            return {
-                sprite,
-                x,
-                y,
-                vx: 0,
-                vy: 0,
-                type: 'heart',
-                collected: false
-            };
         }
         
-        function gameLoop(delta) {
-            if (gameState !== 'playing') return;
+        function createConfetti() {
+            const colors = ['#FF6B9D', '#8A4FFF', '#06D6A0', '#FFD166', '#EF476F'];
+            const totalConfetti = 100;
             
-            // Process input and update entities
-            movePlayer();
-            updateEntities();
-            checkCollisions();
-            
-            // Center camera on player
-            centerCamera();
-        }
-        
-        function movePlayer() {
-            if (!playerEntity || playerEntity.isDead) return;
-            
-            playerEntity.x += playerEntity.vx;
-            playerEntity.y += playerEntity.vy;
-            
-            playerEntity.sprite.x = playerEntity.x;
-            playerEntity.sprite.y = playerEntity.y;
-        }
-        
-        function updateEntities() {
-            entities.forEach(entity => {
-                if (entity.invulnerable) {
-                    entity.invulnerableTimer -= 1;
-                    entity.sprite.alpha = Math.sin(entity.invulnerableTimer * 0.2) * 0.5 + 0.5;
+            for (let i = 0; i < totalConfetti; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = `${Math.random() * 100}%`;
+                    confetti.style.top = '-10px';
+                    confetti.style.width = `${Math.random() * 10 + 5}px`;
+                    confetti.style.height = `${Math.random() * 10 + 5}px`;
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
                     
-                    if (entity.invulnerableTimer <= 0) {
-                        entity.invulnerable = false;
-                        entity.sprite.alpha = 1;
-                    }
-                }
-                
-                if (entity.type === 'flower' || entity.type === 'powerup' || entity.type === 'heart') {
-                    if (entity.collected) {
-                        entity.sprite.visible = false;
-                    }
-                }
-            });
-        }
-        
-        function centerCamera() {
-            if (!playerEntity) return;
-            
-            app.stage.x = window.innerWidth / 2 - playerEntity.x;
-            app.stage.y = window.innerHeight / 2 - playerEntity.y;
-        }
-        
-        function checkCollisions() {
-            if (!playerEntity || playerEntity.isDead) return;
-            
-            // Check for collisions with collectibles
-            for (let i = 0; i < entities.length; i++) {
-                const entity = entities[i];
-                
-                if ((entity.type === 'flower' || entity.type === 'powerup' || entity.type === 'heart') && 
-                    !entity.collected) {
-                    const dx = playerEntity.x - entity.x;
-                    const dy = playerEntity.y - entity.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    document.body.appendChild(confetti);
                     
-                    if (distance < 30) {
-                        // Collect item and notify server
-                        if (socket && socket.readyState === WebSocket.OPEN) {
-                            socket.send(JSON.stringify({
-                                type: 'collect',
-                                itemType: entity.type,
-                                itemId: entity.id
-                            }));
-                            
-                            entity.collected = true;
-                            entity.sprite.visible = false;
-                            
-                            if (entity.type === 'flower') {
-                                sounds.flower.play();
-                                flowerCount++;
-                                document.getElementById('flower-count').textContent = flowerCount;
-                            }
-                        }
-                    }
-                }
-                
-                // Player collisions with obstacles
-                if (entity.type === 'obstacle') {
-                    const dx = playerEntity.x - entity.x;
-                    const dy = playerEntity.y - entity.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    // Animate confetti falling
+                    const animationDuration = Math.random() * 3 + 2;
+                    const animationDelay = Math.random() * 5;
                     
-                    if (distance < 40) {
-                        // Push player away from obstacle
-                        const pushFactor = 1;
-                        playerEntity.x += (dx / distance) * pushFactor;
-                        playerEntity.y += (dy / distance) * pushFactor;
-                    }
-                }
-            }
-            
-            // Check for out of safe zone damage
-            const distanceFromCenter = Math.sqrt(playerEntity.x * playerEntity.x + playerEntity.y * playerEntity.y);
-            if (distanceFromCenter > safeRadius && !playerEntity.invulnerable) {
-                // Take damage
-                playerEntity.health -= 0.5;
-                playerHealth = playerEntity.health;
-                playerEntity.updateHealth();
-                
-                if (playerEntity.health <= 0) {
-                    playerEntity.isDead = true;
-                    socket.send(JSON.stringify({
-                        type: 'player_dead'
-                    }));
-                }
+                    confetti.animate([
+                        { top: '-10px', left: `${parseFloat(confetti.style.left)}`, transform: `rotate(0deg)` },
+                        { top: '100%', left: `${parseFloat(confetti.style.left) + (Math.random() * 20 - 10)}%`, transform: `rotate(${Math.random() * 720}deg)` }
+                    ], {
+                        duration: animationDuration * 1000,
+                        delay: animationDelay * 1000,
+                        easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+                        fill: 'forwards'
+                    });
+                    
+                    // Remove confetti after animation
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, (animationDuration + animationDelay) * 1000 + 500);
+                }, Math.random() * 2000);
             }
         }
         
-        function collectFlower() {
-            if (gameState !== 'playing' || !playerEntity || playerEntity.isDead) return;
-            
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    type: 'action',
-                    action: 'collect_flower'
-                }));
-            }
-        }
-        
-        function endGameFromServer(winners) {
-            sounds.win.play();
-            gameState = 'ended';
-            
-            // Stop game loop
-            app.ticker.remove(gameLoop);
-            
-            // Update winners list
-            const winnersList = document.getElementById('winners-list');
-            winnersList.innerHTML = '';
-            
-            winners.slice(0, 3).forEach((winner, index) => {
-                const position = index + 1;
-                const isCurrentPlayer = winner.id === playerId;
-                
-                const winnerItem = document.createElement('div');
-                winnerItem.className = 'winner-item';
-                winnerItem.innerHTML = `
-                    <div class="winner-position position-${position}">${position}</div>
-                    <div class="winner-name">${winner.name}${isCurrentPlayer ? ' (Bạn)' : ''}</div>
-                    <div class="winner-score">${winner.flowers} Hoa</div>
-                `;
-                winnersList.appendChild(winnerItem);
-            });
-            
-            // Show results screen
-            document.getElementById('game-screen').style.opacity = '0';
-            document.getElementById('game-screen').style.pointerEvents = 'none';
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('results-screen').style.display = 'flex';
-            document.getElementById('results-screen').style.opacity = '1';
-            document.getElementById('results-screen').style.pointerEvents = 'auto';
-            
+        function returnToLobby() {
             // Reset game state
-            currentRoomCode = null;
-            isRoomHost = false;
-            isPlayerReady = false;
-        }
-        
-        // Utility functions
-        function generateSessionId() {
-            return 'session_' + Math.random().toString(36).substring(2, 15);
-        }
-        
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-        
-        function generateRoomCode() {
-            const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let result = '';
-            for (let i = 0; i < 6; i++) {
-                result += characters.charAt(Math.floor(Math.random() * characters.length));
+            gameOver = false;
+            gameStarted = false;
+            player.health = 100;
+            player.flowers = 0;
+            player.alive = true;
+            
+            // Show lobby screen
+            gameOverScreen.style.display = 'none';
+            lobbyScreen.style.display = 'flex';
+            waitingRoom.style.display = 'none';
+            
+            // Reset game result classes
+            gameResult.classList.remove('text-success', 'text-danger');
+            
+            // Reconnect to server
+            if (socket.readyState !== 1) {
+                connectToServer();
             }
-            return result;
         }
+        
+        function generateId() {
+            return 'id_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // Initialize the game
+        window.addEventListener('load', initGame);
     </script>
 </body>
 </html>
