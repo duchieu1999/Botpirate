@@ -641,16 +641,14 @@
     left: 15px;
     width: 280px;
     height: 180px;
-    background: linear-gradient(to bottom, rgba(90, 0, 50, 0.85), rgba(60, 0, 40, 0.75));
+    background: transparent;
     border-radius: var(--border-radius-lg);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: var(--box-shadow);
     z-index: 50;
-    backdrop-filter: blur(5px);
-    border: 2px solid rgba(255, 105, 180, 0.3);
     transition: all 0.3s ease;
+    border: none;
 }
         .chat-box:hover {
             box-shadow: var(--box-shadow-hover);
@@ -668,11 +666,12 @@
         .chat-input-container {
     display: flex;
     padding: 8px;
-    background: rgba(60, 0, 40, 0.5);
-    border-top: 1px solid rgba(255, 105, 180, 0.3);
+    background: rgba(0, 0, 0, 0.3);
+    border-top: none;
     height: 56px;
     transform: translateY(0);
     transition: transform 0.3s ease;
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
 }
 
         .chat-input-container.collapsed {
@@ -779,13 +778,15 @@
     color: white;
     align-self: flex-end;
     border-bottom-right-radius: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .message-other {
-    background: linear-gradient(to bottom right, rgba(60, 0, 40, 0.6), rgba(40, 0, 30, 0.5));
+    background: linear-gradient(to bottom right, rgba(80, 0, 60, 0.8), rgba(60, 0, 50, 0.7));
     color: white;
     align-self: flex-start;
     border-bottom-left-radius: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .message-system {
@@ -2554,7 +2555,7 @@
                         });
                     }
                     
-                    const damageAmount = this.powerUps.giant > 0 ? 2 : 1; // Double damage with giant power-up
+                    const damageAmount = this.powerUps.giant > 0 ? 4 : 2; // Double damage with giant power-up
                     boss.health -= damageAmount;
                     
                     // Generate hit particles
@@ -2716,8 +2717,8 @@
                 this.targetY = y;
                 this.radius = 50;
                 this.color = '#FF4500';
-                this.health = 1000;
-                this.maxHealth = 1000;
+                this.health = 5000;
+                this.maxHealth = 5000;
                 this.speed = 1.5;
                 this.defeated = false;
                 this.angle = 0;
@@ -4913,16 +4914,17 @@
                 // Spawn boss based on time interval
                 const now = performance.now();
                 if (isRoomOwner && this.gameActive && 
-                    now - this.lastBossSpawn > this.bossSpawnInterval && 
-                    this.bosses.length === 0 && this.bossWarningTime <= 0) {
+    now - this.lastBossSpawn > this.bossSpawnInterval && 
+    this.bosses.length < 3 && this.bossWarningTime <= 0) {
                     
                     this.showBossWarning();
                     this.lastBossSpawn = now;
                     
                     // Set next boss spawn interval (becomes shorter as game progresses)
-                    const gameProgressRatio = 1 - (this.timeRemaining / this.gameTime);
-                    const minInterval = 20000; // 20 seconds minimum
-                    const maxInterval = 60000 - (gameProgressRatio * 40000); // 60s to 20s as game progresses
+                   
+const gameProgressRatio = 1 - (this.timeRemaining / this.gameTime);
+const minInterval = 50000; // 15 seconds minimum
+const maxInterval = 100000 - (gameProgressRatio * 200000); // 45s to 15s as game progresses
                     this.bossSpawnInterval = minInterval + Math.random() * (maxInterval - minInterval);
                 }
                 
@@ -5190,21 +5192,19 @@ chatInput.addEventListener('keypress', (e) => {
     }
 });
         
-        function sendChatMessage() {
+      function sendChatMessage() {
     const message = chatInput.value.trim();
     if (message && currentRoom) {
         socket.emit('chatMessage', { 
             roomId: currentRoom,
             message,
-            playerName
+            playerName,
+            senderId: playerId // Add sender ID to identify own messages
         });
         chatInput.value = '';
         
-        // Add the message locally immediately for better feedback
-        addChatMessage({
-            playerName: playerName,
-            message: message
-        });
+        // Let the server event handler display the message instead
+        // This prevents duplication
     }
 }
 
@@ -5470,8 +5470,13 @@ chatInput.addEventListener('keypress', (e) => {
         });
         
         socket.on('chatMessage', (data) => {
-            addChatMessage(data);
-        });
+    // Always add messages from others and system
+    // For own messages, only add if they don't have senderId (from server)
+    // or if their senderId doesn't match our playerId
+    if (data.type === 'system' || data.playerName !== playerName || data.senderId !== playerId) {
+        addChatMessage(data);
+    }
+});
         
         // Helper functions
         function updatePlayerList(players) {
