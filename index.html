@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hiếu Gà Đại Chiến</title>
+    <title>Hiếu Gà - Flower Battle Royale Multiplayer</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --primary: #ff69b4;
@@ -120,6 +121,14 @@
             left: 0;
         }
 
+        #particles-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
         #hud {
             position: absolute;
             top: 0;
@@ -129,6 +138,7 @@
             display: flex;
             justify-content: space-between;
             pointer-events: none;
+            z-index: 20;
         }
 
         #score-container {
@@ -145,6 +155,37 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
+        #power-ups-container {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .power-up-indicator {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 5px 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .power-up-icon {
+            font-size: 18px;
+        }
+
+        .power-up-timer {
+            font-size: 12px;
+        }
+
         #room-info {
             position: absolute;
             top: 10px;
@@ -155,6 +196,7 @@
             padding: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             pointer-events: none;
+            z-index: 20;
         }
 
         #scoreboard {
@@ -167,6 +209,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             max-width: 200px;
             pointer-events: none;
+            z-index: 20;
         }
 
         .scoreboard-item {
@@ -414,6 +457,103 @@
             font-style: italic;
             font-size: 12px;
         }
+
+        /* Animation keyframes */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes rotation {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes flash {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .pulse {
+            animation: pulse 0.8s infinite;
+        }
+
+        .rotate {
+            animation: rotation 2s linear infinite;
+        }
+
+        .float {
+            animation: float 2s ease-in-out infinite;
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        .flash {
+            animation: flash 0.5s 3;
+        }
+        
+        /* Boss warning animation */
+        @keyframes warning-flash {
+            0% { background-color: rgba(255, 0, 0, 0.3); }
+            50% { background-color: rgba(255, 0, 0, 0.6); }
+            100% { background-color: rgba(255, 0, 0, 0.3); }
+        }
+
+        .boss-warning {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 30;
+            pointer-events: none;
+            animation: warning-flash 0.5s infinite;
+            display: none;
+        }
+
+        /* Special effects for power-ups */
+        .power-up-speed::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(90deg, transparent, #00ffff, transparent);
+            animation: float 1s infinite;
+        }
+
+        .power-up-giant {
+            filter: brightness(1.2);
+        }
+
+        .power-up-ghost {
+            opacity: 0.6;
+        }
+
+        .power-up-freeze {
+            filter: brightness(0.8) sepia(1) hue-rotate(170deg);
+        }
+
+        .power-up-vacuum {
+            filter: brightness(1.1) contrast(1.1);
+        }
         
         /* Mobile optimizations for UI */
         @media (max-width: 768px) {
@@ -436,6 +576,7 @@
 <body>
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
+        <canvas id="particles-canvas"></canvas>
         
         <div id="hud">
             <div id="score-container">
@@ -446,14 +587,16 @@
             </div>
         </div>
         
+        <div id="power-ups-container"></div>
         <div id="room-info"></div>
         <div id="scoreboard"></div>
         <div id="notification"></div>
         <div id="volume-control">🔊</div>
+        <div class="boss-warning" id="boss-warning"></div>
         
         <div class="chat-box">
             <div class="chat-messages" id="chat-messages">
-                <div class="message message-system">Chào mừng đến với Hiếu Gà Đại Chiến</div>
+                <div class="message message-system">Chào mừng đến với Flower Battle Royale!</div>
             </div>
             <div class="chat-input-container">
                 <input type="text" class="chat-input" id="chat-input" placeholder="Nhập tin nhắn..." maxlength="100">
@@ -466,7 +609,7 @@
             <div id="logo-container">
                 <!-- Logo sẽ được tạo bằng JavaScript -->
             </div>
-            <h1>Hiếu Gà Đại Chiến</h1>
+            <h1>Flower Battle Royale</h1>
             <p id="login-instructions">Nhập tên của bạn để tham gia trò chơi</p>
             
             <div class="form-group">
@@ -514,8 +657,8 @@
             <div id="logo-container">
                 <!-- Logo sẽ được tạo bằng JavaScript -->
             </div>
-            <h1>Hiếu Gà Đại Chiến</h1>
-            <p id="instructions">Thu thập hoa trong bản đồ đang thu hẹp! Boss xuất hiện mỗi 3 phút. Top 3 người chơi có nhiều hoa nhất sẽ chiến thắng. Kéo màn hình để di chuyển.</p>
+            <h1>Flower Battle Royale</h1>
+            <p id="instructions">Thu thập hoa trong bản đồ đang thu hẹp! Boss xuất hiện ngẫu nhiên trong game. Nhặt các vật phẩm đặc biệt để nhận power-up! Top 3 người chơi có nhiều hoa nhất sẽ chiến thắng. Kéo màn hình để di chuyển.</p>
             <button id="start-btn" class="btn">Bắt Đầu</button>
         </div>
         
@@ -551,6 +694,18 @@
         <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/boss-defeated.mp3" type="audio/mp3">
     </audio>
 
+    <audio id="power-up-sound" preload="auto">
+        <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/power-up.mp3" type="audio/mp3">
+    </audio>
+
+    <audio id="freeze-sound" preload="auto">
+        <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/freeze.mp3" type="audio/mp3">
+    </audio>
+
+    <audio id="giant-sound" preload="auto">
+        <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/giant.mp3" type="audio/mp3">
+    </audio>
+
     <!-- Socket.IO Client -->
     <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
 
@@ -570,6 +725,8 @@
         // Canvas và Context
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
+        const particlesCanvas = document.getElementById('particles-canvas');
+        const particlesCtx = particlesCanvas.getContext('2d');
         const confettiCanvas = document.getElementById('confetti-canvas');
         const confettiCtx = confettiCanvas.getContext('2d');
         
@@ -579,6 +736,9 @@
         const bossSpawnSound = document.getElementById('boss-spawn-sound');
         const gameOverSound = document.getElementById('game-over-sound');
         const bossDefeatedSound = document.getElementById('boss-defeated-sound');
+        const powerUpSound = document.getElementById('power-up-sound');
+        const freezeSound = document.getElementById('freeze-sound');
+        const giantSound = document.getElementById('giant-sound');
         
         // Các phần tử DOM
         const loginScreen = document.getElementById('login-screen');
@@ -586,6 +746,7 @@
         const startScreen = document.getElementById('start-screen');
         const gameOverScreen = document.getElementById('game-over-screen');
         const joinRoomModal = document.getElementById('join-room-modal');
+        const bossWarning = document.getElementById('boss-warning');
         
         const playerNameInput = document.getElementById('player-name');
         const createRoomBtn = document.getElementById('create-room-btn');
@@ -610,6 +771,7 @@
         const logoContainer = document.getElementById('logo-container');
         const notificationElement = document.getElementById('notification');
         const volumeControl = document.getElementById('volume-control');
+        const powerUpsContainer = document.getElementById('power-ups-container');
         
         // Chat elements
         const chatMessages = document.getElementById('chat-messages');
@@ -627,16 +789,340 @@
         let playerName = '';
         let isRoomOwner = false;
         
+        // Telegram WebApp integration
+        function checkTelegramWebApp() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                try {
+                    const userData = window.Telegram.WebApp.initDataUnsafe.user;
+                    if (userData) {
+                        // Construct name from first_name and last_name
+                        const fullName = userData.first_name + (userData.last_name ? ' ' + userData.last_name : '');
+                        
+                        // Set the player name input field
+                        playerNameInput.value = fullName;
+                        playerName = fullName;
+                        
+                        // You can also adapt the UI for Telegram as needed
+                        console.log('Telegram WebApp detected, user:', userData);
+                        
+                        // Initialize Telegram WebApp
+                        window.Telegram.WebApp.ready();
+                        
+                        // Enable the main button if needed
+                        // window.Telegram.WebApp.MainButton.setText('Create Room').show();
+                    }
+                } catch (error) {
+                    console.error('Error accessing Telegram WebApp data:', error);
+                }
+            }
+        }
+        
+        // Call this when the page loads
+        checkTelegramWebApp();
+        
         // Thiết lập kích thước canvas
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            particlesCanvas.width = window.innerWidth;
+            particlesCanvas.height = window.innerHeight;
             confettiCanvas.width = window.innerWidth;
             confettiCanvas.height = window.innerHeight;
         }
         
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
+        
+        // Particle System
+        class ParticleSystem {
+            constructor() {
+                this.particles = [];
+            }
+            
+            createParticles(x, y, count, color, type = 'circle', lifespan = 1000, size = 5, velocity = 2) {
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * velocity;
+                    
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        type: type,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        color: color,
+                        size: size * (0.5 + Math.random()),
+                        alpha: 1,
+                        life: lifespan * (0.8 + Math.random() * 0.4),
+                        maxLife: lifespan * (0.8 + Math.random() * 0.4),
+                        rotation: Math.random() * Math.PI * 2,
+                        rotationSpeed: (Math.random() - 0.5) * 0.2
+                    });
+                }
+            }
+            
+            update(deltaTime) {
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    
+                    p.x += p.vx * (deltaTime / 16.67);
+                    p.y += p.vy * (deltaTime / 16.67);
+                    p.alpha = p.life / p.maxLife;
+                    p.life -= deltaTime;
+                    p.rotation += p.rotationSpeed * (deltaTime / 16.67);
+                    
+                    // Remove dead particles
+                    if (p.life <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                }
+            }
+            
+            draw(ctx, camera) {
+                ctx.save();
+                
+                for (const p of this.particles) {
+                    // Convert world to screen coordinates
+                    const screenX = (p.x - camera.x) * camera.scale + canvas.width / 2;
+                    const screenY = (p.y - camera.y) * camera.scale + canvas.height / 2;
+                    
+                    // Skip if offscreen
+                    if (screenX < -50 || screenX > canvas.width + 50 ||
+                        screenY < -50 || screenY > canvas.height + 50) {
+                        continue;
+                    }
+                    
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.save();
+                    ctx.translate(screenX, screenY);
+                    ctx.rotate(p.rotation);
+                    
+                    if (p.type === 'circle') {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, p.size * camera.scale, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (p.type === 'star') {
+                        this.drawStar(ctx, 0, 0, 5, p.size * camera.scale, p.size * 0.5 * camera.scale);
+                    } else if (p.type === 'heart') {
+                        this.drawHeart(ctx, 0, 0, p.size * camera.scale);
+                    } else if (p.type === 'flower') {
+                        this.drawFlower(ctx, 0, 0, p.size * camera.scale);
+                    } else if (p.type === 'sparkle') {
+                        // Draw a sparkle (cross shape)
+                        ctx.beginPath();
+                        ctx.moveTo(0, -p.size * camera.scale);
+                        ctx.lineTo(0, p.size * camera.scale);
+                        ctx.moveTo(-p.size * camera.scale, 0);
+                        ctx.lineTo(p.size * camera.scale, 0);
+                        ctx.lineWidth = 2 * camera.scale;
+                        ctx.strokeStyle = p.color;
+                        ctx.stroke();
+                    }
+                    
+                    ctx.restore();
+                }
+                
+                ctx.restore();
+            }
+            
+            drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+                let rot = Math.PI / 2 * 3;
+                let x = cx;
+                let y = cy;
+                let step = Math.PI / spikes;
+                
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - outerRadius);
+                
+                for (let i = 0; i < spikes; i++) {
+                    x = cx + Math.cos(rot) * outerRadius;
+                    y = cy + Math.sin(rot) * outerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                    
+                    x = cx + Math.cos(rot) * innerRadius;
+                    y = cy + Math.sin(rot) * innerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                }
+                
+                ctx.lineTo(cx, cy - outerRadius);
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            drawHeart(ctx, x, y, size) {
+                ctx.beginPath();
+                ctx.moveTo(x, y - size / 4);
+                ctx.bezierCurveTo(
+                    x, y - size / 2,
+                    x - size / 2, y - size / 2,
+                    x - size / 2, y - size / 4
+                );
+                ctx.bezierCurveTo(
+                    x - size / 2, y,
+                    x, y + size / 2,
+                    x, y + size / 2
+                );
+                ctx.bezierCurveTo(
+                    x, y + size / 2,
+                    x + size / 2, y,
+                    x + size / 2, y - size / 4
+                );
+                ctx.bezierCurveTo(
+                    x + size / 2, y - size / 2,
+                    x, y - size / 2,
+                    x, y - size / 4
+                );
+                ctx.fill();
+            }
+            
+            drawFlower(ctx, x, y, size) {
+                // Draw petals
+                const petalCount = 5;
+                for (let i = 0; i < petalCount; i++) {
+                    const angle = (i / petalCount) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.ellipse(
+                        x + Math.cos(angle) * size * 0.5,
+                        y + Math.sin(angle) * size * 0.5,
+                        size * 0.4, size * 0.3,
+                        angle, 0, Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+                
+                // Draw center
+                ctx.beginPath();
+                ctx.arc(x, y, size * 0.25, 0, Math.PI * 2);
+                ctx.fillStyle = '#FFFF00';
+                ctx.fill();
+            }
+        }
+        
+        // Power-Up class
+        class PowerUp {
+            constructor(id, x, y, type) {
+                this.id = id;
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.radius = 15;
+                this.collected = false;
+                this.collectedBy = null;
+                this.floatOffset = Math.random() * Math.PI * 2;
+                this.rotationAngle = 0;
+                this.rotationSpeed = 0.03;
+                this.colors = {
+                    speed: '#00FFFF', // cyan
+                    giant: '#FFA500', // orange
+                    ghost: '#9966FF', // purple
+                    freeze: '#87CEFA', // light blue
+                    vacuum: '#FF69B4'  // pink
+                };
+                this.icons = {
+                    speed: '⚡',
+                    giant: '🔍',
+                    ghost: '👻',
+                    freeze: '❄️',
+                    vacuum: '🧲'
+                };
+            }
+            
+            update(deltaTime) {
+                if (this.collected) return;
+                
+                // Floating animation
+                this.floatOffset += 0.02 * (deltaTime / 16.67);
+                
+                // Rotation animation
+                this.rotationAngle += this.rotationSpeed * (deltaTime / 16.67);
+            }
+            
+            draw(ctx, camera) {
+                if (this.collected) return;
+                
+                // Camera transformation for position
+                const screenX = (this.x - camera.x) * camera.scale + canvas.width / 2;
+                const screenY = (this.y - camera.y) * camera.scale + canvas.height / 2 + 
+                               Math.sin(this.floatOffset) * 5; // Floating effect
+                
+                ctx.save();
+                ctx.translate(screenX, screenY);
+                
+                // Draw glow effect
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius * 1.5 * camera.scale);
+                gradient.addColorStop(0, this.colors[this.type]);
+                gradient.addColorStop(0.7, this.colors[this.type] + '80'); // 50% opacity
+                gradient.addColorStop(1, this.colors[this.type] + '00'); // 0% opacity
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius * 1.5 * camera.scale, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Draw main circle with pulsing effect
+                ctx.beginPath();
+                const pulseScale = 1 + Math.sin(this.floatOffset * 2) * 0.1; // Pulsing effect
+                ctx.arc(0, 0, this.radius * camera.scale * pulseScale, 0, Math.PI * 2);
+                ctx.fillStyle = this.colors[this.type];
+                ctx.fill();
+                
+                // Draw border
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2 * camera.scale;
+                ctx.stroke();
+                
+                // Draw rotating stars or particles around the power-up
+                ctx.rotate(this.rotationAngle);
+                for (let i = 0; i < 3; i++) {
+                    const angle = (i / 3) * Math.PI * 2;
+                    const starX = Math.cos(angle) * this.radius * 2 * camera.scale;
+                    const starY = Math.sin(angle) * this.radius * 2 * camera.scale;
+                    
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.beginPath();
+                    this.drawStar(ctx, starX, starY, 5, 5 * camera.scale, 2 * camera.scale);
+                    ctx.fill();
+                }
+                
+                // Draw icon in the center
+                ctx.rotate(-this.rotationAngle); // Reset rotation
+                ctx.font = `${20 * camera.scale}px Arial`;
+                ctx.fillStyle = '#FFFFFF';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.icons[this.type], 0, 0);
+                
+                ctx.restore();
+            }
+            
+            drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+                let rot = Math.PI / 2 * 3;
+                let x = cx;
+                let y = cy;
+                let step = Math.PI / spikes;
+                
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - outerRadius);
+                
+                for (let i = 0; i < spikes; i++) {
+                    x = cx + Math.cos(rot) * outerRadius;
+                    y = cy + Math.sin(rot) * outerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                    
+                    x = cx + Math.cos(rot) * innerRadius;
+                    y = cy + Math.sin(rot) * innerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                }
+                
+                ctx.lineTo(cx, cy - outerRadius);
+                ctx.closePath();
+            }
+        }
         
         // Tạo logo Hiếu Gà
         function createLogo() {
@@ -767,7 +1253,10 @@
         
         // Preload all audio assets
         function preloadAudio() {
-            const audioElements = [bgm, collectSound, bossSpawnSound, gameOverSound, bossDefeatedSound];
+            const audioElements = [
+                bgm, collectSound, bossSpawnSound, gameOverSound, 
+                bossDefeatedSound, powerUpSound, freezeSound, giantSound
+            ];
             
             audioElements.forEach(audio => {
                 audio.load();
@@ -811,12 +1300,42 @@
                 this.animationSpeed = 0.1;
                 this.lastSyncTime = 0;
                 this.syncInterval = 50; // sync every 50ms
+                
+                // Power-up states
+                this.powerUps = {
+                    speed: 0,     // Speed boost
+                    giant: 0,     // Increased size
+                    ghost: 0,     // Temporary invulnerability
+                    freeze: 0,    // Freeze in place
+                    vacuum: 0     // Attract flowers
+                };
+                
+                // Visual effects for power-ups
+                this.effects = {
+                    trail: [],
+                    glow: 0,
+                    shake: 0
+                };
+                
+                // Original properties for resetting after power-ups
+                this.originalSpeed = this.speed;
+                this.originalRadius = this.radius;
             }
             
             update(deltaTime, flowers, playArea, game) {
                 if (!this.isAlive) return;
                 
                 const now = Date.now();
+                
+                // Update power-up timers and effects
+                this.updatePowerUps(deltaTime);
+                
+                // Skip movement if frozen
+                if (this.powerUps.freeze > 0) {
+                    // Update animation
+                    this.animationFrame += this.animationSpeed * (deltaTime / 16.67) * 0.2; // Slower animation when frozen
+                    return;
+                }
                 
                 // Cập nhật chuyển động
                 if (this.isLocal) {
@@ -826,9 +1345,26 @@
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
                     if (distance > 5) {
-                        this.x += (dx / distance) * this.speed * (deltaTime / 16.67);
-                        this.y += (dy / distance) * this.speed * (deltaTime / 16.67);
+                        // Apply speed power-up if active
+                        const currentSpeed = this.powerUps.speed > 0 ? this.speed * 1.7 : this.speed;
+                        
+                        this.x += (dx / distance) * currentSpeed * (deltaTime / 16.67);
+                        this.y += (dy / distance) * currentSpeed * (deltaTime / 16.67);
                         this.moveDirection = Math.atan2(dy, dx);
+                        
+                        // Create trail particles if moving with speed boost
+                        if (this.powerUps.speed > 0 && game.particleSystem && Math.random() < 0.3) {
+                            game.particleSystem.createParticles(
+                                this.x - Math.cos(this.moveDirection) * this.radius,
+                                this.y - Math.sin(this.moveDirection) * this.radius,
+                                1,
+                                '#00FFFF', // cyan
+                                'sparkle',
+                                500, // lifespan
+                                8, // size
+                                1 // velocity
+                            );
+                        }
                         
                         // Sync with server if moved
                         if (now - this.lastSyncTime > this.syncInterval) {
@@ -856,9 +1392,32 @@
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
                     if (distance > 5) {
-                        this.x += (dx / distance) * this.speed * (deltaTime / 16.67);
-                        this.y += (dy / distance) * this.speed * (deltaTime / 16.67);
+                        // Apply speed power-up if active
+                        const currentSpeed = this.powerUps.speed > 0 ? this.speed * 1.7 : this.speed;
+                        
+                        this.x += (dx / distance) * currentSpeed * (deltaTime / 16.67);
+                        this.y += (dy / distance) * currentSpeed * (deltaTime / 16.67);
+                        this.moveDirection = Math.atan2(dy, dx);
+                        
+                        // Create trail particles if moving with speed boost
+                        if (this.powerUps.speed > 0 && game.particleSystem && Math.random() < 0.2) {
+                            game.particleSystem.createParticles(
+                                this.x - Math.cos(this.moveDirection) * this.radius,
+                                this.y - Math.sin(this.moveDirection) * this.radius,
+                                1,
+                                '#00FFFF', // cyan
+                                'sparkle',
+                                500, // lifespan
+                                8, // size
+                                1 // velocity
+                            );
+                        }
                     }
+                }
+                
+                // Check vacuum power-up
+                if (this.powerUps.vacuum > 0 && this.isLocal) {
+                    this.applyVacuumEffect(flowers, game);
                 }
                 
                 // Kiểm tra xem người chơi có nằm trong khu vực chơi không
@@ -895,6 +1454,176 @@
                 // Cập nhật animation
                 this.animationFrame += this.animationSpeed * (deltaTime / 16.67);
                 this.angle = this.moveDirection;
+                
+                // Update shake effect
+                if (this.effects.shake > 0) {
+                    this.effects.shake -= deltaTime;
+                }
+            }
+            
+            updatePowerUps(deltaTime) {
+                // Update all power-up timers
+                for (const powerUp in this.powerUps) {
+                    if (this.powerUps[powerUp] > 0) {
+                        this.powerUps[powerUp] -= deltaTime;
+                        
+                        // When power-up expires
+                        if (this.powerUps[powerUp] <= 0) {
+                            this.powerUps[powerUp] = 0;
+                            
+                            // Reset effects when power-up ends
+                            if (powerUp === 'giant') {
+                                this.radius = this.originalRadius;
+                            }
+                            
+                            // If this is the local player, update the powerups display
+                            if (this.isLocal) {
+                                this.updatePowerUpDisplay();
+                            }
+                        }
+                    }
+                }
+            }
+            
+            applyVacuumEffect(flowers, game) {
+                // Find nearby flowers and pull them towards the player
+                const vacuumRadius = this.radius * 8; // Range of vacuum effect
+                
+                for (const flower of flowers) {
+                    if (!flower.collected) {
+                        const dx = this.x - flower.x;
+                        const dy = this.y - flower.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < vacuumRadius) {
+                            // Move flower towards player
+                            const pullStrength = (1 - distance / vacuumRadius) * 0.05;
+                            flower.x += dx * pullStrength;
+                            flower.y += dy * pullStrength;
+                            
+                            // Create vacuum particles occasionally
+                            if (Math.random() < 0.05 && game.particleSystem) {
+                                const angle = Math.atan2(dy, dx);
+                                const particleX = flower.x + Math.cos(angle) * flower.radius;
+                                const particleY = flower.y + Math.sin(angle) * flower.radius;
+                                
+                                game.particleSystem.createParticles(
+                                    particleX, particleY,
+                                    1,
+                                    '#FF69B4', // pink
+                                    'circle',
+                                    500, // lifespan
+                                    3, // size
+                                    2 // velocity
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            
+            activatePowerUp(type, duration) {
+                this.powerUps[type] = duration;
+                
+                // Apply power-up effects
+                switch (type) {
+                    case 'speed':
+                        // Speed boost effect is applied in the update method
+                        break;
+                    case 'giant':
+                        this.radius = this.originalRadius * 1.6;
+                        if (this.isLocal && soundEnabled) {
+                            giantSound.currentTime = 0;
+                            giantSound.play().catch(e => console.log("Sound error:", e));
+                        }
+                        break;
+                    case 'freeze':
+                        if (this.isLocal && soundEnabled) {
+                            freezeSound.currentTime = 0;
+                            freezeSound.play().catch(e => console.log("Sound error:", e));
+                        }
+                        break;
+                    case 'ghost':
+                        // Ghost effect is visual only
+                        break;
+                    case 'vacuum':
+                        // Vacuum effect is applied in the update method
+                        break;
+                }
+                
+                // Add shake effect
+                this.effects.shake = 300;
+                
+                // If this is the local player, update the powerups display
+                if (this.isLocal) {
+                    this.updatePowerUpDisplay();
+                }
+            }
+            
+            updatePowerUpDisplay() {
+                // Clear existing power-up indicators
+                if (this.isLocal) {
+                    powerUpsContainer.innerHTML = '';
+                    
+                    // Add active power-ups to the display
+                    for (const [type, duration] of Object.entries(this.powerUps)) {
+                        if (duration > 0) {
+                            const displayTime = Math.ceil(duration / 1000);
+                            const indicator = document.createElement('div');
+                            indicator.className = 'power-up-indicator';
+                            indicator.style.backgroundColor = this.getPowerUpColor(type);
+                            
+                            const icon = document.createElement('span');
+                            icon.className = 'power-up-icon';
+                            icon.textContent = this.getPowerUpIcon(type);
+                            
+                            const name = document.createElement('span');
+                            name.textContent = this.getPowerUpName(type);
+                            
+                            const timer = document.createElement('span');
+                            timer.className = 'power-up-timer';
+                            timer.textContent = `${displayTime}s`;
+                            
+                            indicator.appendChild(icon);
+                            indicator.appendChild(name);
+                            indicator.appendChild(timer);
+                            powerUpsContainer.appendChild(indicator);
+                        }
+                    }
+                }
+            }
+            
+            getPowerUpColor(type) {
+                const colors = {
+                    speed: '#00FFFF', // cyan
+                    giant: '#FFA500', // orange
+                    ghost: '#9966FF', // purple
+                    freeze: '#87CEFA', // light blue
+                    vacuum: '#FF69B4'  // pink
+                };
+                return colors[type] || '#FFFFFF';
+            }
+            
+            getPowerUpIcon(type) {
+                const icons = {
+                    speed: '⚡',
+                    giant: '🔍',
+                    ghost: '👻',
+                    freeze: '❄️',
+                    vacuum: '🧲'
+                };
+                return icons[type] || '?';
+            }
+            
+            getPowerUpName(type) {
+                const names = {
+                    speed: 'Tốc độ',
+                    giant: 'Khổng lồ',
+                    ghost: 'Vô hình',
+                    freeze: 'Đóng băng',
+                    vacuum: 'Hút hoa'
+                };
+                return names[type] || type;
             }
             
             draw(ctx, camera) {
@@ -905,10 +1634,93 @@
                 const screenY = (this.y - camera.y) * camera.scale + canvas.height / 2;
                 const screenRadius = this.radius * camera.scale;
                 
+                // Apply shake effect if active
+                let shakeX = 0;
+                let shakeY = 0;
+                if (this.effects.shake > 0) {
+                    shakeX = (Math.random() - 0.5) * 5;
+                    shakeY = (Math.random() - 0.5) * 5;
+                }
+                
                 ctx.save();
-                ctx.translate(screenX, screenY);
+                ctx.translate(screenX + shakeX, screenY + shakeY);
                 ctx.rotate(this.angle + Math.PI / 2);
                 ctx.scale(camera.scale, camera.scale);
+                
+                // Apply ghost effect
+                if (this.powerUps.ghost > 0) {
+                    ctx.globalAlpha = 0.6;
+                }
+                
+                // Draw frozen effect
+                if (this.powerUps.freeze > 0) {
+                    // Ice crystal background
+                    ctx.fillStyle = 'rgba(135, 206, 250, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius * 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Ice particles
+                    const freezeAngle = Date.now() * 0.001;
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i / 8) * Math.PI * 2 + freezeAngle;
+                        const iceX = Math.cos(angle) * (this.radius * 1.1);
+                        const iceY = Math.sin(angle) * (this.radius * 1.1);
+                        
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.beginPath();
+                        ctx.arc(iceX, iceY, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                
+                // Draw speed effect
+                if (this.powerUps.speed > 0) {
+                    // Speed trail
+                    ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
+                    ctx.beginPath();
+                    ctx.ellipse(0, this.radius, this.radius * 1.5, this.radius * 0.8, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Draw vacuum effect
+                if (this.powerUps.vacuum > 0) {
+                    // Magnetic field circles
+                    const vacuumTime = Date.now() * 0.002;
+                    ctx.strokeStyle = 'rgba(255, 105, 180, 0.4)';
+                    ctx.lineWidth = 2;
+                    
+                    for (let i = 0; i < 3; i++) {
+                        const radius = this.radius * (2 + i * 1.5);
+                        ctx.beginPath();
+                        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                        ctx.stroke();
+                        
+                        // Draw small particles rotating
+                        for (let j = 0; j < 4; j++) {
+                            const particleAngle = (j / 4) * Math.PI * 2 + vacuumTime * (1 + i * 0.2);
+                            const particleX = Math.cos(particleAngle) * radius;
+                            const particleY = Math.sin(particleAngle) * radius;
+                            
+                            ctx.fillStyle = 'rgba(255, 105, 180, 0.6)';
+                            ctx.beginPath();
+                            ctx.arc(particleX, particleY, 3, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                }
+                
+                // Draw glow effect for giant power-up
+                if (this.powerUps.giant > 0) {
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius * 1.5);
+                    gradient.addColorStop(0, 'rgba(255, 165, 0, 0.3)');
+                    gradient.addColorStop(1, 'rgba(255, 165, 0, 0)');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius * 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
                 
                 // Body
                 ctx.fillStyle = this.color;
@@ -975,7 +1787,7 @@
             }
             
             collectFlowers(flowers, game) {
-                if (!this.isAlive) return 0;
+                if (!this.isAlive || this.powerUps.freeze > 0) return 0;
                 
                 let collected = 0;
                 
@@ -985,7 +1797,11 @@
                         const dy = this.y - flower.y;
                         const distance = Math.sqrt(dx * dx + dy * dy);
                         
-                        if (distance < this.radius + flower.radius) {
+                        // Increased collection radius with giant power-up
+                        const collectionRadius = this.powerUps.giant > 0 ? 
+                            this.radius * 1.5 : this.radius;
+                        
+                        if (distance < collectionRadius + flower.radius) {
                             if (this.isLocal) {
                                 // Send flower collection to server
                                 socket.emit('collectFlower', {
@@ -998,6 +1814,20 @@
                                 if (soundEnabled) {
                                     collectSound.currentTime = 0;
                                     collectSound.play().catch(e => console.log("Audio play error:", e));
+                                }
+                                
+                                // Spawn collection particles
+                                if (game.particleSystem) {
+                                    game.particleSystem.createParticles(
+                                        flower.x,
+                                        flower.y,
+                                        8, // More particles
+                                        flower.type % 2 === 0 ? '#FF69B4' : '#FFB6C1', // Pink colors
+                                        'flower',
+                                        800, // Longer lifespan
+                                        6, // Bigger particles
+                                        2 // Faster particles
+                                    );
                                 }
                             }
                             
@@ -1014,48 +1844,171 @@
             
             // attack boss
             attackBoss(boss, game) {
-                if (!this.isAlive || !boss || boss.defeated) return false;
+                if (!this.isAlive || !boss || boss.defeated || this.powerUps.freeze > 0) return false;
                 
                 const dx = this.x - boss.x;
                 const dy = this.y - boss.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                if (distance < this.radius + boss.radius) {
+                // Increased attack radius with giant power-up
+                const attackRadius = this.powerUps.giant > 0 ? 
+                    this.radius * 1.5 : this.radius;
+                
+                if (distance < attackRadius + boss.radius) {
                     if (this.isLocal) {
                         // Send boss attack to server
                         socket.emit('attackBoss', {
                             roomId: currentRoom,
                             bossId: boss.id,
-                            playerId: this.id
+                            playerId: this.id,
+                            damageMultiplier: this.powerUps.giant > 0 ? 2 : 1 // Double damage with giant power-up
                         });
                     }
                     
-                    boss.health -= 1;
+                    const damageAmount = this.powerUps.giant > 0 ? 2 : 1; // Double damage with giant power-up
+                    boss.health -= damageAmount;
                     
-                    // bounce back from boss
-                    const angle = Math.atan2(dy, dx);
-                    this.x += Math.cos(angle) * 15;
-                    this.y += Math.sin(angle) * 15;
+                    // Generate hit particles
+                    if (game.particleSystem) {
+                        const hitAngle = Math.atan2(dy, dx);
+                        const hitX = boss.x + Math.cos(hitAngle) * boss.radius;
+                        const hitY = boss.y + Math.sin(hitAngle) * boss.radius;
+                        
+                        game.particleSystem.createParticles(
+                            hitX, hitY,
+                            10, // More particles for a bigger hit effect
+                            '#FF4500', // Boss color
+                            'star',
+                            800, // Longer lifespan
+                            8, // Bigger particles
+                            3 // Faster particles
+                        );
+                    }
                     
+                    // Generate screen shake if player is local
                     if (this.isLocal) {
-                        this.targetX = this.x;
-                        this.targetY = this.y;
+                        game.screenShake(0.3, 200); // Medium shake
+                    }
+                    
+                    // Immunity from bounce back if ghost power-up is active
+                    if (!this.powerUps.ghost > 0) {
+                        // bounce back from boss
+                        const angle = Math.atan2(dy, dx);
+                        this.x += Math.cos(angle) * 15;
+                        this.y += Math.sin(angle) * 15;
+                        
+                        if (this.isLocal) {
+                            this.targetX = this.x;
+                            this.targetY = this.y;
+                        }
                     }
                     
                     if (boss.health <= 0 && !boss.defeated) {
                         boss.defeated = true;
-                        this.score += 20; // Big bonus for defeating boss
+                        
+                        // Bonus depends on power-ups
+                        const bossBonus = this.powerUps.giant > 0 ? 30 : 20; // More bonus with giant power-up
+                        this.score += bossBonus;
                         
                         if (soundEnabled && this.isLocal) {
                             bossDefeatedSound.currentTime = 0;
                             bossDefeatedSound.play().catch(e => console.log("Audio play error:", e));
                         }
                         
-                        game.showNotification("Boss defeated! +20 hoa 🌸🌸🌸", 3000);
+                        // Generate big explosion particles
+                        if (game.particleSystem) {
+                            game.particleSystem.createParticles(
+                                boss.x, boss.y,
+                                50, // Many particles for explosion
+                                boss.color,
+                                'star',
+                                1500, // Long lifespan
+                                15, // Big particles
+                                5 // Fast particles
+                            );
+                            
+                            // Secondary explosion with different color
+                            game.particleSystem.createParticles(
+                                boss.x, boss.y,
+                                30,
+                                '#FFFF00', // Yellow
+                                'circle',
+                                1200,
+                                10,
+                                4
+                            );
+                        }
+                        
+                        // Generate strong screen shake
+                        if (this.isLocal) {
+                            game.screenShake(1.0, 1000); // Strong, long shake
+                        }
+                        
+                        game.showNotification(`Boss defeated! +${bossBonus} hoa 🌸🌸🌸`, 3000);
                         
                         // Create flowers when boss is defeated
                         game.spawnFlowersAtLocation(boss.x, boss.y, 15);
                     }
+                    
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            collectPowerUp(powerUp, game) {
+                if (!this.isAlive || this.powerUps.freeze > 0 || powerUp.collected) return false;
+                
+                const dx = this.x - powerUp.x;
+                const dy = this.y - powerUp.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Increased collection radius with giant power-up
+                const collectionRadius = this.powerUps.giant > 0 ? 
+                    this.radius * 1.5 : this.radius;
+                
+                if (distance < collectionRadius + powerUp.radius) {
+                    if (this.isLocal) {
+                        // Send power-up collection to server
+                        socket.emit('collectPowerUp', {
+                            roomId: currentRoom,
+                            powerUpId: powerUp.id,
+                            playerId: this.id,
+                            type: powerUp.type
+                        });
+                        
+                        // Play power-up sound
+                        if (soundEnabled) {
+                            powerUpSound.currentTime = 0;
+                            powerUpSound.play().catch(e => console.log("Audio play error:", e));
+                        }
+                        
+                        // Spawn collection particles
+                        if (game.particleSystem) {
+                            game.particleSystem.createParticles(
+                                powerUp.x,
+                                powerUp.y,
+                                15, // Many particles
+                                powerUp.colors[powerUp.type], // Use power-up color
+                                'star',
+                                1000, // Longer lifespan
+                                8, // Bigger particles
+                                3 // Faster particles
+                            );
+                        }
+                        
+                        // Screen shake effect
+                        game.screenShake(0.5, 300); // Medium shake
+                        
+                        // Apply power-up effect
+                        this.activatePowerUp(powerUp.type, 10000); // 10 seconds duration
+                        
+                        // Show notification
+                        game.showNotification(`${this.getPowerUpIcon(powerUp.type)} ${this.getPowerUpName(powerUp.type)} activated!`, 2000);
+                    }
+                    
+                    powerUp.collected = true;
+                    powerUp.collectedBy = this.id;
                     
                     return true;
                 }
@@ -1086,12 +2039,82 @@
                 this.targetChangeInterval = 3000;
                 this.lastAttackTime = 0;
                 this.attackCooldown = 2000;
+                
+                // Special attack properties
+                this.specialAttackCharge = 0;
+                this.isChargingAttack = false;
+                this.specialAttackDuration = 0;
+                this.specialAttackType = null;
             }
             
-            update(deltaTime, players, playArea) {
+            update(deltaTime, players, playArea, game) {
                 if (this.defeated) return;
                 
                 const now = Date.now();
+                
+                // Special attack logic
+                if (this.isChargingAttack) {
+                    this.specialAttackCharge += deltaTime;
+                    
+                    // When charge is complete, execute the attack
+                    if (this.specialAttackCharge >= 2000) {
+                        this.executeSpecialAttack(players, game);
+                        this.isChargingAttack = false;
+                        this.specialAttackCharge = 0;
+                    }
+                    
+                    // During charging, create warning particles
+                    if (game && game.particleSystem && Math.random() < 0.2) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const distance = this.radius * (0.8 + Math.random() * 0.4);
+                        
+                        game.particleSystem.createParticles(
+                            this.x + Math.cos(angle) * distance,
+                            this.y + Math.sin(angle) * distance,
+                            1,
+                            this.specialAttackType === 'flame' ? '#FF4500' : 
+                            this.specialAttackType === 'freeze' ? '#87CEFA' :
+                            '#FFFF00',
+                            'sparkle',
+                            500,
+                            6,
+                            2
+                        );
+                    }
+                    
+                    return; // Skip normal movement during charge
+                }
+                
+                // Special attack cooldown
+                if (this.specialAttackDuration > 0) {
+                    this.specialAttackDuration -= deltaTime;
+                    
+                    // Create attack particles based on type
+                    if (game && game.particleSystem && Math.random() < 0.1) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const distance = this.radius * 2 * Math.random();
+                        
+                        const particleColor = this.specialAttackType === 'flame' ? '#FF4500' : 
+                                            this.specialAttackType === 'freeze' ? '#87CEFA' :
+                                            '#FFFF00';
+                        
+                        game.particleSystem.createParticles(
+                            this.x + Math.cos(angle) * distance,
+                            this.y + Math.sin(angle) * distance,
+                            1,
+                            particleColor,
+                            'circle',
+                            800,
+                            4,
+                            1
+                        );
+                    }
+                    
+                    // Apply attack effects
+                    if (this.specialAttackType === 'flame' || this.specialAttackType === 'freeze') {
+                        this.applyAreaEffect(players, game);
+                    }
+                }
                 
                 // Boss AI - follow nearest player
                 let nearestPlayer = null;
@@ -1108,6 +2131,14 @@
                             nearestPlayer = player;
                         }
                     }
+                }
+                
+                // Randomly decide to charge a special attack
+                if (!this.isChargingAttack && this.specialAttackDuration <= 0 && 
+                    Math.random() < 0.002 * (deltaTime / 16.67)) {
+                    
+                    this.startSpecialAttack(game);
+                    return;
                 }
                 
                 // Change target periodically or when there's a player to chase
@@ -1163,6 +2194,172 @@
                 this.angle = this.moveDirection;
             }
             
+            startSpecialAttack(game) {
+                this.isChargingAttack = true;
+                this.specialAttackCharge = 0;
+                
+                // Choose a random attack type
+                const attackTypes = ['flame', 'freeze', 'shockwave'];
+                this.specialAttackType = attackTypes[Math.floor(Math.random() * attackTypes.length)];
+                
+                // Show charging effect
+                if (game) {
+                    game.showNotification("⚠️ Boss is charging a special attack! ⚠️", 2000);
+                    
+                    // Visual warning
+                    if (bossWarning) {
+                        bossWarning.style.display = 'block';
+                        setTimeout(() => {
+                            bossWarning.style.display = 'none';
+                        }, 2000);
+                    }
+                }
+            }
+            
+            executeSpecialAttack(players, game) {
+                // Execute the charged attack
+                this.specialAttackDuration = 5000; // 5 seconds
+                
+                if (game) {
+                    let message = "🔥 Boss unleashed flames!";
+                    
+                    if (this.specialAttackType === 'freeze') {
+                        message = "❄️ Boss unleashed a freezing wave!";
+                    } else if (this.specialAttackType === 'shockwave') {
+                        message = "💥 Boss unleashed a shockwave!";
+                    }
+                    
+                    game.showNotification(message, 2000);
+                    
+                    // Screen shake effect
+                    game.screenShake(0.8, 800);
+                    
+                    // Generate particles based on attack type
+                    if (game.particleSystem) {
+                        const particleColor = this.specialAttackType === 'flame' ? '#FF4500' : 
+                                            this.specialAttackType === 'freeze' ? '#87CEFA' :
+                                            '#FFFF00';
+                        
+                        const particleType = this.specialAttackType === 'flame' ? 'circle' : 
+                                          this.specialAttackType === 'freeze' ? 'star' :
+                                          'sparkle';
+                        
+                        // Create explosion of particles
+                        for (let i = 0; i < 12; i++) {
+                            const angle = (i / 12) * Math.PI * 2;
+                            const startDistance = this.radius;
+                            
+                            // Create particles along radial lines
+                            for (let j = 0; j < 5; j++) {
+                                const distance = startDistance + j * 30;
+                                
+                                const particleX = this.x + Math.cos(angle) * distance;
+                                const particleY = this.y + Math.sin(angle) * distance;
+                                
+                                game.particleSystem.createParticles(
+                                    particleX, particleY,
+                                    3,
+                                    particleColor,
+                                    particleType,
+                                    1000 + Math.random() * 500,
+                                    8,
+                                    1
+                                );
+                            }
+                        }
+                    }
+                }
+                
+                // Apply immediate attack effects
+                const attackRadius = 300; // Large radius
+                
+                for (const player of Object.values(players)) {
+                    if (player.isAlive) {
+                        const dx = player.x - this.x;
+                        const dy = player.y - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < attackRadius) {
+                            // Effect depends on attack type
+                            if (this.specialAttackType === 'freeze') {
+                                // Freeze players in range
+                                if (!player.powerUps.ghost > 0) { // Ghost power-up blocks freeze
+                                    player.activatePowerUp('freeze', 3000); // 3 seconds of freeze
+                                }
+                            } else if (this.specialAttackType === 'shockwave') {
+                                // Knockback players in range
+                                if (!player.powerUps.ghost > 0) { // Ghost power-up blocks knockback
+                                    const angle = Math.atan2(dy, dx);
+                                    const knockbackForce = 50 * (1 - distance / attackRadius);
+                                    
+                                    player.x += Math.cos(angle) * knockbackForce;
+                                    player.y += Math.sin(angle) * knockbackForce;
+                                    
+                                    if (player.isLocal) {
+                                        player.targetX = player.x;
+                                        player.targetY = player.y;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            applyAreaEffect(players, game) {
+                // Continuous effects during special attack duration
+                const attackRadius = 250; // Slightly smaller continuous effect radius
+                
+                for (const player of Object.values(players)) {
+                    if (player.isAlive) {
+                        const dx = player.x - this.x;
+                        const dy = player.y - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < attackRadius) {
+                            if (this.specialAttackType === 'flame') {
+                                // Damage players in flame area
+                                if (!player.powerUps.ghost > 0) { // Ghost power-up blocks damage
+                                    // Visual effect for being damaged
+                                    player.effects.shake = 200;
+                                    
+                                    // Create flame particles around player
+                                    if (game && game.particleSystem && Math.random() < 0.2) {
+                                        game.particleSystem.createParticles(
+                                            player.x,
+                                            player.y,
+                                            2,
+                                            '#FF4500',
+                                            'circle',
+                                            500,
+                                            5,
+                                            2
+                                        );
+                                    }
+                                }
+                            } else if (this.specialAttackType === 'freeze') {
+                                // Slow down players in freeze area (without fully freezing)
+                                if (!player.powerUps.ghost > 0 && !player.powerUps.freeze > 0) {
+                                    // Create ice particles around player
+                                    if (game && game.particleSystem && Math.random() < 0.1) {
+                                        game.particleSystem.createParticles(
+                                            player.x,
+                                            player.y,
+                                            1,
+                                            '#87CEFA',
+                                            'star',
+                                            800,
+                                            4,
+                                            1
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
             draw(ctx, camera) {
                 if (this.defeated) return;
                 
@@ -1175,6 +2372,82 @@
                 ctx.translate(screenX, screenY);
                 ctx.rotate(this.angle + Math.PI / 2);
                 ctx.scale(camera.scale, camera.scale);
+                
+                // Draw special attack charging effect
+                if (this.isChargingAttack) {
+                    const chargeProgress = this.specialAttackCharge / 2000;
+                    const pulseSize = 1 + Math.sin(Date.now() * 0.01) * 0.2;
+                    
+                    // Draw growing charge ring
+                    ctx.strokeStyle = this.specialAttackType === 'flame' ? '#FF4500' : 
+                                     this.specialAttackType === 'freeze' ? '#87CEFA' :
+                                     '#FFFF00';
+                    ctx.lineWidth = 5;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, (this.radius + 20) * pulseSize * chargeProgress, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    // Draw pulsing inner glow
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius);
+                    gradient.addColorStop(0, this.specialAttackType === 'flame' ? 'rgba(255, 69, 0, 0.7)' : 
+                                          this.specialAttackType === 'freeze' ? 'rgba(135, 206, 250, 0.7)' :
+                                          'rgba(255, 255, 0, 0.7)');
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Draw active special attack effect
+                if (this.specialAttackDuration > 0) {
+                    const attackProgress = this.specialAttackDuration / 5000;
+                    const waveSize = 250 * attackProgress * camera.scale;
+                    
+                    // Draw effect based on attack type
+                    if (this.specialAttackType === 'flame') {
+                        // Flame wave
+                        const flameGradient = ctx.createRadialGradient(0, 0, this.radius, 0, 0, waveSize);
+                        flameGradient.addColorStop(0, 'rgba(255, 69, 0, 0.7)');
+                        flameGradient.addColorStop(0.6, 'rgba(255, 165, 0, 0.3)');
+                        flameGradient.addColorStop(1, 'transparent');
+                        
+                        ctx.fillStyle = flameGradient;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, waveSize, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                    } else if (this.specialAttackType === 'freeze') {
+                        // Freeze wave
+                        const freezeGradient = ctx.createRadialGradient(0, 0, this.radius, 0, 0, waveSize);
+                        freezeGradient.addColorStop(0, 'rgba(135, 206, 250, 0.7)');
+                        freezeGradient.addColorStop(0.6, 'rgba(173, 216, 230, 0.3)');
+                        freezeGradient.addColorStop(1, 'transparent');
+                        
+                        ctx.fillStyle = freezeGradient;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, waveSize, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                    } else if (this.specialAttackType === 'shockwave') {
+                        // Shockwave rings
+                        ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+                        ctx.lineWidth = 3;
+                        
+                        for (let i = 0; i < 3; i++) {
+                            const ringProgress = (attackProgress + i * 0.2) % 1;
+                            const ringSize = ringProgress * 250;
+                            
+                            ctx.globalAlpha = 0.7 * (1 - ringProgress);
+                            ctx.beginPath();
+                            ctx.arc(0, 0, ringSize, 0, Math.PI * 2);
+                            ctx.stroke();
+                        }
+                        
+                        ctx.globalAlpha = 1;
+                    }
+                }
                 
                 // Body
                 ctx.fillStyle = this.color;
@@ -1199,9 +2472,25 @@
                 // Mouth
                 ctx.strokeStyle = 'black';
                 ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(0, 10, 20, 0.1 * Math.PI, 0.9 * Math.PI);
-                ctx.stroke();
+                
+                // Different mouth expressions based on health
+                if (this.health > this.maxHealth * 0.7) {
+                    // Evil smile when healthy
+                    ctx.beginPath();
+                    ctx.arc(0, 10, 20, 0.1 * Math.PI, 0.9 * Math.PI);
+                    ctx.stroke();
+                } else if (this.health > this.maxHealth * 0.3) {
+                    // Straight line when medium health
+                    ctx.beginPath();
+                    ctx.moveTo(-20, 10);
+                    ctx.lineTo(20, 10);
+                    ctx.stroke();
+                } else {
+                    // Frown when low health
+                    ctx.beginPath();
+                    ctx.arc(0, 30, 20, 1.1 * Math.PI, 1.9 * Math.PI);
+                    ctx.stroke();
+                }
                 
                 // Spikes
                 ctx.fillStyle = '#FF6347';
@@ -1270,11 +2559,14 @@
                 this.angle = Math.random() * Math.PI * 2;
                 this.rotationSpeed = (Math.random() * 0.02) - 0.01;
                 this.scale = 0.8 + Math.random() * 0.4;
+                this.floatOffset = Math.random() * Math.PI * 2;
+                this.floatSpeed = 0.03 + Math.random() * 0.02;
             }
             
             update(deltaTime) {
                 if (!this.collected) {
                     this.angle += this.rotationSpeed * (deltaTime / 16.67);
+                    this.floatOffset += this.floatSpeed * (deltaTime / 16.67);
                 }
             }
             
@@ -1282,8 +2574,9 @@
                 if (this.collected) return;
                 
                 // Camera transformation for position
+                const floatY = Math.sin(this.floatOffset) * 2; // Floating effect
                 const screenX = (this.x - camera.x) * camera.scale + canvas.width / 2;
-                const screenY = (this.y - camera.y) * camera.scale + canvas.height / 2;
+                const screenY = (this.y - camera.y) * camera.scale + canvas.height / 2 + floatY;
                 
                 // Skip rendering if outside screen with margin
                 const margin = 50;
@@ -1313,6 +2606,17 @@
                 
                 const flowerColor = colors[this.type % colors.length];
                 const centerColor = centerColors[this.type % centerColors.length];
+                
+                // Draw subtle glow
+                const glowRadius = 12 + Math.sin(this.floatOffset * 2) * 2;
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, glowRadius);
+                gradient.addColorStop(0, flowerColor + 'AA'); // 66% opacity
+                gradient.addColorStop(1, flowerColor + '00'); // 0% opacity
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, glowRadius, 0, Math.PI * 2);
+                ctx.fill();
                 
                 // Draw petals
                 ctx.fillStyle = flowerColor;
@@ -1425,6 +2729,15 @@
                 ctx.beginPath();
                 ctx.arc(screenX, screenY, screenRadius, 0, Math.PI * 2);
                 ctx.stroke();
+                
+                // Draw a dashed inner circle to indicate safe zone
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([10, 10]);
+                ctx.beginPath();
+                ctx.arc(screenX, screenY, screenRadius * 0.8, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
             }
         }
         
@@ -1562,6 +2875,7 @@
             constructor() {
                 this.players = {};
                 this.flowers = [];
+                this.powerUps = [];
                 this.bosses = [];
                 this.background = new Background(canvas.width, canvas.height);
                 this.playArea = new PlayArea(canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) * 0.45);
@@ -1572,12 +2886,15 @@
                 this.localPlayer = null;
                 this.scoreboardUpdateTime = 0;
                 this.flowerSpawnTime = 0;
+                this.powerUpSpawnTime = 0;
                 this.notificationTimeout = null;
                 this.confetti = [];
                 this.nextFlowerId = 0;
+                this.nextPowerUpId = 0;
                 this.nextBossId = 0;
-                this.bossSpawnInterval = 180000; // 3 minutes
+                this.bossSpawnInterval = 0; // Will be set randomly
                 this.lastBossSpawn = 0;
+                this.bossWarningTime = 0;
                 
                 // Camera system
                 this.camera = {
@@ -1586,8 +2903,17 @@
                     scale: this.isMobile() ? 0.7 : 1.0,  // Smaller scale on mobile
                     targetX: 0,
                     targetY: 0,
-                    smoothing: 0.1
+                    smoothing: 0.1,
+                    // Screen shake effect
+                    shake: {
+                        intensity: 0,
+                        duration: 0,
+                        offset: { x: 0, y: 0 }
+                    }
                 };
+                
+                // Particle system
+                this.particleSystem = new ParticleSystem();
                 
                 // Setup input
                 this.setupInput();
@@ -1678,9 +3004,29 @@
             }
             
             updateCamera(deltaTime) {
+                // Update screen shake effect
+                if (this.camera.shake.duration > 0) {
+                    this.camera.shake.duration -= deltaTime;
+                    
+                    if (this.camera.shake.duration > 0) {
+                        const intensity = this.camera.shake.intensity * (this.camera.shake.duration / 1000);
+                        this.camera.shake.offset.x = (Math.random() - 0.5) * intensity * 20;
+                        this.camera.shake.offset.y = (Math.random() - 0.5) * intensity * 20;
+                    } else {
+                        this.camera.shake.offset.x = 0;
+                        this.camera.shake.offset.y = 0;
+                    }
+                }
+                
                 // Smooth camera movement towards target
                 this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing * (deltaTime / 16.67);
                 this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing * (deltaTime / 16.67);
+            }
+            
+            // Method to trigger screen shake
+            screenShake(intensity, duration) {
+                this.camera.shake.intensity = intensity;
+                this.camera.shake.duration = duration;
             }
             
             startGame() {
@@ -1695,6 +3041,10 @@
                 
                 // Update room info
                 roomInfoElement.innerHTML = `<strong>Phòng:</strong> ${currentRoom}`;
+                
+                // Set random boss spawn interval (between 45s and 90s)
+                this.bossSpawnInterval = 45000 + Math.random() * 45000;
+                this.lastBossSpawn = performance.now();
                 
                 // Start BGM
                 if (soundEnabled) {
@@ -1731,12 +3081,18 @@
             resetGame(initialState) {
                 this.players = {};
                 this.flowers = [];
+                this.powerUps = [];
                 this.bosses = [];
                 this.timeRemaining = this.gameTime;
                 this.confetti = [];
                 this.nextFlowerId = 0;
+                this.nextPowerUpId = 0;
                 this.nextBossId = 0;
                 this.lastBossSpawn = 0;
+                this.bossWarningTime = 0;
+                
+                // Clear power-ups display
+                powerUpsContainer.innerHTML = '';
                 
                 // Reset camera position
                 this.camera.x = 0;
@@ -1867,8 +3223,112 @@
                 }
             }
             
+            spawnPowerUp() {
+                if (!isRoomOwner || !this.gameActive) return;
+                
+                // Find a position within the play area
+                const centerX = this.playArea.x;
+                const centerY = this.playArea.y;
+                // Use a smaller radius to ensure power-ups are more central
+                const radius = this.playArea.radius * 0.7;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * radius;
+                const x = centerX + Math.cos(angle) * distance;
+                const y = centerY + Math.sin(angle) * distance;
+                
+                // Choose a random power-up type
+                const powerUpTypes = ['speed', 'giant', 'ghost', 'freeze', 'vacuum'];
+                const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+                
+                const powerUp = {
+                    id: this.nextPowerUpId++,
+                    x: x,
+                    y: y,
+                    type: type
+                };
+                
+                // Emit power-up spawn to server
+                socket.emit('spawnPowerUp', {
+                    roomId: currentRoom,
+                    powerUp: powerUp
+                });
+                
+                // Create power-up particle effect
+                if (this.particleSystem) {
+                    this.particleSystem.createParticles(
+                        x, y,
+                        20,
+                        type === 'speed' ? '#00FFFF' : 
+                        type === 'giant' ? '#FFA500' :
+                        type === 'ghost' ? '#9966FF' :
+                        type === 'freeze' ? '#87CEFA' : '#FF69B4',
+                        'star',
+                        1000,
+                        10,
+                        3
+                    );
+                }
+            }
+            
+            addPowerUp(powerUpData) {
+                const powerUp = new PowerUp(
+                    powerUpData.id,
+                    powerUpData.x,
+                    powerUpData.y,
+                    powerUpData.type
+                );
+                this.powerUps.push(powerUp);
+                this.nextPowerUpId = Math.max(this.nextPowerUpId, powerUpData.id + 1);
+                
+                // Show notification if we're the local player
+                if (this.localPlayer) {
+                    this.showNotification(`🎁 ${powerUp.icons[powerUp.type]} Power-up appeared!`, 2000);
+                }
+            }
+            
+            updatePowerUp(powerUpId, playerId) {
+                const powerUp = this.powerUps.find(p => p.id === powerUpId);
+                if (powerUp && !powerUp.collected) {
+                    powerUp.collected = true;
+                    powerUp.collectedBy = playerId;
+                    
+                    // Find player and apply power-up
+                    const player = this.players[playerId];
+                    if (player) {
+                        // Apply power-up effect
+                        player.activatePowerUp(powerUp.type, 10000); // 10 seconds duration
+                        
+                        // Play sound if not our collection (our collection plays sound directly)
+                        if (soundEnabled && playerId !== this.localPlayer.id) {
+                            powerUpSound.currentTime = 0;
+                            powerUpSound.volume = 0.3; // Lower volume for other players
+                            powerUpSound.play().catch(e => console.log("Sound error:", e));
+                        }
+                    }
+                }
+            }
+            
+            showBossWarning() {
+                if (!this.gameActive) return;
+                
+                // Visual warning
+                bossWarning.style.display = 'block';
+                
+                // Sound warning
+                if (soundEnabled) {
+                    // Play a warning sound or tone here
+                }
+                
+                // Show notification
+                this.showNotification("⚠️ A boss is approaching! Get ready! ⚠️", 3000);
+                
+                // Set boss warning time (5 seconds)
+                this.bossWarningTime = 5000;
+            }
+            
             spawnBoss() {
-                if (!isRoomOwner) return;
+                if (!isRoomOwner || !this.gameActive) return;
                 
                 // Find a position away from players
                 const centerX = this.playArea.x;
@@ -1929,7 +3389,27 @@
                     });
                 }
                 
+                // Screen shake for all players
+                this.screenShake(0.7, 1000);
+                
+                // Hide boss warning
+                bossWarning.style.display = 'none';
+                this.bossWarningTime = 0;
+                
                 this.showNotification("⚠️ Boss has appeared! ⚠️", 3000);
+                
+                // Create spawning particles
+                if (this.particleSystem) {
+                    this.particleSystem.createParticles(
+                        x, y,
+                        50, // Many particles
+                        '#FF4500', // Boss color
+                        'star',
+                        1500, // Long lifespan
+                        15, // Big particles
+                        5 // Fast particles
+                    );
+                }
             }
             
             addBoss(bossData) {
@@ -1953,7 +3433,27 @@
                     });
                 }
                 
+                // Screen shake
+                this.screenShake(0.7, 1000);
+                
+                // Hide boss warning
+                bossWarning.style.display = 'none';
+                this.bossWarningTime = 0;
+                
                 this.showNotification("⚠️ Boss has appeared! ⚠️", 3000);
+                
+                // Create spawning particles
+                if (this.particleSystem) {
+                    this.particleSystem.createParticles(
+                        bossData.x, bossData.y,
+                        50, // Many particles
+                        '#FF4500', // Boss color
+                        'star',
+                        1500, // Long lifespan
+                        15, // Big particles
+                        5 // Fast particles
+                    );
+                }
             }
             
             updateBoss(bossData) {
@@ -1965,6 +3465,14 @@
                     boss.targetY = bossData.targetY;
                     boss.health = bossData.health;
                     boss.defeated = bossData.defeated;
+                    
+                    // Update special attack state if provided
+                    if (bossData.specialAttackType) {
+                        boss.specialAttackType = bossData.specialAttackType;
+                        boss.isChargingAttack = bossData.isChargingAttack;
+                        boss.specialAttackCharge = bossData.specialAttackCharge;
+                        boss.specialAttackDuration = bossData.specialAttackDuration;
+                    }
                 }
             }
             
@@ -2000,6 +3508,20 @@
                             collectSound.currentTime = 0;
                             collectSound.volume = 0.3; // Lower volume for other players
                             collectSound.play().catch(e => console.log("Collect sound error:", e));
+                        }
+                        
+                        // Create collection particles even for other players (but fewer)
+                        if (this.particleSystem && Math.random() < 0.5) {
+                            this.particleSystem.createParticles(
+                                flower.x,
+                                flower.y,
+                                4, // Fewer particles for other players
+                                flower.type % 2 === 0 ? '#FF69B4' : '#FFB6C1', // Pink colors
+                                'flower',
+                                600, // Shorter lifespan
+                                4, // Smaller particles
+                                1.5 // Slower particles
+                            );
                         }
                     }
                 }
@@ -2130,36 +3652,63 @@
                 const deltaTime = timestamp - this.lastTimestamp;
                 this.lastTimestamp = timestamp;
                 
-                // Update camera position
+                // Update camera position with shake effect
                 this.updateCamera(deltaTime);
+                
+                // Update boss warning countdown
+                if (this.bossWarningTime > 0) {
+                    this.bossWarningTime -= deltaTime;
+                    if (this.bossWarningTime <= 0) {
+                        bossWarning.style.display = 'none';
+                        
+                        // If we're the room owner, spawn the boss
+                        if (isRoomOwner) {
+                            this.spawnBoss();
+                        }
+                    }
+                }
                 
                 // Xóa canvas
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesCtx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+                
+                // Apply camera offset for shake effect
+                const cameraWithShake = {
+                    x: this.camera.x + this.camera.shake.offset.x,
+                    y: this.camera.y + this.camera.shake.offset.y,
+                    scale: this.camera.scale
+                };
                 
                 // Cập nhật và vẽ background
                 this.background.update(deltaTime);
-                this.background.draw(ctx, this.camera);
+                this.background.draw(ctx, cameraWithShake);
                 
                 // Cập nhật và vẽ play area
                 this.playArea.update(deltaTime);
-                this.playArea.draw(ctx, this.camera);
+                this.playArea.draw(ctx, cameraWithShake);
                 
                 // Cập nhật và vẽ hoa
                 for (const flower of this.flowers) {
                     flower.update(deltaTime);
-                    flower.draw(ctx, this.camera);
+                    flower.draw(ctx, cameraWithShake);
+                }
+                
+                // Update and draw power-ups
+                for (const powerUp of this.powerUps) {
+                    powerUp.update(deltaTime);
+                    powerUp.draw(ctx, cameraWithShake);
                 }
                 
                 // Cập nhật và vẽ boss
                 for (const boss of this.bosses) {
-                    boss.update(deltaTime, this.players, this.playArea);
-                    boss.draw(ctx, this.camera);
+                    boss.update(deltaTime, this.players, this.playArea, this);
+                    boss.draw(ctx, cameraWithShake);
                 }
                 
                 // Cập nhật và vẽ người chơi
                 for (const player of Object.values(this.players)) {
                     player.update(deltaTime, this.flowers, this.playArea, this);
-                    player.draw(ctx, this.camera);
+                    player.draw(ctx, cameraWithShake);
                     
                     // Kiểm tra va chạm với hoa
                     const collectedCount = player.collectFlowers(this.flowers, this);
@@ -2171,17 +3720,41 @@
                         }
                     }
                     
+                    // Check power-up collections
+                    for (const powerUp of this.powerUps) {
+                        player.collectPowerUp(powerUp, this);
+                    }
+                    
                     // Check boss attacks
                     for (const boss of this.bosses) {
                         player.attackBoss(boss, this);
                     }
                 }
                 
-                // Spawn boss every 3 minutes
-                const now = Date.now();
-                if (isRoomOwner && this.gameActive && now - this.lastBossSpawn > this.bossSpawnInterval) {
-                    this.spawnBoss();
+                // Update and draw particle system
+                this.particleSystem.update(deltaTime);
+                this.particleSystem.draw(particlesCtx, cameraWithShake);
+                
+                // Spawn boss based on time interval
+                const now = performance.now();
+                if (isRoomOwner && this.gameActive && 
+                    now - this.lastBossSpawn > this.bossSpawnInterval && 
+                    this.bosses.length === 0 && this.bossWarningTime <= 0) {
+                    
+                    this.showBossWarning();
                     this.lastBossSpawn = now;
+                    
+                    // Set next boss spawn interval (becomes shorter as game progresses)
+                    const gameProgressRatio = 1 - (this.timeRemaining / this.gameTime);
+                    const minInterval = 30000; // 30 seconds minimum
+                    const maxInterval = 90000 - (gameProgressRatio * 60000); // 90s to 30s as game progresses
+                    this.bossSpawnInterval = minInterval + Math.random() * (maxInterval - minInterval);
+                }
+                
+                // Spawn power-ups periodically
+                if (isRoomOwner && now - this.powerUpSpawnTime > 20000 && Math.random() < 0.01) {
+                    this.spawnPowerUp();
+                    this.powerUpSpawnTime = now;
                 }
                 
                 // Đảm bảo luôn có đủ hoa
@@ -2560,6 +4133,18 @@
         socket.on('flowersSpawned', (data) => {
             if (game) {
                 game.addFlowers(data.flowers);
+            }
+        });
+        
+        socket.on('powerUpSpawned', (data) => {
+            if (game) {
+                game.addPowerUp(data.powerUp);
+            }
+        });
+        
+        socket.on('powerUpCollected', (data) => {
+            if (game) {
+                game.updatePowerUp(data.powerUpId, data.playerId);
             }
         });
         
