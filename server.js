@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
 // Game constants
 const MAX_PLAYERS_PER_ROOM = 8;
 const GAME_TIME = 900; // 15 minutes in seconds
-const INITIAL_FLOWERS = 50;
+const INITIAL_FLOWERS = 80; // Increased from 50 to 80
 const COLORS = [
   '#FF6B8B', // pink
   '#64B5F6', // blue
@@ -491,7 +491,7 @@ io.on('connection', (socket) => {
     if (!room) return;
     if (room.owner !== socket.id) return;
 
-    // Create new game state
+    // Create a new game state
     const initialState = createInitialGameState(room);
     room.gameState = initialState;
     room.gameActive = true;
@@ -507,14 +507,15 @@ io.on('connection', (socket) => {
   // Chat message
   socket.on('chatMessage', (data) => {
     const roomId = data.roomId;
-    const room = rooms[roomId];
+    const message = data.message;
+    const playerName = data.playerName;
 
-    if (!room) return;
+    if (!rooms[roomId]) return;
 
     // Broadcast chat message to all players in the room
     io.to(roomId).emit('chatMessage', {
-      playerName: data.playerName,
-      message: data.message
+      playerName: playerName,
+      message: message
     });
   });
 
@@ -523,52 +524,52 @@ io.on('connection', (socket) => {
     const playerId = socket.id;
     const player = players[playerId];
 
-    if (!player) return;
+    if (player) {
+      const roomId = player.roomId;
+      const room = rooms[roomId];
 
-    const roomId = player.roomId;
-    const room = rooms[roomId];
+      if (room) {
+        // Remove player from room
+        const playerIndex = room.players.indexOf(playerId);
+        if (playerIndex !== -1) {
+          room.players.splice(playerIndex, 1);
+        }
 
-    if (!room) return;
+        // If room is empty, delete it
+        if (room.players.length === 0) {
+          delete rooms[roomId];
+          console.log(`Room ${roomId} deleted`);
+        } else {
+          // If owner disconnected, assign new owner
+          if (room.owner === playerId) {
+            room.owner = room.players[0];
+            players[room.owner].isOwner = true;
+            
+            // Notify new owner
+            io.to(players[room.owner].socketId).emit('ownerChanged', {
+              newOwnerId: room.owner,
+              players: room.players.map(id => players[id])
+            });
+          }
 
-    // Remove player from room
-    const playerIndex = room.players.indexOf(playerId);
-    if (playerIndex !== -1) {
-      room.players.splice(playerIndex, 1);
+          // Notify remaining players
+          io.to(roomId).emit('playerLeft', {
+            playerId: playerId,
+            playerName: player.name,
+            players: room.players.map(id => players[id])
+          });
+        }
+      }
+
+      // Remove player from players
+      delete players[playerId];
     }
 
-    // Remove player from players
-    delete players[playerId];
-
-    // If room is empty, delete it
-    if (room.players.length === 0) {
-      delete rooms[roomId];
-      console.log(`Room ${roomId} deleted`);
-      return;
-    }
-
-    // If owner left, assign new owner
-    if (room.owner === playerId) {
-      room.owner = room.players[0];
-      players[room.owner].isOwner = true;
-      
-      // Notify new owner
-      io.to(players[room.owner].socketId).emit('ownerChanged', {
-        newOwnerId: room.owner,
-        players: room.players.map(id => players[id])
-      });
-    }
-
-    // Notify remaining players
-    io.to(roomId).emit('playerLeft', {
-      playerId: playerId,
-      playerName: player.name,
-      players: room.players.map(id => players[id])
-    });
-
-    console.log(`Player ${playerId} disconnected from room ${roomId}`);
+    console.log('User disconnected', socket.id);
   });
 });
 
+// Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
