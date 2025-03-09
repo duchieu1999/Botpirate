@@ -3,18 +3,18 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const { v4: uuidv4 } = require('uuid');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
+const io = new Server(server);
 
+// Serve static files from the current directory
+app.use(express.static(path.join(__dirname)));
+
+// Serve index.html for the root route
 app.get('/', (req, res) => {
-  res.send('Flower Battle Royale Server is running!');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Game constants
