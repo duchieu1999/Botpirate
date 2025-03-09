@@ -270,7 +270,7 @@
 }
         #time-container {
             position: absolute;
-            top: 35px;
+            top: 50px;
             left: 50%;
             transform: translateX(-50%);
         }
@@ -1001,7 +1001,7 @@
     }
     
     #time-container {
-        top: 30px;
+        top: 50px;
         left: 10px;
         transform: none;
     }
@@ -2690,7 +2690,7 @@
                         game.screenShake(0.5, 300); // Medium shake
                         
                         // Apply power-up effect
-                        this.activatePowerUp(powerUp.type, 10000); // 10 seconds duration
+                        this.activatePowerUp(powerUp.type, 3000); // 10 seconds duration
                         
                         // Show notification
                         game.showNotification(`${this.getPowerUpIcon(powerUp.type)} ${this.getPowerUpName(powerUp.type)} activated!`, 2000);
@@ -2716,8 +2716,8 @@
                 this.targetY = y;
                 this.radius = 50;
                 this.color = '#FF4500';
-                this.health = 50;
-                this.maxHealth = 50;
+                this.health = 1000;
+                this.maxHealth = 1000;
                 this.speed = 1.5;
                 this.defeated = false;
                 this.angle = 0;
