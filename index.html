@@ -3,25 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hiếu Gà - Hiếu Gà Đại Chiến</title>
+    <title>Hiếu Gà - Hiếu Gà Đại Chiến Multiplayer</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #ff69b4;
+            --primary-light: #ff8dc8;
+            --primary-dark: #e6007c;
             --secondary: #5D5CDE;
+            --secondary-light: #7f7eef;
+            --secondary-dark: #4240b3;
             --accent: #ff1493;
-            --background: #fff5f8;
-            --background-dark: #2a1a24;
+            --accent-light: #ff47a8;
+            --accent-dark: #d10074;
+            --bg-gradient-light-1: #fff5f8;
+            --bg-gradient-light-2: #ffebf5;
+            --bg-gradient-dark-1: #2a1a24;
+            --bg-gradient-dark-2: #1e0f1e;
             --text: #333;
+            --text-light: #666;
             --text-dark: #f0f0f0;
+            --text-dark-muted: #aaa;
+            --border-radius-sm: 10px;
+            --border-radius-md: 15px;
+            --border-radius-lg: 20px;
+            --border-radius-xl: 25px;
+            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --box-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.15);
+            --transition-fast: 0.2s ease;
+            --transition-medium: 0.3s ease;
+            --transition-slow: 0.5s ease;
         }
 
         .dark {
             --primary: #ff69b4;
+            --primary-light: #ff8dc8;
+            --primary-dark: #e6007c;
             --secondary: #7d7cee;
+            --secondary-light: #9e9df2;
+            --secondary-dark: #5553ca;
             --accent: #ff1493;
-            --background: var(--background-dark);
+            --accent-light: #ff47a8;
+            --accent-dark: #d10074;
+            --bg-gradient-light-1: var(--bg-gradient-dark-1);
+            --bg-gradient-light-2: var(--bg-gradient-dark-2);
             --text: var(--text-dark);
+            --text-light: var(--text-dark-muted);
         }
 
         * {
@@ -31,17 +62,27 @@
             touch-action: manipulation;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Arial Rounded MT Bold', 'Avenir Next', 'Segoe UI', sans-serif;
-            background-color: var(--background);
+            font-family: 'Quicksand', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-light-1), var(--bg-gradient-light-2));
             color: var(--text);
             overflow: hidden;
-            transition: background-color 0.3s;
+            transition: background-color var(--transition-medium);
             height: 100vh;
             width: 100vw;
             position: relative;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Fredoka', 'Segoe UI', sans-serif;
+            font-weight: 700;
+        }
+
+        button, input {
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
         }
 
         #game-container {
@@ -53,9 +94,10 @@
             overflow: hidden;
         }
 
+        /* === SCREENS === */
         #login-screen,
         #room-screen,
-        #start-screen, 
+        #start-screen,
         #game-over-screen {
             position: absolute;
             top: 0;
@@ -66,55 +108,110 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background-color: rgba(255, 105, 180, 0.9);
+            background: linear-gradient(135deg, rgba(255, 105, 180, 0.95), rgba(255, 20, 147, 0.95));
             z-index: 100;
             padding: 20px;
             text-align: center;
             color: white;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
         
         #room-screen {
-            background-color: rgba(93, 92, 222, 0.9);
+            background: linear-gradient(135deg, rgba(93, 92, 222, 0.95), rgba(66, 64, 179, 0.95));
         }
         
         #game-over-screen {
             display: none;
-            background-color: rgba(93, 92, 222, 0.9);
+            background: linear-gradient(135deg, rgba(93, 92, 222, 0.95), rgba(66, 64, 179, 0.95));
         }
 
         #logo-container {
             position: relative;
-            width: 200px;
-            height: 200px;
+            width: 180px;
+            height: 180px;
             margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
         }
 
         #logo {
             width: 100%;
             height: 100%;
+            filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
+        }
+
+        .screen-title {
+            margin-bottom: 15px;
+            font-size: 40px;
+            background: linear-gradient(to right, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
         .btn {
-            background-color: var(--secondary);
+            background: linear-gradient(to bottom, var(--secondary-light), var(--secondary));
             color: white;
             border: none;
-            border-radius: 50px;
+            border-radius: var(--border-radius-xl);
             padding: 16px 32px;
             font-size: 18px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
             margin: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            transition: all 0.2s;
+            box-shadow: var(--box-shadow);
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.6s ease;
+        }
+
+        .btn:hover::before, .btn:active::before {
+            left: 100%;
         }
 
         .btn:hover, .btn:active {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
-            background-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: var(--box-shadow-hover);
+            background: linear-gradient(to bottom, var(--secondary-light), var(--secondary-dark));
         }
 
+        .btn:disabled {
+            background: linear-gradient(to bottom, #aaa, #888);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: var(--box-shadow);
+        }
+
+        .btn-primary {
+            background: linear-gradient(to bottom, var(--primary-light), var(--primary));
+        }
+
+        .btn-primary:hover, .btn-primary:active {
+            background: linear-gradient(to bottom, var(--primary-light), var(--primary-dark));
+        }
+
+        .btn-accent {
+            background: linear-gradient(to bottom, var(--accent-light), var(--accent));
+        }
+
+        .btn-accent:hover, .btn-accent:active {
+            background: linear-gradient(to bottom, var(--accent-light), var(--accent-dark));
+        }
+
+        /* === GAME ELEMENTS === */
         #game-canvas {
             position: absolute;
             top: 0;
@@ -134,82 +231,147 @@
             top: 0;
             left: 0;
             width: 100%;
-            padding: 10px;
+            padding: 15px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             pointer-events: none;
             z-index: 20;
         }
 
-        #score-container {
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            padding: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        .hud-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .hud-panel {
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+            border-radius: var(--border-radius-md);
+            padding: 12px 20px;
+            box-shadow: var(--box-shadow);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--secondary-dark);
+            font-size: 16px;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .hud-icon {
+            font-size: 20px;
+        }
+
+        .hud-value {
+            font-weight: 700;
+            color: var(--accent);
         }
 
         #time-container {
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            padding: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         #power-ups-container {
             position: absolute;
-            bottom: 10px;
-            right: 10px;
+            bottom: 15px;
+            right: 15px;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 5px;
+            gap: 8px;
             z-index: 20;
             pointer-events: none;
         }
 
         .power-up-indicator {
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 10px;
-            padding: 5px 10px;
-            font-weight: bold;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+            border-radius: var(--border-radius-md);
+            padding: 10px 15px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            gap: 10px;
+            box-shadow: var(--box-shadow);
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            animation: fadeInRight 0.3s forwards;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .power-up-icon {
-            font-size: 18px;
+            font-size: 20px;
+        }
+
+        .power-up-name {
+            font-weight: 600;
+            color: var(--secondary-dark);
         }
 
         .power-up-timer {
-            font-size: 12px;
+            font-size: 14px;
+            padding: 3px 8px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            color: var(--secondary-dark);
+            font-weight: 700;
         }
 
         #room-info {
             position: absolute;
-            top: 10px;
+            top: 70px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            padding: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+            border-radius: var(--border-radius-md);
+            padding: 10px 20px;
+            box-shadow: var(--box-shadow);
             pointer-events: none;
             z-index: 20;
+            font-weight: 600;
+            color: var(--secondary-dark);
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
         }
 
         #scoreboard {
             position: absolute;
-            top: 60px;
-            right: 10px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            padding: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            max-width: 200px;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+            border-radius: var(--border-radius-md);
+            padding: 12px;
+            box-shadow: var(--box-shadow);
+            max-width: 250px;
+            min-width: 200px;
             pointer-events: none;
             z-index: 20;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .scoreboard-title {
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--secondary-dark);
+            font-size: 16px;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 6px;
         }
 
         .scoreboard-item {
@@ -217,54 +379,122 @@
             justify-content: space-between;
             margin: 5px 0;
             font-size: 14px;
+            padding: 6px 10px;
+            border-radius: var(--border-radius-sm);
+            transition: background-color 0.2s;
+            color: var(--text);
+        }
+
+        .scoreboard-item:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .scoreboard-player {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+
+        .scoreboard-rank {
+            font-size: 12px;
+            font-weight: 700;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
         }
 
         .rank1 {
-            color: gold;
-            font-weight: bold;
+            background-color: gold;
+            color: #333;
         }
 
         .rank2 {
-            color: silver;
-            font-weight: bold;
+            background-color: silver;
+            color: #333;
         }
 
         .rank3 {
-            color: #cd7f32; /* bronze */
-            font-weight: bold;
+            background-color: #cd7f32; /* bronze */
+            color: white;
+        }
+
+        .rank4, .rank5 {
+            background-color: #e0e0e0;
+            color: #666;
+        }
+
+        .scoreboard-score {
+            font-weight: 700;
+            color: var(--accent);
+            padding: 2px 8px;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         #instructions {
-            margin: 15px 0;
+            margin: 20px 0;
             font-size: 18px;
             max-width: 80%;
+            line-height: 1.5;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
         
         #winner-list {
-            margin: 20px 0;
+            margin: 25px 0;
             font-size: 24px;
             text-align: center;
         }
         
         .winner {
-            margin: 10px 0;
-            font-weight: bold;
+            margin: 12px 0;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .winner:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
         
         .winner.rank1 {
             font-size: 32px;
-            color: gold;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            background: linear-gradient(to right, #f8e16f, #ffd700);
+            color: #333;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.5);
+            text-shadow: none;
+            animation: pulse 2s infinite;
         }
         
         .winner.rank2 {
             font-size: 28px;
-            color: silver;
+            background: linear-gradient(to right, #e3e3e3, #c0c0c0);
+            color: #333;
+            text-shadow: none;
         }
         
         .winner.rank3 {
             font-size: 24px;
-            color: #cd7f32;
+            background: linear-gradient(to right, #e0b884, #cd7f32);
+            color: white;
+            text-shadow: none;
         }
         
         #confetti-canvas {
@@ -280,188 +510,263 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(255, 255, 255, 0.9);
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
             color: var(--accent);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 12px 25px;
+            border-radius: var(--border-radius-lg);
+            font-weight: 700;
+            box-shadow: var(--box-shadow);
             z-index: 50;
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: all 0.3s ease;
             pointer-events: none;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        #volume-control {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 150;
+        .notification-icon {
             font-size: 24px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         #player-list {
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
+            border-radius: var(--border-radius-lg);
             padding: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--box-shadow);
             max-height: 300px;
             overflow-y: auto;
             width: 90%;
-            max-width: 400px;
+            max-width: 450px;
             margin: 20px 0;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
         }
 
         .player-item {
             display: flex;
             align-items: center;
-            margin: 5px 0;
-            padding: 8px;
-            border-radius: 10px;
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: var(--border-radius-md);
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .player-item:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
         }
 
         .player-color {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
-            margin-right: 10px;
+            margin-right: 12px;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         .player-name {
             flex-grow: 1;
             text-align: left;
-            color: #333;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .room-code {
-            background-color: rgba(255, 255, 255, 0.9);
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
             color: var(--accent);
-            font-size: 24px;
-            padding: 10px 20px;
-            border-radius: 10px;
-            margin: 10px 0;
-            font-weight: bold;
-            letter-spacing: 5px;
+            font-size: 32px;
+            padding: 15px 25px;
+            border-radius: var(--border-radius-lg);
+            margin: 15px 0;
+            font-weight: 700;
+            letter-spacing: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.3);
         }
 
         .room-info-title {
-            font-size: 18px;
+            font-size: 20px;
             margin-bottom: 5px;
             color: white;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             width: 100%;
-            max-width: 300px;
+            max-width: 350px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 8px;
+            font-weight: 600;
             text-align: left;
+            font-size: 16px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             border: none;
-            border-radius: 25px;
+            border-radius: var(--border-radius-lg);
             font-size: 16px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            background: white;
         }
         
         .chat-box {
             position: absolute;
-            bottom: 10px;
-            left: 10px;
-            width: 300px;
-            height: 200px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
+            bottom: 15px;
+            left: 15px;
+            width: 320px;
+            height: 220px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+            border-radius: var(--border-radius-lg);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--box-shadow);
             z-index: 50;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .chat-box:hover {
+            box-shadow: var(--box-shadow-hover);
         }
         
         .chat-messages {
             flex-grow: 1;
             overflow-y: auto;
-            padding: 10px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
         }
         
         .chat-input-container {
             display: flex;
-            padding: 5px;
-            background-color: rgba(255, 255, 255, 0.9);
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
         }
         
         .chat-input {
             flex-grow: 1;
             border: none;
-            border-radius: 15px;
-            padding: 8px 12px;
-            margin-right: 5px;
-            font-size: 14px;
+            border-radius: var(--border-radius-md);
+            padding: 10px 15px;
+            margin-right: 8px;
+            font-size: 15px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            font-family: 'Quicksand', 'Segoe UI', sans-serif;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
         }
         
         .chat-send {
             border: none;
-            background-color: var(--secondary);
+            background: linear-gradient(to bottom, var(--secondary-light), var(--secondary));
             color: white;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            font-size: 14px;
+            width: 38px;
+            height: 38px;
+            font-size: 16px;
             cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-send:hover {
+            background: linear-gradient(to bottom, var(--secondary-light), var(--secondary-dark));
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
         }
         
         .message {
-            padding: 5px 10px;
-            border-radius: 10px;
-            margin-bottom: 5px;
-            max-width: 80%;
+            padding: 8px 15px;
+            border-radius: var(--border-radius-md);
+            margin-bottom: 8px;
+            max-width: 85%;
             word-wrap: break-word;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
         }
         
         .message-self {
-            background-color: var(--secondary);
+            background: linear-gradient(to bottom right, var(--secondary-light), var(--secondary));
             color: white;
             align-self: flex-end;
+            border-bottom-right-radius: 2px;
         }
         
         .message-other {
-            background-color: #e0e0e0;
+            background: linear-gradient(to bottom right, #f0f0f0, #e0e0e0);
             color: #333;
             align-self: flex-start;
+            border-bottom-left-radius: 2px;
         }
         
         .message-system {
-            background-color: rgba(0, 0, 0, 0.1);
+            background: rgba(0, 0, 0, 0.05);
             color: #666;
             align-self: center;
             font-style: italic;
             font-size: 12px;
+            padding: 5px 10px;
+            border-radius: var(--border-radius-sm);
+            box-shadow: none;
         }
-
+        
         /* Animation keyframes */
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
 
@@ -490,6 +795,21 @@
             100% { opacity: 1; }
         }
 
+        @keyframes slideUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideInLeft {
+            0% { transform: translateX(-30px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            0% { transform: translateX(30px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
         .pulse {
             animation: pulse 0.8s infinite;
         }
@@ -509,12 +829,24 @@
         .flash {
             animation: flash 0.5s 3;
         }
+
+        .slide-up {
+            animation: slideUp 0.5s forwards;
+        }
+
+        .slide-left {
+            animation: slideInLeft 0.5s forwards;
+        }
+
+        .slide-right {
+            animation: slideInRight 0.5s forwards;
+        }
         
         /* Boss warning animation */
         @keyframes warning-flash {
-            0% { background-color: rgba(255, 0, 0, 0.3); }
-            50% { background-color: rgba(255, 0, 0, 0.6); }
-            100% { background-color: rgba(255, 0, 0, 0.3); }
+            0% { background-color: rgba(255, 0, 0, 0.2); }
+            50% { background-color: rgba(255, 0, 0, 0.5); }
+            100% { background-color: rgba(255, 0, 0, 0.2); }
         }
 
         .boss-warning {
@@ -554,21 +886,110 @@
         .power-up-vacuum {
             filter: brightness(1.1) contrast(1.1);
         }
-        
+
+        /* Join Room Modal */
+        #join-room-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(to bottom, white, #f8f8f8);
+            padding: 25px;
+            border-radius: var(--border-radius-lg);
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: zoomIn 0.3s forwards;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-title {
+            color: var(--accent);
+            margin-bottom: 20px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
         /* Mobile optimizations for UI */
         @media (max-width: 768px) {
             .chat-box {
-                width: 250px;
-                height: 150px;
+                width: 280px;
+                height: 200px;
             }
             
             #scoreboard {
-                max-width: 150px;
-                font-size: 12px;
+                max-width: 200px;
             }
             
             #hud {
-                padding: 5px;
+                padding: 10px;
+            }
+
+            .btn {
+                padding: 14px 28px;
+                font-size: 16px;
+            }
+
+            .room-code {
+                font-size: 28px;
+                letter-spacing: 6px;
+            }
+
+            .screen-title {
+                font-size: 32px;
+            }
+
+            #logo-container {
+                width: 150px;
+                height: 150px;
+            }
+
+            #instructions {
+                font-size: 16px;
+                margin: 15px 0;
+            }
+
+            .form-group input {
+                padding: 12px;
+            }
+
+            .winner.rank1 {
+                font-size: 28px;
+            }
+            
+            .winner.rank2 {
+                font-size: 24px;
+            }
+            
+            .winner.rank3 {
+                font-size: 20px;
             }
         }
     </style>
@@ -579,11 +1000,14 @@
         <canvas id="particles-canvas"></canvas>
         
         <div id="hud">
-            <div id="score-container">
-                Hoa: <span id="score">0</span>
+            <div class="hud-panel" id="score-container">
+                <div class="hud-icon">🌸</div>
+                <div>Hoa: <span id="score" class="hud-value">0</span></div>
             </div>
-            <div id="time-container">
-                Thời gian: <span id="time">900</span>s
+            
+            <div class="hud-panel" id="time-container">
+                <div class="hud-icon">⏱️</div>
+                <div>Thời gian: <span id="time" class="hud-value">900</span>s</div>
             </div>
         </div>
         
@@ -591,16 +1015,17 @@
         <div id="room-info"></div>
         <div id="scoreboard"></div>
         <div id="notification"></div>
-        <div id="volume-control">🔊</div>
         <div class="boss-warning" id="boss-warning"></div>
         
         <div class="chat-box">
             <div class="chat-messages" id="chat-messages">
-                <div class="message message-system">Chào mừng đến với Hiếu Gà Đại CHiến!</div>
+                <div class="message message-system">Chào mừng đến với Hiếu Gà Đại Chiến!</div>
             </div>
             <div class="chat-input-container">
                 <input type="text" class="chat-input" id="chat-input" placeholder="Nhập tin nhắn..." maxlength="100">
-                <button class="chat-send" id="chat-send">📤</button>
+                <button class="chat-send" id="chat-send">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
             </div>
         </div>
         
@@ -609,45 +1034,47 @@
             <div id="logo-container">
                 <!-- Logo sẽ được tạo bằng JavaScript -->
             </div>
-            <h1>Hiếu Gà Đại Chiến</h1>
+            <h1 class="screen-title">Hiếu Gà Đại Chiến</h1>
             <p id="login-instructions">Nhập tên của bạn để tham gia trò chơi</p>
             
-            <div class="form-group">
+            <div class="form-group slide-up" style="animation-delay: 0.1s">
                 <label for="player-name">Tên người chơi:</label>
                 <input type="text" id="player-name" placeholder="Nhập tên của bạn" maxlength="15">
             </div>
             
-            <button id="create-room-btn" class="btn">Tạo phòng mới</button>
-            <button id="join-room-btn" class="btn">Tham gia phòng</button>
+            <button id="create-room-btn" class="btn btn-primary slide-left" style="animation-delay: 0.2s">Tạo phòng mới</button>
+            <button id="join-room-btn" class="btn slide-right" style="animation-delay: 0.3s">Tham gia phòng</button>
         </div>
         
         <!-- Room Screen -->
         <div id="room-screen" style="display: none;">
-            <h1>Phòng chờ</h1>
-            <div class="room-info-title">Mã phòng:</div>
-            <div class="room-code" id="room-code">------</div>
+            <h1 class="screen-title">Phòng chờ</h1>
+            <div class="room-info-title slide-up" style="animation-delay: 0.1s">Mã phòng:</div>
+            <div class="room-code slide-up" id="room-code" style="animation-delay: 0.2s">------</div>
             
-            <div class="room-info-title">Người chơi (<span id="player-count">1</span>/8):</div>
-            <div id="player-list">
+            <div class="room-info-title slide-up" style="animation-delay: 0.3s">Người chơi (<span id="player-count">1</span>/8):</div>
+            <div id="player-list" class="slide-up" style="animation-delay: 0.4s">
                 <!-- Player list will be populated here -->
             </div>
             
-            <div id="room-status">Đang chờ người chơi khác tham gia...</div>
-            <button id="start-game-btn" class="btn" disabled>Bắt đầu trò chơi</button>
-            <button id="leave-room-btn" class="btn">Rời phòng</button>
+            <div id="room-status" class="slide-up" style="animation-delay: 0.5s">Đang chờ người chơi khác tham gia...</div>
+            <div class="slide-up" style="animation-delay: 0.6s; display: flex; gap: 10px;">
+                <button id="start-game-btn" class="btn btn-primary" disabled>Bắt đầu trò chơi</button>
+                <button id="leave-room-btn" class="btn">Rời phòng</button>
+            </div>
         </div>
         
         <!-- Join Room Modal -->
-        <div id="join-room-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 200; display: flex; justify-content: center; align-items: center;">
-            <div style="background-color: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 400px;">
-                <h2 style="color: var(--accent); margin-bottom: 20px;">Tham gia phòng</h2>
+        <div id="join-room-modal">
+            <div class="modal-content">
+                <h2 class="modal-title">Tham gia phòng</h2>
                 <div class="form-group">
                     <label for="room-code-input" style="color: #333;">Mã phòng:</label>
                     <input type="text" id="room-code-input" placeholder="Nhập mã phòng" maxlength="6" style="text-transform: uppercase;">
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <button id="join-room-submit" class="btn">Tham gia</button>
-                    <button id="join-room-cancel" class="btn" style="background-color: #999;">Hủy</button>
+                <div class="modal-buttons">
+                    <button id="join-room-submit" class="btn btn-primary">Tham gia</button>
+                    <button id="join-room-cancel" class="btn" style="background: linear-gradient(to bottom, #aaa, #888);">Hủy</button>
                 </div>
             </div>
         </div>
@@ -657,17 +1084,19 @@
             <div id="logo-container">
                 <!-- Logo sẽ được tạo bằng JavaScript -->
             </div>
-            <h1>Hiếu Gà Đại Chiến</h1>
-            <p id="instructions">Thu thập hoa trong bản đồ đang thu hẹp! Boss xuất hiện ngẫu nhiên trong game. Nhặt các vật phẩm đặc biệt để nhận power-up! Top 3 người chơi có nhiều hoa nhất sẽ chiến thắng. Kéo màn hình để di chuyển.</p>
-            <button id="start-btn" class="btn">Bắt Đầu</button>
+            <h1 class="screen-title">Hiếu Gà Đại Chiến</h1>
+            <p id="instructions" class="slide-up" style="animation-delay: 0.1s">Thu thập hoa trong bản đồ đang thu hẹp! Boss xuất hiện ngẫu nhiên trong game. Nhặt các vật phẩm đặc biệt để nhận power-up! Top 3 người chơi có nhiều hoa nhất sẽ chiến thắng. Kéo màn hình để di chuyển.</p>
+            <button id="start-btn" class="btn btn-primary slide-up" style="animation-delay: 0.2s">Bắt Đầu</button>
         </div>
         
         <!-- Game Over Screen -->
         <div id="game-over-screen">
-            <h1>Game Kết Thúc!</h1>
+            <h1 class="screen-title">Game Kết Thúc!</h1>
             <div id="winner-list"></div>
-            <button id="restart-btn" class="btn">Chơi Lại</button>
-            <button id="back-to-rooms-btn" class="btn">Về Phòng Chờ</button>
+            <div style="display: flex; gap: 15px;">
+                <button id="restart-btn" class="btn btn-primary slide-left" style="animation-delay: 0.5s">Chơi Lại</button>
+                <button id="back-to-rooms-btn" class="btn slide-right" style="animation-delay: 0.6s">Về Phòng Chờ</button>
+            </div>
         </div>
     </div>
     
@@ -770,7 +1199,6 @@
         const winnerListElement = document.getElementById('winner-list');
         const logoContainer = document.getElementById('logo-container');
         const notificationElement = document.getElementById('notification');
-        const volumeControl = document.getElementById('volume-control');
         const powerUpsContainer = document.getElementById('power-ups-container');
         
         // Chat elements
@@ -788,6 +1216,7 @@
         let playerId = null;
         let playerName = '';
         let isRoomOwner = false;
+        let gameActive = false;
         
         // Telegram WebApp integration
         function checkTelegramWebApp() {
@@ -808,8 +1237,10 @@
                         // Initialize Telegram WebApp
                         window.Telegram.WebApp.ready();
                         
-                        // Enable the main button if needed
-                        // window.Telegram.WebApp.MainButton.setText('Create Room').show();
+                        // Set a custom background color if in Telegram
+                        if (window.Telegram.WebApp.colorScheme === 'dark') {
+                            document.documentElement.classList.add('dark');
+                        }
                     }
                 } catch (error) {
                     console.error('Error accessing Telegram WebApp data:', error);
@@ -819,6 +1250,15 @@
         
         // Call this when the page loads
         checkTelegramWebApp();
+
+        // Keep game running when minimized or tab changed
+        document.addEventListener('visibilitychange', function() {
+            // Keep the game running even when tab is not visible
+            if (document.visibilityState === 'hidden' && gameActive) {
+                // Make sure the game doesn't pause when tab is hidden
+                // The game loop is already using requestAnimationFrame which handles this
+            }
+        });
         
         // Thiết lập kích thước canvas
         function resizeCanvas() {
@@ -837,9 +1277,16 @@
         class ParticleSystem {
             constructor() {
                 this.particles = [];
+                this.maxParticles = 500; // Limit to avoid performance issues
             }
             
             createParticles(x, y, count, color, type = 'circle', lifespan = 1000, size = 5, velocity = 2) {
+                // Ensure we don't exceed the maximum particle count
+                if (this.particles.length > this.maxParticles) {
+                    // Remove oldest particles if we exceed the limit
+                    this.particles.splice(0, count);
+                }
+                
                 for (let i = 0; i < count; i++) {
                     const angle = Math.random() * Math.PI * 2;
                     const speed = Math.random() * velocity;
@@ -856,7 +1303,8 @@
                         life: lifespan * (0.8 + Math.random() * 0.4),
                         maxLife: lifespan * (0.8 + Math.random() * 0.4),
                         rotation: Math.random() * Math.PI * 2,
-                        rotationSpeed: (Math.random() - 0.5) * 0.2
+                        rotationSpeed: (Math.random() - 0.5) * 0.2,
+                        gravity: type === 'flower' || type === 'star' ? 0.03 : 0
                     });
                 }
             }
@@ -867,6 +1315,10 @@
                     
                     p.x += p.vx * (deltaTime / 16.67);
                     p.y += p.vy * (deltaTime / 16.67);
+                    
+                    // Apply gravity if needed
+                    p.vy += p.gravity * (deltaTime / 16.67);
+                    
                     p.alpha = p.life / p.maxLife;
                     p.life -= deltaTime;
                     p.rotation += p.rotationSpeed * (deltaTime / 16.67);
@@ -1028,9 +1480,13 @@
                     freeze: '❄️',
                     vacuum: '🧲'
                 };
+                
+                // Create shimmer particles at regular intervals
+                this.shimmerInterval = 500; // ms
+                this.lastShimmer = 0;
             }
             
-            update(deltaTime) {
+            update(deltaTime, game) {
                 if (this.collected) return;
                 
                 // Floating animation
@@ -1038,6 +1494,28 @@
                 
                 // Rotation animation
                 this.rotationAngle += this.rotationSpeed * (deltaTime / 16.67);
+                
+                // Shimmer effect
+                const now = Date.now();
+                if (now - this.lastShimmer > this.shimmerInterval && game && game.particleSystem) {
+                    // Create shimmer particles
+                    const shimmerCount = Math.floor(Math.random() * 2) + 1;
+                    const shimmerAngle = Math.random() * Math.PI * 2;
+                    const shimmerDistance = this.radius * 1.2;
+                    
+                    game.particleSystem.createParticles(
+                        this.x + Math.cos(shimmerAngle) * shimmerDistance,
+                        this.y + Math.sin(shimmerAngle) * shimmerDistance,
+                        shimmerCount,
+                        this.colors[this.type],
+                        'sparkle',
+                        800,
+                        4,
+                        0.5
+                    );
+                    
+                    this.lastShimmer = now;
+                }
             }
             
             draw(ctx, camera) {
@@ -1131,28 +1609,56 @@
             logoCanvas.height = 200;
             const logoCtx = logoCanvas.getContext('2d');
             
-            // Draw circular background
-            logoCtx.fillStyle = '#FFDE59';
+            // Draw circular background with gradient
+            const bgGradient = logoCtx.createRadialGradient(100, 100, 0, 100, 100, 95);
+            bgGradient.addColorStop(0, '#FFE85C');
+            bgGradient.addColorStop(1, '#FFDE59');
+            
+            logoCtx.fillStyle = bgGradient;
             logoCtx.beginPath();
             logoCtx.arc(100, 100, 95, 0, Math.PI * 2);
             logoCtx.fill();
             
-            // Draw border
-            logoCtx.strokeStyle = '#FF9A5A';
+            // Draw border with gradient
+            const borderGradient = logoCtx.createLinearGradient(0, 0, 200, 200);
+            borderGradient.addColorStop(0, '#FFAA5A');
+            borderGradient.addColorStop(1, '#FF9A5A');
+            
+            logoCtx.strokeStyle = borderGradient;
             logoCtx.lineWidth = 10;
             logoCtx.stroke();
             
-            // Draw chicken body
-            logoCtx.fillStyle = '#FF5A5A';
+            // Add subtle inner shadow
+            logoCtx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+            logoCtx.shadowBlur = 10;
+            logoCtx.shadowOffsetX = 0;
+            logoCtx.shadowOffsetY = 3;
+            
+            // Draw chicken body with gradient
+            const bodyGradient = logoCtx.createRadialGradient(100, 110, 0, 100, 110, 60);
+            bodyGradient.addColorStop(0, '#FF7A7A');
+            bodyGradient.addColorStop(1, '#FF5A5A');
+            
+            logoCtx.fillStyle = bodyGradient;
             logoCtx.beginPath();
             logoCtx.ellipse(100, 110, 50, 60, 0, 0, Math.PI * 2);
             logoCtx.fill();
             
-            // Draw chicken head
-            logoCtx.fillStyle = '#FF5A5A';
+            // Draw chicken head with gradient
+            const headGradient = logoCtx.createRadialGradient(100, 60, 0, 100, 60, 30);
+            headGradient.addColorStop(0, '#FF7A7A');
+            headGradient.addColorStop(1, '#FF5A5A');
+            
+            logoCtx.fillStyle = headGradient;
             logoCtx.beginPath();
             logoCtx.arc(100, 60, 30, 0, Math.PI * 2);
             logoCtx.fill();
+            
+            // Reset shadow
+            logoCtx.shadowColor = 'transparent';
+            logoCtx.shadowBlur = 0;
+            logoCtx.shadowOffsetX = 0;
+            logoCtx.shadowOffsetY = 0;
             
             // Draw chicken eyes
             logoCtx.fillStyle = 'white';
@@ -1171,8 +1677,12 @@
             logoCtx.arc(115, 55, 4, 0, Math.PI * 2);
             logoCtx.fill();
             
-            // Draw chicken comb
-            logoCtx.fillStyle = '#FF0000';
+            // Draw chicken comb with gradient
+            const combGradient = logoCtx.createLinearGradient(85, 30, 115, 45);
+            combGradient.addColorStop(0, '#FF3333');
+            combGradient.addColorStop(1, '#FF0000');
+            
+            logoCtx.fillStyle = combGradient;
             logoCtx.beginPath();
             logoCtx.moveTo(100, 30);
             logoCtx.lineTo(85, 45);
@@ -1181,8 +1691,12 @@
             logoCtx.closePath();
             logoCtx.fill();
             
-            // Draw chicken beak
-            logoCtx.fillStyle = '#FFA500';
+            // Draw chicken beak with gradient
+            const beakGradient = logoCtx.createLinearGradient(90, 65, 110, 75);
+            beakGradient.addColorStop(0, '#FFB52E');
+            beakGradient.addColorStop(1, '#FFA500');
+            
+            logoCtx.fillStyle = beakGradient;
             logoCtx.beginPath();
             logoCtx.moveTo(100, 65);
             logoCtx.lineTo(90, 75);
@@ -1190,8 +1704,12 @@
             logoCtx.closePath();
             logoCtx.fill();
             
-            // Draw chicken wings
-            logoCtx.fillStyle = '#FF7A7A';
+            // Draw chicken wings with gradient
+            const wingGradient = logoCtx.createRadialGradient(100, 110, 0, 100, 110, 60);
+            wingGradient.addColorStop(0, '#FF9A9A');
+            wingGradient.addColorStop(1, '#FF7A7A');
+            
+            logoCtx.fillStyle = wingGradient;
             logoCtx.beginPath();
             logoCtx.ellipse(60, 110, 15, 30, Math.PI / 4, 0, Math.PI * 2);
             logoCtx.fill();
@@ -1205,6 +1723,9 @@
             logoCtx.fillRect(107, 165, 8, 20);
             
             // Draw chicken feet
+            logoCtx.strokeStyle = '#FF8C00';
+            logoCtx.lineWidth = 3;
+            
             logoCtx.beginPath();
             logoCtx.moveTo(85, 185);
             logoCtx.lineTo(70, 190);
@@ -1219,11 +1740,22 @@
             logoCtx.lineTo(107, 190);
             logoCtx.stroke();
             
-            // Add text
-            logoCtx.fillStyle = '#5D5CDE';
-            logoCtx.font = 'bold 36px Arial';
+            // Add text with gradient and shadow
+            const textGradient = logoCtx.createLinearGradient(50, 240, 150, 240);
+            textGradient.addColorStop(0, '#7978FF');
+            textGradient.addColorStop(1, '#5D5CDE');
+            
+            logoCtx.fillStyle = textGradient;
+            logoCtx.font = 'bold 36px "Fredoka", Arial';
             logoCtx.textAlign = 'center';
             logoCtx.textBaseline = 'bottom';
+            
+            // Add text shadow
+            logoCtx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            logoCtx.shadowBlur = 5;
+            logoCtx.shadowOffsetX = 2;
+            logoCtx.shadowOffsetY = 2;
+            
             logoCtx.fillText('Hiếu Gà', 100, 240);
             
             // Create img element from canvas
@@ -1235,21 +1767,6 @@
             logoContainer.innerHTML = '';
             logoContainer.appendChild(logoImg);
         }
-        
-        // Audio Controls
-        volumeControl.addEventListener('click', () => {
-            soundEnabled = !soundEnabled;
-            
-            if (soundEnabled) {
-                volumeControl.textContent = '🔊';
-                if (game && game.gameActive) {
-                    bgm.play().catch(e => console.log("Audio play error:", e));
-                }
-            } else {
-                volumeControl.textContent = '🔇';
-                bgm.pause();
-            }
-        });
         
         // Preload all audio assets
         function preloadAudio() {
@@ -1301,6 +1818,10 @@
                 this.lastSyncTime = 0;
                 this.syncInterval = 50; // sync every 50ms
                 
+                // Trail particles
+                this.lastTrailTime = 0;
+                this.trailInterval = 100; // ms
+                
                 // Power-up states
                 this.powerUps = {
                     speed: 0,     // Speed boost
@@ -1329,6 +1850,37 @@
                 
                 // Update power-up timers and effects
                 this.updatePowerUps(deltaTime);
+                
+                // Create trail particles
+                if (this.isLocal && now - this.lastTrailTime > this.trailInterval && game.particleSystem) {
+                    // Create trail particles based on movement
+                    const dx = this.targetX - this.x;
+                    const dy = this.targetY - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > 5) {
+                        // Create trail particles
+                        const trailColor = this.powerUps.speed > 0 ? '#00FFFF' : 
+                                          this.powerUps.ghost > 0 ? '#9966FF' :
+                                          this.powerUps.giant > 0 ? '#FFA500' :
+                                          this.color;
+                        
+                        const trailType = this.powerUps.speed > 0 ? 'sparkle' : 'circle';
+                        
+                        game.particleSystem.createParticles(
+                            this.x - Math.cos(this.moveDirection) * this.radius * 0.8,
+                            this.y - Math.sin(this.moveDirection) * this.radius * 0.8,
+                            1,
+                            trailColor,
+                            trailType,
+                            400,
+                            3,
+                            0.5
+                        );
+                        
+                        this.lastTrailTime = now;
+                    }
+                }
                 
                 // Skip movement if frozen
                 if (this.powerUps.freeze > 0) {
@@ -1448,6 +2000,19 @@
                             targetY: this.targetY,
                             moveDirection: this.moveDirection
                         });
+                        
+                        // Add boundary hit particles
+                        if (game.particleSystem) {
+                            game.particleSystem.createParticles(
+                                this.x, this.y,
+                                8,
+                                'rgba(255, 105, 180, 0.8)',
+                                'circle',
+                                600,
+                                5,
+                                2
+                            );
+                        }
                     }
                 }
                 
@@ -1571,13 +2136,14 @@
                             const displayTime = Math.ceil(duration / 1000);
                             const indicator = document.createElement('div');
                             indicator.className = 'power-up-indicator';
-                            indicator.style.backgroundColor = this.getPowerUpColor(type);
+                            indicator.style.borderLeft = `4px solid ${this.getPowerUpColor(type)}`;
                             
                             const icon = document.createElement('span');
                             icon.className = 'power-up-icon';
                             icon.textContent = this.getPowerUpIcon(type);
                             
                             const name = document.createElement('span');
+                            name.className = 'power-up-name';
                             name.textContent = this.getPowerUpName(type);
                             
                             const timer = document.createElement('span');
@@ -1722,11 +2288,20 @@
                     ctx.fill();
                 }
                 
-                // Body
-                ctx.fillStyle = this.color;
+                // Body with gradient
+                const bodyGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius);
+                bodyGradient.addColorStop(0, this.lightenColor(this.color, 20));
+                bodyGradient.addColorStop(1, this.color);
+                
+                ctx.fillStyle = bodyGradient;
                 ctx.beginPath();
                 ctx.ellipse(0, 0, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Add a subtle body outline
+                ctx.strokeStyle = this.darkenColor(this.color, 20);
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
                 
                 // Mắt
                 const eyeX = Math.sin(this.animationFrame) * 2;
@@ -1734,6 +2309,13 @@
                 ctx.beginPath();
                 ctx.arc(-8 + eyeX, -10, 5, 0, Math.PI * 2);
                 ctx.arc(8 + eyeX, -10, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Add eye highlight
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(-9 + eyeX, -11, 2, 0, Math.PI * 2);
+                ctx.arc(7 + eyeX, -11, 2, 0, Math.PI * 2);
                 ctx.fill();
                 
                 ctx.fillStyle = 'black';
@@ -1747,26 +2329,33 @@
                 ctx.lineWidth = 3;
                 
                 // Cánh tay trái
+                const armAngle = Math.sin(this.animationFrame * 0.5) * 0.2;
+                ctx.save();
+                ctx.rotate(armAngle);
                 ctx.beginPath();
                 ctx.arc(-this.radius - 2, 0, 8, 0, Math.PI * 2);
                 ctx.stroke();
+                ctx.restore();
                 
                 // Cánh tay phải
+                ctx.save();
+                ctx.rotate(-armAngle);
                 ctx.beginPath();
                 ctx.arc(this.radius + 2, 0, 8, 0, Math.PI * 2);
                 ctx.stroke();
+                ctx.restore();
                 
                 // Tên
                 ctx.rotate(-this.angle - Math.PI / 2);
                 
                 // Improved player name visibility with outline
-                ctx.font = 'bold 14px Arial';
+                ctx.font = 'bold 14px "Quicksand", Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
                 
                 // Add text shadow/stroke for better visibility
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 3;
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.lineWidth = 4;
                 ctx.strokeText(this.name, 0, -this.radius - 5);
                 
                 // Fill with bright color
@@ -1775,15 +2364,47 @@
                 
                 // Số hoa with improved visibility
                 if (this.score > 0) {
-                    ctx.font = 'bold 12px Arial';
-                    ctx.strokeStyle = 'black';
-                    ctx.lineWidth = 2;
+                    ctx.font = 'bold 12px "Quicksand", Arial';
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.lineWidth = 3;
                     ctx.strokeText(`🌸 ${this.score}`, 0, -this.radius - 20);
                     ctx.fillStyle = '#FFFFFF';
                     ctx.fillText(`🌸 ${this.score}`, 0, -this.radius - 20);
                 }
                 
                 ctx.restore();
+            }
+            
+            // Helper function to lighten a color
+            lightenColor(color, percent) {
+                const num = parseInt(color.replace('#', ''), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) + amt;
+                const G = (num >> 8 & 0x00FF) + amt;
+                const B = (num & 0x0000FF) + amt;
+                
+                return '#' + (
+                    0x1000000 + 
+                    (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + 
+                    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + 
+                    (B < 255 ? B < 1 ? 0 : B : 255)
+                ).toString(16).slice(1);
+            }
+            
+            // Helper function to darken a color
+            darkenColor(color, percent) {
+                const num = parseInt(color.replace('#', ''), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) - amt;
+                const G = (num >> 8 & 0x00FF) - amt;
+                const B = (num & 0x0000FF) - amt;
+                
+                return '#' + (
+                    0x1000000 + 
+                    (R > 0 ? R : 0) * 0x10000 + 
+                    (G > 0 ? G : 0) * 0x100 + 
+                    (B > 0 ? B : 0)
+                ).toString(16).slice(1);
             }
             
             collectFlowers(flowers, game) {
@@ -1980,7 +2601,7 @@
                         // Play power-up sound
                         if (soundEnabled) {
                             powerUpSound.currentTime = 0;
-                            powerUpSound.play().catch(e => console.log("Audio play error:", e));
+                            powerUpSound.play().catch(e => console.log("Sound error:", e));
                         }
                         
                         // Spawn collection particles
@@ -2040,6 +2661,10 @@
                 this.lastAttackTime = 0;
                 this.attackCooldown = 2000;
                 
+                // Trail particles
+                this.lastTrailTime = 0;
+                this.trailInterval = 150; // ms
+                
                 // Special attack properties
                 this.specialAttackCharge = 0;
                 this.isChargingAttack = false;
@@ -2051,6 +2676,21 @@
                 if (this.defeated) return;
                 
                 const now = Date.now();
+                
+                // Create trail particles
+                if (now - this.lastTrailTime > this.trailInterval && game.particleSystem) {
+                    game.particleSystem.createParticles(
+                        this.x + (Math.random() - 0.5) * this.radius,
+                        this.y + (Math.random() - 0.5) * this.radius,
+                        1,
+                        'rgba(255, 69, 0, 0.5)',
+                        'circle',
+                        700,
+                        4,
+                        0.5
+                    );
+                    this.lastTrailTime = now;
+                }
                 
                 // Special attack logic
                 if (this.isChargingAttack) {
@@ -2204,7 +2844,7 @@
                 
                 // Show charging effect
                 if (game) {
-                    game.showNotification("⚠️ Boss is charging a special attack! ⚠️", 2000);
+                    game.showNotification(`⚠️ Boss is charging a ${this.specialAttackType} attack! ⚠️`, 2000);
                     
                     // Visual warning
                     if (bossWarning) {
@@ -2222,14 +2862,17 @@
                 
                 if (game) {
                     let message = "🔥 Boss unleashed flames!";
+                    let icon = "🔥";
                     
                     if (this.specialAttackType === 'freeze') {
                         message = "❄️ Boss unleashed a freezing wave!";
+                        icon = "❄️";
                     } else if (this.specialAttackType === 'shockwave') {
                         message = "💥 Boss unleashed a shockwave!";
+                        icon = "💥";
                     }
                     
-                    game.showNotification(message, 2000);
+                    game.showNotification(`${icon} ${message}`, 2000);
                     
                     // Screen shake effect
                     game.screenShake(0.8, 800);
@@ -2449,29 +3092,79 @@
                     }
                 }
                 
-                // Body
-                ctx.fillStyle = this.color;
+                // Body with gradient
+                const bodyGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius);
+                bodyGradient.addColorStop(0, '#FF6347'); // Lighter in center
+                bodyGradient.addColorStop(1, this.color); // Darker at edges
+                
+                ctx.fillStyle = bodyGradient;
                 ctx.beginPath();
                 ctx.ellipse(0, 0, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Eyes
+                // Add a subtle body outline
+                ctx.strokeStyle = '#B22222'; // Darker red
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Eyes with glow
                 const eyeX = Math.sin(this.animationFrame) * 3;
+                
+                // Eye glow
+                const eyeGlow = ctx.createRadialGradient(-15 + eyeX, -20, 0, -15 + eyeX, -20, 15);
+                eyeGlow.addColorStop(0, 'rgba(255, 255, 0, 0.3)');
+                eyeGlow.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = eyeGlow;
+                ctx.beginPath();
+                ctx.arc(-15 + eyeX, -20, 15, 0, Math.PI * 2);
+                ctx.fill();
+                
+                const eyeGlow2 = ctx.createRadialGradient(15 + eyeX, -20, 0, 15 + eyeX, -20, 15);
+                eyeGlow2.addColorStop(0, 'rgba(255, 255, 0, 0.3)');
+                eyeGlow2.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = eyeGlow2;
+                ctx.beginPath();
+                ctx.arc(15 + eyeX, -20, 15, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // White of eyes
                 ctx.fillStyle = 'white';
                 ctx.beginPath();
                 ctx.arc(-15 + eyeX, -20, 10, 0, Math.PI * 2);
                 ctx.arc(15 + eyeX, -20, 10, 0, Math.PI * 2);
                 ctx.fill();
                 
-                ctx.fillStyle = 'black';
+                // Pupils with gradient
+                const pupilGradient = ctx.createRadialGradient(-15 + eyeX, -20, 0, -15 + eyeX, -20, 5);
+                pupilGradient.addColorStop(0, '#333');
+                pupilGradient.addColorStop(1, 'black');
+                
+                ctx.fillStyle = pupilGradient;
                 ctx.beginPath();
                 ctx.arc(-15 + eyeX, -20, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                const pupilGradient2 = ctx.createRadialGradient(15 + eyeX, -20, 0, 15 + eyeX, -20, 5);
+                pupilGradient2.addColorStop(0, '#333');
+                pupilGradient2.addColorStop(1, 'black');
+                
+                ctx.fillStyle = pupilGradient2;
+                ctx.beginPath();
                 ctx.arc(15 + eyeX, -20, 5, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Mouth
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 3;
+                // Add eye highlights
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(-17 + eyeX, -22, 3, 0, Math.PI * 2);
+                ctx.arc(13 + eyeX, -22, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Mouth - different expressions based on health
+                ctx.strokeStyle = '#550000';
+                ctx.lineWidth = 4;
                 
                 // Different mouth expressions based on health
                 if (this.health > this.maxHealth * 0.7) {
@@ -2479,6 +3172,19 @@
                     ctx.beginPath();
                     ctx.arc(0, 10, 20, 0.1 * Math.PI, 0.9 * Math.PI);
                     ctx.stroke();
+                    
+                    // Add teeth
+                    ctx.fillStyle = 'white';
+                    for (let i = 0; i < 5; i++) {
+                        const toothX = -15 + i * 8;
+                        ctx.beginPath();
+                        ctx.moveTo(toothX, 5);
+                        ctx.lineTo(toothX + 5, 5);
+                        ctx.lineTo(toothX + 3, 15);
+                        ctx.lineTo(toothX + 2, 15);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
                 } else if (this.health > this.maxHealth * 0.3) {
                     // Straight line when medium health
                     ctx.beginPath();
@@ -2492,12 +3198,21 @@
                     ctx.stroke();
                 }
                 
-                // Spikes
-                ctx.fillStyle = '#FF6347';
+                // Spikes with gradient
                 for (let i = 0; i < 8; i++) {
                     const angle = (i / 8) * Math.PI * 2;
                     const spikeLength = 15 + Math.sin(this.animationFrame + i) * 5;
                     
+                    const spikeGradient = ctx.createLinearGradient(
+                        Math.cos(angle) * this.radius,
+                        Math.sin(angle) * this.radius,
+                        Math.cos(angle) * (this.radius + spikeLength),
+                        Math.sin(angle) * (this.radius + spikeLength)
+                    );
+                    spikeGradient.addColorStop(0, '#FF6347');
+                    spikeGradient.addColorStop(1, '#FF4500');
+                    
+                    ctx.fillStyle = spikeGradient;
                     ctx.beginPath();
                     ctx.moveTo(Math.cos(angle) * this.radius, Math.sin(angle) * this.radius);
                     ctx.lineTo(
@@ -2514,35 +3229,78 @@
                 
                 // Health bar
                 ctx.rotate(-this.angle - Math.PI / 2);
-                const healthBarWidth = this.radius * 2;
-                const healthBarHeight = 8;
+                const healthBarWidth = this.radius * 2.2;
+                const healthBarHeight = 10;
                 const healthPercentage = this.health / this.maxHealth;
                 
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                ctx.fillRect(-healthBarWidth/2, -this.radius - 20, healthBarWidth, healthBarHeight);
+                // Health bar background with gradient
+                const bgGradient = ctx.createLinearGradient(-healthBarWidth/2, 0, healthBarWidth/2, 0);
+                bgGradient.addColorStop(0, 'rgba(0, 0, 0, 0.7)');
+                bgGradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.5)');
+                bgGradient.addColorStop(1, 'rgba(0, 0, 0, 0.7)');
                 
-                ctx.fillStyle = healthPercentage > 0.5 ? 'limegreen' : 
-                                healthPercentage > 0.25 ? 'yellow' : 'red';
-                ctx.fillRect(
-                    -healthBarWidth/2, 
-                    -this.radius - 20, 
-                    healthBarWidth * healthPercentage, 
-                    healthBarHeight
-                );
+                ctx.fillStyle = bgGradient;
+                // Rounded rect for background
+                this.roundRect(ctx, -healthBarWidth/2, -this.radius - 25, healthBarWidth, healthBarHeight, 5);
                 
-                // Label
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 16px Arial';
+                // Health bar fill with gradient based on health
+                let gradient;
+                if (healthPercentage > 0.5) {
+                    gradient = ctx.createLinearGradient(-healthBarWidth/2, 0, healthBarWidth * healthPercentage - healthBarWidth/2, 0);
+                    gradient.addColorStop(0, '#00FF00');
+                    gradient.addColorStop(1, '#32CD32');
+                } else if (healthPercentage > 0.25) {
+                    gradient = ctx.createLinearGradient(-healthBarWidth/2, 0, healthBarWidth * healthPercentage - healthBarWidth/2, 0);
+                    gradient.addColorStop(0, '#FFD700');
+                    gradient.addColorStop(1, '#FFA500');
+                } else {
+                    gradient = ctx.createLinearGradient(-healthBarWidth/2, 0, healthBarWidth * healthPercentage - healthBarWidth/2, 0);
+                    gradient.addColorStop(0, '#FF6347');
+                    gradient.addColorStop(1, '#FF0000');
+                }
+                
+                ctx.fillStyle = gradient;
+                // Rounded rect for health fill
+                this.roundRect(ctx, -healthBarWidth/2, -this.radius - 25, healthBarWidth * healthPercentage, healthBarHeight, 5);
+                
+                // Add border to health bar
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(-healthBarWidth/2, -this.radius - 25, healthBarWidth, healthBarHeight);
+                
+                // Label with shadow and gradient
+                const labelGradient = ctx.createLinearGradient(-20, -this.radius - 35, 20, -this.radius - 35);
+                labelGradient.addColorStop(0, '#FF0000');
+                labelGradient.addColorStop(0.5, '#FF6347');
+                labelGradient.addColorStop(1, '#FF0000');
+                
+                ctx.fillStyle = labelGradient;
+                ctx.font = 'bold 16px "Fredoka", Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
                 
                 // Add text shadow for better visibility
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 3;
-                ctx.strokeText('BOSS', 0, -this.radius - 25);
-                ctx.fillText('BOSS', 0, -this.radius - 25);
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.lineWidth = 4;
+                ctx.strokeText('BOSS', 0, -this.radius - 30);
+                ctx.fillText('BOSS', 0, -this.radius - 30);
                 
                 ctx.restore();
+            }
+            
+            // Helper method to draw rounded rectangles
+            roundRect(ctx, x, y, width, height, radius) {
+                if (width < 2 * radius) radius = width / 2;
+                if (height < 2 * radius) radius = height / 2;
+                
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.arcTo(x + width, y, x + width, y + height, radius);
+                ctx.arcTo(x + width, y + height, x, y + height, radius);
+                ctx.arcTo(x, y + height, x, y, radius);
+                ctx.arcTo(x, y, x + width, y, radius);
+                ctx.closePath();
+                ctx.fill();
             }
         }
         
@@ -2561,12 +3319,32 @@
                 this.scale = 0.8 + Math.random() * 0.4;
                 this.floatOffset = Math.random() * Math.PI * 2;
                 this.floatSpeed = 0.03 + Math.random() * 0.02;
+                
+                // Shimmer effect
+                this.shimmerInterval = 1500 + Math.random() * 1500; // 1.5-3s
+                this.lastShimmer = 0;
             }
             
-            update(deltaTime) {
+            update(deltaTime, game) {
                 if (!this.collected) {
                     this.angle += this.rotationSpeed * (deltaTime / 16.67);
                     this.floatOffset += this.floatSpeed * (deltaTime / 16.67);
+                    
+                    // Add shimmer effect occasionally
+                    const now = Date.now();
+                    if (now - this.lastShimmer > this.shimmerInterval && game && game.particleSystem) {
+                        game.particleSystem.createParticles(
+                            this.x,
+                            this.y,
+                            1,
+                            '#FFFFFF',
+                            'sparkle',
+                            600,
+                            3,
+                            0.5
+                        );
+                        this.lastShimmer = now;
+                    }
                 }
             }
             
@@ -2618,11 +3396,18 @@
                 ctx.arc(0, 0, glowRadius, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Draw petals
-                ctx.fillStyle = flowerColor;
-                
+                // Draw petals with gradient
                 for (let i = 0; i < 5; i++) {
                     const angle = (i * Math.PI * 2) / 5;
+                    
+                    const petalGradient = ctx.createRadialGradient(
+                        Math.cos(angle) * 8, Math.sin(angle) * 8, 0,
+                        Math.cos(angle) * 8, Math.sin(angle) * 8, 7
+                    );
+                    petalGradient.addColorStop(0, this.lightenColor(flowerColor, 10));
+                    petalGradient.addColorStop(1, flowerColor);
+                    
+                    ctx.fillStyle = petalGradient;
                     ctx.beginPath();
                     ctx.ellipse(
                         Math.cos(angle) * 8,
@@ -2633,13 +3418,33 @@
                     ctx.fill();
                 }
                 
-                // Draw center
-                ctx.fillStyle = centerColor;
+                // Draw center with gradient
+                const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 5);
+                centerGradient.addColorStop(0, this.lightenColor(centerColor, 20));
+                centerGradient.addColorStop(1, centerColor);
+                
+                ctx.fillStyle = centerGradient;
                 ctx.beginPath();
                 ctx.arc(0, 0, 5, 0, Math.PI * 2);
                 ctx.fill();
                 
                 ctx.restore();
+            }
+            
+            // Helper function to lighten a color
+            lightenColor(color, percent) {
+                const num = parseInt(color.replace('#', ''), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) + amt;
+                const G = (num >> 8 & 0x00FF) + amt;
+                const B = (num & 0x0000FF) + amt;
+                
+                return '#' + (
+                    0x1000000 + 
+                    (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + 
+                    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + 
+                    (B < 255 ? B < 1 ? 0 : B : 255)
+                ).toString(16).slice(1);
             }
         }
         
@@ -2657,9 +3462,13 @@
                 this.lastPulse = 0;
                 this.pulseInterval = 500;
                 this.pulseAmount = 0;
+                
+                // Edge particles
+                this.edgeParticleTime = 0;
+                this.edgeParticleInterval = 300; // ms
             }
             
-            update(deltaTime) {
+            update(deltaTime, game) {
                 // Giảm kích thước mục tiêu theo thời gian
                 this.targetRadius = Math.max(
                     this.minRadius,
@@ -2681,6 +3490,30 @@
                     
                     this.pulseAmount *= 0.9;
                 }
+                
+                // Create edge particles periodically
+                if (game && game.particleSystem && now - this.edgeParticleTime > this.edgeParticleInterval) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const particleX = this.x + Math.cos(angle) * this.radius;
+                    const particleY = this.y + Math.sin(angle) * this.radius;
+                    
+                    // Color based on warning level
+                    const particleColor = ratio < this.criticalThreshold ? 'rgba(255, 0, 0, 0.5)' :
+                                        ratio < this.warningThreshold ? 'rgba(255, 165, 0, 0.5)' :
+                                        'rgba(255, 105, 180, 0.5)';
+                    
+                    game.particleSystem.createParticles(
+                        particleX, particleY,
+                        1,
+                        particleColor,
+                        'circle',
+                        1000,
+                        4,
+                        0.5
+                    );
+                    
+                    this.edgeParticleTime = now;
+                }
             }
             
             draw(ctx, camera) {
@@ -2689,31 +3522,35 @@
                 const screenY = (this.y - camera.y) * camera.scale + canvas.height / 2;
                 const screenRadius = (this.radius + this.pulseAmount) * camera.scale;
                 
+                const ratio = this.radius / this.targetRadius;
+                
+                // Create multiple gradient stops for better visual effect
                 const gradient = ctx.createRadialGradient(
                     screenX, screenY, 0,
                     screenX, screenY, screenRadius
                 );
                 
-                const ratio = this.radius / this.targetRadius;
-                
                 if (ratio < this.criticalThreshold) {
-                    // Đỏ khi rất nhỏ
-                    gradient.addColorStop(0, 'rgba(255, 100, 100, 0.1)');
-                    gradient.addColorStop(0.7, 'rgba(255, 50, 50, 0.2)');
-                    gradient.addColorStop(0.9, 'rgba(255, 0, 0, 0.3)');
+                    // Red when very small - more vibrant gradient
+                    gradient.addColorStop(0, 'rgba(255, 50, 50, 0.05)');
+                    gradient.addColorStop(0.5, 'rgba(255, 30, 30, 0.1)');
+                    gradient.addColorStop(0.8, 'rgba(255, 0, 0, 0.2)');
+                    gradient.addColorStop(0.9, 'rgba(255, 0, 0, 0.4)');
                     gradient.addColorStop(1, 'rgba(255, 0, 0, 0.8)');
                 } else if (ratio < this.warningThreshold) {
-                    // Cam khi nhỏ
-                    gradient.addColorStop(0, 'rgba(255, 200, 100, 0.1)');
-                    gradient.addColorStop(0.7, 'rgba(255, 150, 50, 0.2)');
-                    gradient.addColorStop(0.9, 'rgba(255, 100, 0, 0.3)');
-                    gradient.addColorStop(1, 'rgba(255, 100, 0, 0.8)');
+                    // Orange when small - more vibrant gradient
+                    gradient.addColorStop(0, 'rgba(255, 165, 50, 0.05)');
+                    gradient.addColorStop(0.5, 'rgba(255, 140, 30, 0.1)');
+                    gradient.addColorStop(0.8, 'rgba(255, 120, 0, 0.2)');
+                    gradient.addColorStop(0.9, 'rgba(255, 100, 0, 0.4)');
+                    gradient.addColorStop(1, 'rgba(255, 80, 0, 0.8)');
                 } else {
-                    // Bình thường là màu hồng
+                    // Normal is pink - more vibrant gradient
                     gradient.addColorStop(0, 'rgba(255, 105, 180, 0.0)');
-                    gradient.addColorStop(0.7, 'rgba(255, 105, 180, 0.1)');
+                    gradient.addColorStop(0.5, 'rgba(255, 105, 180, 0.05)');
+                    gradient.addColorStop(0.8, 'rgba(255, 105, 180, 0.1)');
                     gradient.addColorStop(0.9, 'rgba(255, 105, 180, 0.2)');
-                    gradient.addColorStop(1, 'rgba(255, 105, 180, 0.5)');
+                    gradient.addColorStop(1, 'rgba(255, 105, 180, 0.6)');
                 }
                 
                 ctx.fillStyle = gradient;
@@ -2721,23 +3558,93 @@
                 ctx.arc(screenX, screenY, screenRadius, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Viền
-                ctx.strokeStyle = ratio < this.criticalThreshold ? 'rgba(255, 0, 0, 0.8)' : 
-                                 ratio < this.warningThreshold ? 'rgba(255, 100, 0, 0.8)' : 
-                                 'rgba(255, 105, 180, 0.8)';
-                ctx.lineWidth = 3;
+                // Outer edge - thicker and more vibrant with animation
+                const edgeColor = ratio < this.criticalThreshold ? 'rgba(255, 0, 0, 0.9)' : 
+                                 ratio < this.warningThreshold ? 'rgba(255, 100, 0, 0.9)' : 
+                                 'rgba(255, 105, 180, 0.9)';
+                                 
+                const edgeGlow = ratio < this.criticalThreshold ? 'rgba(255, 0, 0, 0.3)' : 
+                              ratio < this.warningThreshold ? 'rgba(255, 100, 0, 0.3)' : 
+                              'rgba(255, 105, 180, 0.3)';
+                
+                // Pulsing edge width
+                const edgeWidth = 3 + Math.sin(Date.now() * 0.005) * 1;
+                
+                // Draw outer glow
+                ctx.shadowColor = edgeGlow;
+                ctx.shadowBlur = 10;
+                
+                ctx.strokeStyle = edgeColor;
+                ctx.lineWidth = edgeWidth;
                 ctx.beginPath();
                 ctx.arc(screenX, screenY, screenRadius, 0, Math.PI * 2);
                 ctx.stroke();
                 
+                // Reset shadow
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                
                 // Draw a dashed inner circle to indicate safe zone
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                const safeZoneRadius = screenRadius * 0.85;
+                
+                // Use gradient for safe zone
+                const safeZoneGradient = ctx.createLinearGradient(
+                    screenX - safeZoneRadius, screenY, 
+                    screenX + safeZoneRadius, screenY
+                );
+                
+                safeZoneGradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+                safeZoneGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.4)');
+                safeZoneGradient.addColorStop(1, 'rgba(255, 255, 255, 0.2)');
+                
+                ctx.strokeStyle = safeZoneGradient;
                 ctx.lineWidth = 2;
                 ctx.setLineDash([10, 10]);
                 ctx.beginPath();
-                ctx.arc(screenX, screenY, screenRadius * 0.8, 0, Math.PI * 2);
+                ctx.arc(screenX, screenY, safeZoneRadius, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.setLineDash([]);
+                
+                // Add direction indicators at cardinal points
+                if (ratio < this.warningThreshold) {
+                    // Only show direction indicators when the area is shrinking significantly
+                    const indicatorSize = 15 * camera.scale;
+                    const indicatorDistance = screenRadius + 10;
+                    
+                    ctx.fillStyle = ratio < this.criticalThreshold ? 'rgba(255, 0, 0, 0.8)' : 'rgba(255, 150, 0, 0.8)';
+                    
+                    // North indicator
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, screenY - indicatorDistance);
+                    ctx.lineTo(screenX - indicatorSize / 2, screenY - indicatorDistance - indicatorSize);
+                    ctx.lineTo(screenX + indicatorSize / 2, screenY - indicatorDistance - indicatorSize);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // East indicator
+                    ctx.beginPath();
+                    ctx.moveTo(screenX + indicatorDistance, screenY);
+                    ctx.lineTo(screenX + indicatorDistance + indicatorSize, screenY - indicatorSize / 2);
+                    ctx.lineTo(screenX + indicatorDistance + indicatorSize, screenY + indicatorSize / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // South indicator
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, screenY + indicatorDistance);
+                    ctx.lineTo(screenX - indicatorSize / 2, screenY + indicatorDistance + indicatorSize);
+                    ctx.lineTo(screenX + indicatorSize / 2, screenY + indicatorDistance + indicatorSize);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // West indicator
+                    ctx.beginPath();
+                    ctx.moveTo(screenX - indicatorDistance, screenY);
+                    ctx.lineTo(screenX - indicatorDistance - indicatorSize, screenY - indicatorSize / 2);
+                    ctx.lineTo(screenX - indicatorDistance - indicatorSize, screenY + indicatorSize / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
             }
         }
         
@@ -2747,29 +3654,7 @@
                 this.width = width;
                 this.height = height;
                 this.elements = [];
-                
-                // Tạo các phần tử nền
-                for (let i = 0; i < 50; i++) {
-                    this.elements.push({
-                        x: Math.random() * width,
-                        y: Math.random() * height,
-                        size: 5 + Math.random() * 15,
-                        type: Math.floor(Math.random() * 5),
-                        rotation: Math.random() * Math.PI * 2,
-                        rotationSpeed: (Math.random() * 0.01) - 0.005,
-                        alpha: 0.1 + Math.random() * 0.2
-                    });
-                }
-            }
-            
-            update(deltaTime) {
-                for (const element of this.elements) {
-                    element.rotation += element.rotationSpeed * (deltaTime / 16.67);
-                }
-            }
-            
-            draw(ctx, camera) {
-                const colors = [
+                this.colors = [
                     '#FF69B4', // pink
                     '#FF1493', // deep pink
                     '#FFB6C1', // light pink
@@ -2777,12 +3662,53 @@
                     '#FF77FF', // fuchsia
                 ];
                 
+                // More elements for richer background
+                const elementCount = 100;
+                
+                // Generate background elements with more variety
+                for (let i = 0; i < elementCount; i++) {
+                    const type = Math.floor(Math.random() * 5);
+                    let depth;
+                    
+                    // Create layered depth effect (3 layers)
+                    if (i < elementCount * 0.3) {
+                        depth = 0.7; // far layer (30% of elements)
+                    } else if (i < elementCount * 0.7) {
+                        depth = 0.4; // middle layer (40% of elements)
+                    } else {
+                        depth = 0.1; // near layer (30% of elements)
+                    }
+                    
+                    this.elements.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        size: 5 + Math.random() * 20,
+                        type: type,
+                        rotation: Math.random() * Math.PI * 2,
+                        rotationSpeed: (Math.random() * 0.01) - 0.005,
+                        alpha: 0.05 + Math.random() * 0.2,
+                        depth: depth, // Parallax factor - smaller means closer to foreground
+                        color: this.colors[Math.floor(Math.random() * this.colors.length)],
+                        floatOffset: Math.random() * Math.PI * 2,
+                        floatSpeed: 0.0005 + Math.random() * 0.001
+                    });
+                }
+            }
+            
+            update(deltaTime) {
                 for (const element of this.elements) {
-                    // Calculate element position based on camera position
-                    // Create parallax effect by moving background elements slower than foreground
-                    const parallaxFactor = 0.3;
+                    element.rotation += element.rotationSpeed * (deltaTime / 16.67);
+                    element.floatOffset += element.floatSpeed * deltaTime;
+                }
+            }
+            
+            draw(ctx, camera) {
+                for (const element of this.elements) {
+                    // Calculate element position based on camera position with parallax
+                    const parallaxFactor = element.depth;
                     const screenX = element.x - camera.x * parallaxFactor * camera.scale;
-                    const screenY = element.y - camera.y * parallaxFactor * camera.scale;
+                    const screenY = element.y - camera.y * parallaxFactor * camera.scale + 
+                                  Math.sin(element.floatOffset) * 5; // Subtle floating effect
                     
                     // Wrap elements around screen
                     const wrappedX = ((screenX % this.width) + this.width) % this.width;
@@ -2793,41 +3719,66 @@
                     ctx.rotate(element.rotation);
                     ctx.globalAlpha = element.alpha;
                     
-                    const color = colors[element.type % colors.length];
-                    ctx.fillStyle = color;
+                    // Use the element's own color
+                    ctx.fillStyle = element.color;
                     
                     if (element.type === 0) {
-                        // Hoa
-                        for (let i = 0; i < 5; i++) {
-                            const angle = (i * Math.PI * 2) / 5;
+                        // Flower with gradient
+                        const petalCount = 5;
+                        const petalSize = element.size * 0.4;
+                        
+                        for (let i = 0; i < petalCount; i++) {
+                            const angle = (i * Math.PI * 2) / petalCount;
+                            
+                            // Create gradient for each petal
+                            const gradient = ctx.createRadialGradient(
+                                Math.cos(angle) * petalSize, Math.sin(angle) * petalSize, 0,
+                                Math.cos(angle) * petalSize, Math.sin(angle) * petalSize, petalSize
+                            );
+                            gradient.addColorStop(0, this.lightenColor(element.color, 20));
+                            gradient.addColorStop(1, element.color);
+                            
+                            ctx.fillStyle = gradient;
                             ctx.beginPath();
                             ctx.ellipse(
-                                Math.cos(angle) * element.size * 0.4,
-                                Math.sin(angle) * element.size * 0.4,
-                                element.size * 0.4, element.size * 0.3, 
+                                Math.cos(angle) * petalSize,
+                                Math.sin(angle) * petalSize,
+                                petalSize, petalSize * 0.7,
                                 angle, 0, Math.PI * 2
                             );
                             ctx.fill();
                         }
                         
+                        // Center of flower
                         ctx.fillStyle = '#FFFF00';
                         ctx.beginPath();
-                        ctx.arc(0, 0, element.size * 0.25, 0, Math.PI * 2);
+                        ctx.arc(0, 0, element.size * 0.2, 0, Math.PI * 2);
                         ctx.fill();
                     } else if (element.type === 1) {
-                        // Trái tim
+                        // Heart with gradient
                         const size = element.size * 0.5;
+                        const gradient = ctx.createRadialGradient(0, size, 0, 0, size, size * 2);
+                        gradient.addColorStop(0, this.lightenColor(element.color, 20));
+                        gradient.addColorStop(1, element.color);
+                        
+                        ctx.fillStyle = gradient;
                         ctx.beginPath();
                         ctx.moveTo(0, size);
                         ctx.bezierCurveTo(size, -size, 2*size, size, 0, 2*size);
                         ctx.bezierCurveTo(-2*size, size, -size, -size, 0, size);
                         ctx.fill();
                     } else if (element.type === 2) {
-                        // Sao
+                        // Star with gradient
                         const outerRadius = element.size * 0.5;
                         const innerRadius = element.size * 0.25;
                         
+                        const gradient = ctx.createRadialGradient(0, 0, innerRadius, 0, 0, outerRadius);
+                        gradient.addColorStop(0, this.lightenColor(element.color, 20));
+                        gradient.addColorStop(1, element.color);
+                        
+                        ctx.fillStyle = gradient;
                         ctx.beginPath();
+                        
                         for (let i = 0; i < 10; i++) {
                             const angle = (i * Math.PI) / 5;
                             const radius = i % 2 === 0 ? outerRadius : innerRadius;
@@ -2840,15 +3791,26 @@
                                 ctx.lineTo(x, y);
                             }
                         }
+                        
                         ctx.closePath();
                         ctx.fill();
                     } else if (element.type === 3) {
-                        // Hình tròn
+                        // Circle with gradient
+                        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, element.size * 0.5);
+                        gradient.addColorStop(0, this.lightenColor(element.color, 20));
+                        gradient.addColorStop(1, element.color);
+                        
+                        ctx.fillStyle = gradient;
                         ctx.beginPath();
                         ctx.arc(0, 0, element.size * 0.5, 0, Math.PI * 2);
                         ctx.fill();
                     } else {
-                        // Cánh hoa
+                        // Petal shape with gradient
+                        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, element.size * 0.6);
+                        gradient.addColorStop(0, this.lightenColor(element.color, 20));
+                        gradient.addColorStop(1, element.color);
+                        
+                        ctx.fillStyle = gradient;
                         ctx.beginPath();
                         ctx.ellipse(0, 0, element.size * 0.3, element.size * 0.6, 0, 0, Math.PI * 2);
                         ctx.fill();
@@ -2858,11 +3820,27 @@
                 }
             }
             
+            // Helper function to lighten a color
+            lightenColor(color, percent) {
+                const num = parseInt(color.replace('#', ''), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) + amt;
+                const G = (num >> 8 & 0x00FF) + amt;
+                const B = (num & 0x0000FF) + amt;
+                
+                return '#' + (
+                    0x1000000 + 
+                    (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + 
+                    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + 
+                    (B < 255 ? B < 1 ? 0 : B : 255)
+                ).toString(16).slice(1);
+            }
+            
             resize(width, height) {
                 this.width = width;
                 this.height = height;
                 
-                // Điều chỉnh các phần tử nền cho phù hợp với kích thước mới
+                // Adjust background elements to fit new dimensions
                 for (const element of this.elements) {
                     if (element.x > width) element.x = Math.random() * width;
                     if (element.y > height) element.y = Math.random() * height;
@@ -3036,14 +4014,15 @@
             startGameFromServer(initialState) {
                 this.resetGame(initialState);
                 this.gameActive = true;
+                gameActive = true; // Global flag for visibility change handling
                 startScreen.style.display = 'none';
                 this.lastTimestamp = performance.now();
                 
                 // Update room info
                 roomInfoElement.innerHTML = `<strong>Phòng:</strong> ${currentRoom}`;
                 
-                // Set random boss spawn interval (between 45s and 90s)
-                this.bossSpawnInterval = 45000 + Math.random() * 45000;
+                // Set random boss spawn interval (between 30s and 60s)
+                this.bossSpawnInterval = 30000 + Math.random() * 30000;
                 this.lastBossSpawn = performance.now();
                 
                 // Start BGM
@@ -3072,6 +4051,7 @@
             backToRooms() {
                 gameOverScreen.style.display = 'none';
                 roomScreen.style.display = 'flex';
+                gameActive = false;
                 
                 // Stop BGM
                 bgm.pause();
@@ -3283,7 +4263,8 @@
                 
                 // Show notification if we're the local player
                 if (this.localPlayer) {
-                    this.showNotification(`🎁 ${powerUp.icons[powerUp.type]} Power-up appeared!`, 2000);
+                    const typeName = powerUp.type.charAt(0).toUpperCase() + powerUp.type.slice(1);
+                    this.showNotification(`🎁 ${powerUp.icons[powerUp.type]} Vật phẩm ${typeName} xuất hiện!`, 2000);
                 }
             }
             
@@ -3321,7 +4302,7 @@
                 }
                 
                 // Show notification
-                this.showNotification("⚠️ A boss is approaching! Get ready! ⚠️", 3000);
+                this.showNotification("⚠️ Một Boss đang đến! Hãy chuẩn bị! ⚠️", 3000);
                 
                 // Set boss warning time (5 seconds)
                 this.bossWarningTime = 5000;
@@ -3396,7 +4377,7 @@
                 bossWarning.style.display = 'none';
                 this.bossWarningTime = 0;
                 
-                this.showNotification("⚠️ Boss has appeared! ⚠️", 3000);
+                this.showNotification("⚠️ Boss xuất hiện! ⚠️", 3000);
                 
                 // Create spawning particles
                 if (this.particleSystem) {
@@ -3440,7 +4421,7 @@
                 bossWarning.style.display = 'none';
                 this.bossWarningTime = 0;
                 
-                this.showNotification("⚠️ Boss has appeared! ⚠️", 3000);
+                this.showNotification("⚠️ Boss xuất hiện! ⚠️", 3000);
                 
                 // Create spawning particles
                 if (this.particleSystem) {
@@ -3528,24 +4509,26 @@
             }
             
             updateScoreboard() {
-                // Sắp xếp người chơi theo điểm số
+                // Sort players by score
                 const sortedPlayers = Object.values(this.players).sort((a, b) => b.score - a.score);
                 
-                // Cập nhật bảng điểm
+                // Update scoreboard with modern design
                 let html = '<div class="scoreboard-title">Bảng xếp hạng</div>';
                 
                 for (let i = 0; i < sortedPlayers.length; i++) {
                     const player = sortedPlayers[i];
-                    let rankClass = '';
-                    
-                    if (i === 0) rankClass = 'rank1';
-                    else if (i === 1) rankClass = 'rank2';
-                    else if (i === 2) rankClass = 'rank3';
+                    const rank = i + 1;
                     
                     html += `
-                        <div class="scoreboard-item ${rankClass} ${player.isLocal ? 'human' : ''}">
-                            <span>${i + 1}. ${player.name}</span>
-                            <span>${player.score}</span>
+                        <div class="scoreboard-item">
+                            <div class="scoreboard-player">
+                                <div class="scoreboard-rank rank${rank}">${rank}</div>
+                                <div class="player-name">${player.name}</div>
+                            </div>
+                            <div class="scoreboard-score">
+                                <span>🌸</span>
+                                <span>${player.score}</span>
+                            </div>
                         </div>
                     `;
                     
@@ -3562,16 +4545,47 @@
             }
             
             showNotification(message, duration = 2000) {
-                // Xóa timeout cũ nếu có
+                // Clear previous timeout if present
                 if (this.notificationTimeout) {
                     clearTimeout(this.notificationTimeout);
                 }
                 
-                notificationElement.textContent = message;
+                // Extract icon if message starts with emoji
+                let icon = '';
+                let text = message;
+                
+                // Check if message starts with an emoji (basic check)
+                const emojiRegex = /^(\p{Emoji}+)/u;
+                const match = message.match(emojiRegex);
+                
+                if (match && match[1]) {
+                    icon = match[1];
+                    text = message.substring(match[1].length).trim();
+                }
+                
+                // Create notification with icon if present
+                if (icon) {
+                    notificationElement.innerHTML = `
+                        <span class="notification-icon">${icon}</span>
+                        <span>${text}</span>
+                    `;
+                } else {
+                    notificationElement.textContent = message;
+                }
+                
+                // Add animation when showing notification
+                notificationElement.style.opacity = '0';
+                notificationElement.style.transform = 'translate(-50%, 20px)';
+                
+                // Force reflow to ensure animation plays
+                void notificationElement.offsetWidth;
+                
                 notificationElement.style.opacity = '1';
+                notificationElement.style.transform = 'translate(-50%, 0)';
                 
                 this.notificationTimeout = setTimeout(() => {
                     notificationElement.style.opacity = '0';
+                    notificationElement.style.transform = 'translate(-50%, -20px)';
                 }, duration);
             }
             
@@ -3581,21 +4595,22 @@
                     '#FFFF00', '#FFD700', '#FFA500', '#5D5CDE', '#9370DB'
                 ];
                 
-                // Create confetti particles
-                for (let i = 0; i < 150; i++) {
+                // Create more varied confetti particles
+                for (let i = 0; i < 200; i++) {
                     this.confetti.push({
                         x: Math.random() * confettiCanvas.width,
-                        y: -20 - Math.random() * 100,
-                        size: 5 + Math.random() * 10,
+                        y: -20 - Math.random() * 300, // More spread in initial height
+                        size: 5 + Math.random() * 15,
                         color: COLORS[Math.floor(Math.random() * COLORS.length)],
-                        speed: 1 + Math.random() * 3,
+                        speed: 1 + Math.random() * 5, // Varied speeds
                         angle: Math.random() * Math.PI * 2,
                         rotation: Math.random() * Math.PI * 2,
-                        rotationSpeed: (Math.random() - 0.5) * 0.2,
-                        oscillationSpeed: 1 + Math.random() * 2,
-                        oscillationDistance: 40 + Math.random() * 40,
-                        waviness: Math.random() * 5,
-                        type: Math.floor(Math.random() * 3) // 0: rectangle, 1: circle, 2: heart
+                        rotationSpeed: (Math.random() - 0.5) * 0.3,
+                        oscillationSpeed: 0.5 + Math.random() * 2.5,
+                        oscillationDistance: 30 + Math.random() * 50,
+                        waviness: Math.random() * 8,
+                        type: Math.floor(Math.random() * 5), // More types (0: rectangle, 1: circle, 2: heart, 3: star, 4: flower)
+                        gravity: 0.1 + Math.random() * 0.2
                     });
                 }
             }
@@ -3604,12 +4619,16 @@
                 for (let i = this.confetti.length - 1; i >= 0; i--) {
                     const confetti = this.confetti[i];
                     
-                    confetti.y += confetti.speed * deltaTime * 0.06;
-                    confetti.x += Math.sin(confetti.angle) * confetti.oscillationDistance * Math.sin(confetti.y * confetti.waviness * 0.01) * 0.1;
-                    confetti.rotation += confetti.rotationSpeed * deltaTime * 0.06;
+                    // Apply gravity
+                    confetti.speed += confetti.gravity * (deltaTime / 16.67);
+                    
+                    confetti.y += confetti.speed * (deltaTime / 16.67);
+                    confetti.x += Math.sin(confetti.angle) * confetti.oscillationDistance * 
+                                 Math.sin(confetti.y * confetti.waviness * 0.01) * 0.1;
+                    confetti.rotation += confetti.rotationSpeed * (deltaTime / 16.67);
                     
                     // Remove confetti that has fallen off screen
-                    if (confetti.y > confettiCanvas.height + 20) {
+                    if (confetti.y > confettiCanvas.height + 50) {
                         this.confetti.splice(i, 1);
                     }
                 }
@@ -3623,7 +4642,13 @@
                     confettiCtx.translate(confetti.x, confetti.y);
                     confettiCtx.rotate(confetti.rotation);
                     
-                    confettiCtx.fillStyle = confetti.color;
+                    // Gradient colors for more vibrant confetti
+                    const gradient = confettiCtx.createLinearGradient(-confetti.size/2, -confetti.size/2, 
+                                                                   confetti.size/2, confetti.size/2);
+                    gradient.addColorStop(0, confetti.color);
+                    gradient.addColorStop(1, this.lightenColor(confetti.color, 20));
+                    
+                    confettiCtx.fillStyle = gradient;
                     
                     if (confetti.type === 0) {
                         // Rectangle
@@ -3633,7 +4658,7 @@
                         confettiCtx.beginPath();
                         confettiCtx.arc(0, 0, confetti.size / 2, 0, Math.PI * 2);
                         confettiCtx.fill();
-                    } else {
+                    } else if (confetti.type === 2) {
                         // Heart
                         const size = confetti.size * 0.4;
                         confettiCtx.beginPath();
@@ -3641,14 +4666,96 @@
                         confettiCtx.bezierCurveTo(size, -size, 2*size, size, 0, 2*size);
                         confettiCtx.bezierCurveTo(-2*size, size, -size, -size, 0, size);
                         confettiCtx.fill();
+                    } else if (confetti.type === 3) {
+                        // Star
+                        this.drawStar(confettiCtx, 0, 0, 5, confetti.size/2, confetti.size/4);
+                    } else {
+                        // Flower
+                        this.drawConfettiFlower(confettiCtx, 0, 0, confetti.size/2);
+                    }
+                    
+                    // Add a subtle shine effect
+                    confettiCtx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    if (confetti.type === 0) {
+                        // Rectangle highlight
+                        confettiCtx.fillRect(-confetti.size / 3, -confetti.size / 3, confetti.size/4, confetti.size/4);
+                    } else if (confetti.type === 1) {
+                        // Circle highlight
+                        confettiCtx.beginPath();
+                        confettiCtx.arc(-confetti.size / 6, -confetti.size / 6, confetti.size / 6, 0, Math.PI * 2);
+                        confettiCtx.fill();
                     }
                     
                     confettiCtx.restore();
                 }
             }
             
+            drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+                let rot = Math.PI / 2 * 3;
+                let x = cx;
+                let y = cy;
+                let step = Math.PI / spikes;
+                
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - outerRadius);
+                
+                for (let i = 0; i < spikes; i++) {
+                    x = cx + Math.cos(rot) * outerRadius;
+                    y = cy + Math.sin(rot) * outerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                    
+                    x = cx + Math.cos(rot) * innerRadius;
+                    y = cy + Math.sin(rot) * innerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                }
+                
+                ctx.lineTo(cx, cy - outerRadius);
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            drawConfettiFlower(ctx, x, y, size) {
+                // Draw petals
+                const petalCount = 5;
+                for (let i = 0; i < petalCount; i++) {
+                    const angle = (i / petalCount) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.ellipse(
+                        x + Math.cos(angle) * size * 0.5,
+                        y + Math.sin(angle) * size * 0.5,
+                        size * 0.4, size * 0.3,
+                        angle, 0, Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+                
+                // Draw center
+                ctx.fillStyle = '#FFFF00';
+                ctx.beginPath();
+                ctx.arc(x, y, size * 0.25, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Helper function to lighten a color
+            lightenColor(color, percent) {
+                const num = parseInt(color.replace('#', ''), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) + amt;
+                const G = (num >> 8 & 0x00FF) + amt;
+                const B = (num & 0x0000FF) + amt;
+                
+                return '#' + (
+                    0x1000000 + 
+                    (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + 
+                    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + 
+                    (B < 255 ? B < 1 ? 0 : B : 255)
+                ).toString(16).slice(1);
+            }
+            
             gameLoop(timestamp) {
-                // Tính toán delta time
+                // Calculate delta time
                 const deltaTime = timestamp - this.lastTimestamp;
                 this.lastTimestamp = timestamp;
                 
@@ -3668,7 +4775,7 @@
                     }
                 }
                 
-                // Xóa canvas
+                // Clear canvases
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 particlesCtx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
                 
@@ -3679,38 +4786,38 @@
                     scale: this.camera.scale
                 };
                 
-                // Cập nhật và vẽ background
+                // Update and draw background
                 this.background.update(deltaTime);
                 this.background.draw(ctx, cameraWithShake);
                 
-                // Cập nhật và vẽ play area
-                this.playArea.update(deltaTime);
+                // Update and draw play area
+                this.playArea.update(deltaTime, this);
                 this.playArea.draw(ctx, cameraWithShake);
                 
-                // Cập nhật và vẽ hoa
+                // Update and draw flowers
                 for (const flower of this.flowers) {
-                    flower.update(deltaTime);
+                    flower.update(deltaTime, this);
                     flower.draw(ctx, cameraWithShake);
                 }
                 
                 // Update and draw power-ups
                 for (const powerUp of this.powerUps) {
-                    powerUp.update(deltaTime);
+                    powerUp.update(deltaTime, this);
                     powerUp.draw(ctx, cameraWithShake);
                 }
                 
-                // Cập nhật và vẽ boss
+                // Update and draw bosses
                 for (const boss of this.bosses) {
                     boss.update(deltaTime, this.players, this.playArea, this);
                     boss.draw(ctx, cameraWithShake);
                 }
                 
-                // Cập nhật và vẽ người chơi
+                // Update and draw players
                 for (const player of Object.values(this.players)) {
                     player.update(deltaTime, this.flowers, this.playArea, this);
                     player.draw(ctx, cameraWithShake);
                     
-                    // Kiểm tra va chạm với hoa
+                    // Check flower collisions
                     const collectedCount = player.collectFlowers(this.flowers, this);
                     if (collectedCount > 0 && player.isLocal) {
                         if (collectedCount === 1) {
@@ -3746,24 +4853,24 @@
                     
                     // Set next boss spawn interval (becomes shorter as game progresses)
                     const gameProgressRatio = 1 - (this.timeRemaining / this.gameTime);
-                    const minInterval = 30000; // 30 seconds minimum
-                    const maxInterval = 90000 - (gameProgressRatio * 60000); // 90s to 30s as game progresses
+                    const minInterval = 20000; // 20 seconds minimum
+                    const maxInterval = 60000 - (gameProgressRatio * 40000); // 60s to 20s as game progresses
                     this.bossSpawnInterval = minInterval + Math.random() * (maxInterval - minInterval);
                 }
                 
                 // Spawn power-ups periodically
-                if (isRoomOwner && now - this.powerUpSpawnTime > 20000 && Math.random() < 0.01) {
+                if (isRoomOwner && now - this.powerUpSpawnTime > 15000 && Math.random() < 0.01) {
                     this.spawnPowerUp();
                     this.powerUpSpawnTime = now;
                 }
                 
-                // Đảm bảo luôn có đủ hoa
+                // Ensure enough flowers (more flowers than before)
                 const uncollectedFlowers = this.flowers.filter(f => !f.collected).length;
-                if (uncollectedFlowers < 10 && isRoomOwner) {
-                    this.spawnFlowers(10);
+                if (uncollectedFlowers < 20 && isRoomOwner) {
+                    this.spawnFlowers(15); // Spawn more flowers
                 }
                 
-                // Cập nhật thời gian nếu chúng ta là chủ phòng
+                // Update game time if we're the room owner
                 if (this.gameActive && isRoomOwner) {
                     const oldTime = this.timeRemaining;
                     this.timeRemaining -= deltaTime / 1000;
@@ -3778,16 +4885,36 @@
                     }
                 }
                 
-                // Hiển thị thời gian
+                // Display time
                 timeElement.textContent = Math.ceil(this.timeRemaining);
                 
-                // Cập nhật bảng điểm mỗi 0.5s
+                // Update scoreboard every 0.5s
                 if (timestamp - this.scoreboardUpdateTime > 500) {
                     this.updateScoreboard();
                     this.scoreboardUpdateTime = timestamp;
                 }
                 
-                // Tạo confetti ngẫu nhiên
+                // Create random ambient particles
+                if (this.gameActive && Math.random() < 0.02) {
+                    const screenX = Math.random() * canvas.width;
+                    const screenY = Math.random() * canvas.height;
+                    
+                    // Convert screen to world coordinates for particles
+                    const worldX = ((screenX - canvas.width / 2) / this.camera.scale) + this.camera.x;
+                    const worldY = ((screenY - canvas.height / 2) / this.camera.scale) + this.camera.y;
+                    
+                    this.particleSystem.createParticles(
+                        worldX, worldY,
+                        1,
+                        this.background.colors[Math.floor(Math.random() * this.background.colors.length)],
+                        Math.random() < 0.3 ? 'star' : 'circle',
+                        1000 + Math.random() * 2000,
+                        3 + Math.random() * 3,
+                        0.5
+                    );
+                }
+                
+                // Random confetti in game
                 if (this.gameActive && Math.random() < 0.01) {
                     const singleConfetti = {
                         x: Math.random() * confettiCanvas.width,
@@ -3801,21 +4928,22 @@
                         oscillationSpeed: 1 + Math.random() * 2,
                         oscillationDistance: 40 + Math.random() * 40,
                         waviness: Math.random() * 5,
-                        type: Math.floor(Math.random() * 3)
+                        type: Math.floor(Math.random() * 3),
+                        gravity: 0.05 + Math.random() * 0.1
                     };
                     this.confetti.push(singleConfetti);
                 }
                 
-                // Cập nhật và vẽ confetti
+                // Update and draw confetti
                 this.updateConfetti(deltaTime);
                 this.drawConfetti();
                 
-                // Kiểm tra kết thúc game
+                // Check if game is over
                 if (this.gameActive && this.timeRemaining <= 0 && isRoomOwner) {
                     socket.emit('endGame', { roomId: currentRoom });
                 }
                 
-                // Tiếp tục game loop
+                // Continue game loop
                 if (this.gameActive) {
                     requestAnimationFrame(this.gameLoop.bind(this));
                 }
@@ -3823,15 +4951,17 @@
             
             endGame(winners) {
                 this.gameActive = false;
+                gameActive = false;
                 
-                // Hiển thị danh sách người chiến thắng
-                let html = '<h2>Top 3 người chơi</h2>';
+                // Display winners with enhanced animation
+                let html = '<h2 style="margin-bottom: 20px;">Top 3 người chơi</h2>';
                 
                 for (let i = 0; i < Math.min(3, winners.length); i++) {
                     const winner = winners[i];
                     const player = this.players[winner.id];
                     let rankClass = '';
                     let emoji = '';
+                    let animationDelay = i * 0.2; // staggered animations
                     
                     if (i === 0) {
                         rankClass = 'rank1';
@@ -3849,7 +4979,7 @@
                     const playerName = player ? player.name : winner.name;
                     
                     html += `
-                        <div class="winner ${rankClass}">
+                        <div class="winner ${rankClass}" style="animation: slideUp 0.5s forwards; animation-delay: ${animationDelay}s; opacity: 0;">
                             ${emoji} ${i + 1}. ${playerName}: ${winner.score} hoa 🌸
                         </div>
                     `;
@@ -3857,7 +4987,7 @@
                 
                 winnerListElement.innerHTML = html;
                 
-                // Hiển thị màn hình kết thúc
+                // Display game over screen with animation
                 gameOverScreen.style.display = 'flex';
                 
                 // Play game over sound
@@ -3876,10 +5006,10 @@
                     });
                 }
                 
-                // Tạo hiệu ứng confetti
+                // Create confetti
                 this.createConfetti();
                 
-                // Tiếp tục vòng lặp confetti
+                // Continue confetti loop
                 const confettiLoop = (timestamp) => {
                     const deltaTime = timestamp - this.lastTimestamp;
                     this.lastTimestamp = timestamp;
@@ -3899,6 +5029,21 @@
         // Create global game instance
         let game = null;
         
+        // Add button click animations
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.style.transform = 'scale(0.95)';
+            });
+            
+            button.addEventListener('mouseup', () => {
+                button.style.transform = '';
+            });
+            
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = '';
+            });
+        });
+        
         // UI event handlers
         createRoomBtn.addEventListener('click', () => {
             const name = playerNameInput.value.trim();
@@ -3906,9 +5051,31 @@
                 playerName = name;
                 socket.emit('createRoom', { playerName: name });
             } else {
-                alert('Vui lòng nhập tên của bạn!');
+                showNotification('Vui lòng nhập tên của bạn!');
             }
         });
+        
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.padding = '10px 20px';
+            notification.style.backgroundColor = 'rgba(255, 20, 147, 0.8)';
+            notification.style.color = 'white';
+            notification.style.borderRadius = '10px';
+            notification.style.zIndex = '1000';
+            notification.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+            notification.style.animation = 'fadeIn 0.3s, fadeOut 0.3s 2.7s';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 3000);
+        }
         
         joinRoomBtn.addEventListener('click', () => {
             const name = playerNameInput.value.trim();
@@ -3916,7 +5083,7 @@
                 playerName = name;
                 joinRoomModal.style.display = 'flex';
             } else {
-                alert('Vui lòng nhập tên của bạn!');
+                showNotification('Vui lòng nhập tên của bạn!');
             }
         });
         
@@ -3926,7 +5093,7 @@
                 socket.emit('joinRoom', { playerName, roomId: roomCode });
                 joinRoomModal.style.display = 'none';
             } else {
-                alert('Vui lòng nhập mã phòng!');
+                showNotification('Vui lòng nhập mã phòng!');
             }
         });
         
@@ -4001,6 +5168,17 @@
             loginScreen.style.display = 'none';
             roomScreen.style.display = 'flex';
             
+            // Apply entrance animation to room elements
+            const animatedElements = document.querySelectorAll('#room-screen .slide-up');
+            animatedElements.forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100);
+            });
+            
             // Update player list
             updatePlayerList(data.players);
             
@@ -4024,6 +5202,17 @@
             loginScreen.style.display = 'none';
             joinRoomModal.style.display = 'none';
             roomScreen.style.display = 'flex';
+            
+            // Apply entrance animation to room elements
+            const animatedElements = document.querySelectorAll('#room-screen .slide-up');
+            animatedElements.forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100);
+            });
             
             // Enable/disable start button based on ownership
             startGameBtn.disabled = !isRoomOwner || data.players.length < 2;
@@ -4173,7 +5362,7 @@
         });
         
         socket.on('roomNotFound', () => {
-            alert('Phòng không tồn tại hoặc đã đầy!');
+            showNotification('Phòng không tồn tại hoặc đã đầy!');
             joinRoomModal.style.display = 'none';
         });
         
