@@ -1,29 +1,17 @@
 {
-  "name": "telegram-bot-glitch",
+  "name": "flower-battle-royale",
   "version": "1.0.0",
-  "description": "Telegram bot with MongoDB on glitch.com",
-  "main": "index.js",
+  "description": "Multiplayer Flower Battle Royale game",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.17.1",
-    "mongoose": "^6.0.12",
-    "node-telegram-bot-api": "^0.52.0"
+    "express": "^4.18.2",
+    "socket.io": "^4.6.0",
+    "uuid": "^9.0.0"
   },
   "engines": {
     "node": "18.x"
-  },
-  "repository": {
-    "type": "git",
-    "url": "your-git-repo-url"
-  },
-  "keywords": [
-    "telegram",
-    "bot",
-    "mongodb",
-    "glitch"
-  ],
-  "author": "Your Name",
-  "license": "MIT"
+  }
 }
