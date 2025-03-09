@@ -348,30 +348,29 @@
     border: 2px solid rgba(255, 105, 180, 0.3);
 }
 
-        #scoreboard {
+       #scoreboard {
     position: absolute;
     top: 15px;
     right: 15px;
-    background: linear-gradient(to bottom, rgba(90, 0, 50, 0.85), rgba(60, 0, 40, 0.75));
+    background: transparent;
     border-radius: var(--border-radius-md);
     padding: 12px;
-    box-shadow: var(--box-shadow);
     max-width: 250px;
     min-width: 200px;
     pointer-events: none;
     z-index: 20;
-    backdrop-filter: blur(5px);
-    border: 2px solid rgba(255, 105, 180, 0.3);
+    border: none;
 }
 
 .scoreboard-title {
     text-align: center;
     font-weight: 700;
     margin-bottom: 8px;
-    color: rgba(255, 255, 255, 0.95);
+    color: #ffffff;
     font-size: 16px;
-    border-bottom: 2px solid rgba(255, 105, 180, 0.3);
+    border-bottom: 2px solid rgba(255, 105, 180, 0.5);
     padding-bottom: 6px;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.9);
 }
 
 .scoreboard-item {
@@ -382,7 +381,8 @@
     padding: 6px 10px;
     border-radius: var(--border-radius-sm);
     transition: background-color 0.2s;
-    color: rgba(255, 255, 255, 0.9);
+    color: #ffffff;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.9);
 }
 
 .scoreboard-item:hover {
@@ -1121,7 +1121,7 @@
             <div class="room-info-title slide-up" style="animation-delay: 0.1s">Mã phòng:</div>
             <div class="room-code slide-up" id="room-code" style="animation-delay: 0.2s">------</div>
             
-            <div class="room-info-title slide-up" style="animation-delay: 0.3s">Người chơi (<span id="player-count">1</span>/8):</div>
+            <div class="room-info-title slide-up" style="animation-delay: 0.3s">Người chơi (<span id="player-count">1</span>/20):</div>
             <div id="player-list" class="slide-up" style="animation-delay: 0.4s">
                 <!-- Player list will be populated here -->
             </div>
@@ -4915,7 +4915,7 @@
                 const now = performance.now();
                 if (isRoomOwner && this.gameActive && 
     now - this.lastBossSpawn > this.bossSpawnInterval && 
-    this.bosses.length < 3 && this.bossWarningTime <= 0) {
+    this.bosses.length < 15 && this.bossWarningTime <= 0) {
                     
                     this.showBossWarning();
                     this.lastBossSpawn = now;
