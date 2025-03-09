@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hiếu Gà - Flower Battle Royale Multiplayer</title>
+    <title>Hiếu Gà Đại Chiến</title>
     <style>
         :root {
             --primary: #ff69b4;
@@ -414,6 +414,23 @@
             font-style: italic;
             font-size: 12px;
         }
+        
+        /* Mobile optimizations for UI */
+        @media (max-width: 768px) {
+            .chat-box {
+                width: 250px;
+                height: 150px;
+            }
+            
+            #scoreboard {
+                max-width: 150px;
+                font-size: 12px;
+            }
+            
+            #hud {
+                padding: 5px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -436,7 +453,7 @@
         
         <div class="chat-box">
             <div class="chat-messages" id="chat-messages">
-                <div class="message message-system">Chào mừng đến với Flower Battle Royale!</div>
+                <div class="message message-system">Chào mừng đến với Hiếu Gà Đại Chiến</div>
             </div>
             <div class="chat-input-container">
                 <input type="text" class="chat-input" id="chat-input" placeholder="Nhập tin nhắn..." maxlength="100">
@@ -449,7 +466,7 @@
             <div id="logo-container">
                 <!-- Logo sẽ được tạo bằng JavaScript -->
             </div>
-            <h1>Flower Battle Royale</h1>
+            <h1>Hiếu Gà Đại Chiến</h1>
             <p id="login-instructions">Nhập tên của bạn để tham gia trò chơi</p>
             
             <div class="form-group">
@@ -497,7 +514,7 @@
             <div id="logo-container">
                 <!-- Logo sẽ được tạo bằng JavaScript -->
             </div>
-            <h1>Flower Battle Royale</h1>
+            <h1>Hiếu Gà Đại Chiến</h1>
             <p id="instructions">Thu thập hoa trong bản đồ đang thu hẹp! Boss xuất hiện mỗi 3 phút. Top 3 người chơi có nhiều hoa nhất sẽ chiến thắng. Kéo màn hình để di chuyển.</p>
             <button id="start-btn" class="btn">Bắt Đầu</button>
         </div>
@@ -514,23 +531,23 @@
     <canvas id="confetti-canvas"></canvas>
 
     <!-- Audio Elements -->
-    <audio id="bgm" loop preload="none">
+    <audio id="bgm" loop preload="auto">
         <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/happy-cheerful-cute-music-loop.mp3" type="audio/mp3">
     </audio>
     
-    <audio id="collect-sound" preload="none">
+    <audio id="collect-sound" preload="auto">
         <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/collect-sound.mp3" type="audio/mp3">
     </audio>
     
-    <audio id="boss-spawn-sound" preload="none">
+    <audio id="boss-spawn-sound" preload="auto">
         <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/boss-appear.mp3" type="audio/mp3">
     </audio>
     
-    <audio id="game-over-sound" preload="none">
+    <audio id="game-over-sound" preload="auto">
         <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/game-over.mp3" type="audio/mp3">
     </audio>
     
-    <audio id="boss-defeated-sound" preload="none">
+    <audio id="boss-defeated-sound" preload="auto">
         <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/boss-defeated.mp3" type="audio/mp3">
     </audio>
 
@@ -740,13 +757,37 @@
             if (soundEnabled) {
                 volumeControl.textContent = '🔊';
                 if (game && game.gameActive) {
-                    bgm.play();
+                    bgm.play().catch(e => console.log("Audio play error:", e));
                 }
             } else {
                 volumeControl.textContent = '🔇';
                 bgm.pause();
             }
         });
+        
+        // Preload all audio assets
+        function preloadAudio() {
+            const audioElements = [bgm, collectSound, bossSpawnSound, gameOverSound, bossDefeatedSound];
+            
+            audioElements.forEach(audio => {
+                audio.load();
+                // Create a temporary event to interact with the audio
+                const tempInteraction = () => {
+                    audio.volume = 0;
+                    audio.play().then(() => {
+                        audio.pause();
+                        audio.volume = 1;
+                    }).catch(e => console.log("Audio preload error:", e));
+                };
+                
+                // Add event listeners to preload on user interaction
+                document.body.addEventListener('click', tempInteraction, { once: true });
+                document.body.addEventListener('touchstart', tempInteraction, { once: true });
+            });
+        }
+        
+        // Call preload audio on page load
+        window.addEventListener('load', preloadAudio);
         
         // Lớp Player
         class Player {
@@ -801,6 +842,12 @@
                             });
                             this.lastSyncTime = now;
                         }
+                        
+                        // Update camera to follow player
+                        if (game && game.camera) {
+                            game.camera.targetX = this.x;
+                            game.camera.targetY = this.y;
+                        }
                     }
                 } else {
                     // Remote player - interpolate movement
@@ -850,12 +897,18 @@
                 this.angle = this.moveDirection;
             }
             
-            draw(ctx) {
+            draw(ctx, camera) {
                 if (!this.isAlive) return;
                 
+                // Camera transformation for position
+                const screenX = (this.x - camera.x) * camera.scale + canvas.width / 2;
+                const screenY = (this.y - camera.y) * camera.scale + canvas.height / 2;
+                const screenRadius = this.radius * camera.scale;
+                
                 ctx.save();
-                ctx.translate(this.x, this.y);
+                ctx.translate(screenX, screenY);
                 ctx.rotate(this.angle + Math.PI / 2);
+                ctx.scale(camera.scale, camera.scale);
                 
                 // Body
                 ctx.fillStyle = this.color;
@@ -893,15 +946,28 @@
                 
                 // Tên
                 ctx.rotate(-this.angle - Math.PI / 2);
-                ctx.fillStyle = this.isLocal ? '#FF1493' : '#333';
-                ctx.font = '14px Arial';
+                
+                // Improved player name visibility with outline
+                ctx.font = 'bold 14px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
+                
+                // Add text shadow/stroke for better visibility
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 3;
+                ctx.strokeText(this.name, 0, -this.radius - 5);
+                
+                // Fill with bright color
+                ctx.fillStyle = this.isLocal ? '#FF1493' : '#FFFFFF';
                 ctx.fillText(this.name, 0, -this.radius - 5);
                 
-                // Số hoa
+                // Số hoa with improved visibility
                 if (this.score > 0) {
-                    ctx.font = '12px Arial';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 2;
+                    ctx.strokeText(`🌸 ${this.score}`, 0, -this.radius - 20);
+                    ctx.fillStyle = '#FFFFFF';
                     ctx.fillText(`🌸 ${this.score}`, 0, -this.radius - 20);
                 }
                 
@@ -1097,12 +1163,18 @@
                 this.angle = this.moveDirection;
             }
             
-            draw(ctx) {
+            draw(ctx, camera) {
                 if (this.defeated) return;
                 
+                // Camera transformation for position
+                const screenX = (this.x - camera.x) * camera.scale + canvas.width / 2;
+                const screenY = (this.y - camera.y) * camera.scale + canvas.height / 2;
+                const screenRadius = this.radius * camera.scale;
+                
                 ctx.save();
-                ctx.translate(this.x, this.y);
+                ctx.translate(screenX, screenY);
                 ctx.rotate(this.angle + Math.PI / 2);
+                ctx.scale(camera.scale, camera.scale);
                 
                 // Body
                 ctx.fillStyle = this.color;
@@ -1174,6 +1246,11 @@
                 ctx.font = 'bold 16px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
+                
+                // Add text shadow for better visibility
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 3;
+                ctx.strokeText('BOSS', 0, -this.radius - 25);
                 ctx.fillText('BOSS', 0, -this.radius - 25);
                 
                 ctx.restore();
@@ -1201,13 +1278,24 @@
                 }
             }
             
-            draw(ctx) {
+            draw(ctx, camera) {
                 if (this.collected) return;
                 
+                // Camera transformation for position
+                const screenX = (this.x - camera.x) * camera.scale + canvas.width / 2;
+                const screenY = (this.y - camera.y) * camera.scale + canvas.height / 2;
+                
+                // Skip rendering if outside screen with margin
+                const margin = 50;
+                if (screenX < -margin || screenX > canvas.width + margin || 
+                    screenY < -margin || screenY > canvas.height + margin) {
+                    return;
+                }
+                
                 ctx.save();
-                ctx.translate(this.x, this.y);
+                ctx.translate(screenX, screenY);
                 ctx.rotate(this.angle);
-                ctx.scale(this.scale, this.scale);
+                ctx.scale(camera.scale * this.scale, camera.scale * this.scale);
                 
                 const colors = [
                     '#FF69B4', // pink
@@ -1291,10 +1379,15 @@
                 }
             }
             
-            draw(ctx) {
+            draw(ctx, camera) {
+                // Camera transformation for position
+                const screenX = (this.x - camera.x) * camera.scale + canvas.width / 2;
+                const screenY = (this.y - camera.y) * camera.scale + canvas.height / 2;
+                const screenRadius = (this.radius + this.pulseAmount) * camera.scale;
+                
                 const gradient = ctx.createRadialGradient(
-                    this.x, this.y, 0,
-                    this.x, this.y, this.radius + this.pulseAmount
+                    screenX, screenY, 0,
+                    screenX, screenY, screenRadius
                 );
                 
                 const ratio = this.radius / this.targetRadius;
@@ -1321,7 +1414,7 @@
                 
                 ctx.fillStyle = gradient;
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius + this.pulseAmount, 0, Math.PI * 2);
+                ctx.arc(screenX, screenY, screenRadius, 0, Math.PI * 2);
                 ctx.fill();
                 
                 // Viền
@@ -1330,7 +1423,7 @@
                                  'rgba(255, 105, 180, 0.8)';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius + this.pulseAmount, 0, Math.PI * 2);
+                ctx.arc(screenX, screenY, screenRadius, 0, Math.PI * 2);
                 ctx.stroke();
             }
         }
@@ -1362,7 +1455,7 @@
                 }
             }
             
-            draw(ctx) {
+            draw(ctx, camera) {
                 const colors = [
                     '#FF69B4', // pink
                     '#FF1493', // deep pink
@@ -1372,8 +1465,18 @@
                 ];
                 
                 for (const element of this.elements) {
+                    // Calculate element position based on camera position
+                    // Create parallax effect by moving background elements slower than foreground
+                    const parallaxFactor = 0.3;
+                    const screenX = element.x - camera.x * parallaxFactor * camera.scale;
+                    const screenY = element.y - camera.y * parallaxFactor * camera.scale;
+                    
+                    // Wrap elements around screen
+                    const wrappedX = ((screenX % this.width) + this.width) % this.width;
+                    const wrappedY = ((screenY % this.height) + this.height) % this.height;
+                    
                     ctx.save();
-                    ctx.translate(element.x, element.y);
+                    ctx.translate(wrappedX, wrappedY);
                     ctx.rotate(element.rotation);
                     ctx.globalAlpha = element.alpha;
                     
@@ -1476,8 +1579,23 @@
                 this.bossSpawnInterval = 180000; // 3 minutes
                 this.lastBossSpawn = 0;
                 
+                // Camera system
+                this.camera = {
+                    x: 0,
+                    y: 0,
+                    scale: this.isMobile() ? 0.7 : 1.0,  // Smaller scale on mobile
+                    targetX: 0,
+                    targetY: 0,
+                    smoothing: 0.1
+                };
+                
                 // Setup input
                 this.setupInput();
+            }
+            
+            // Check if device is mobile
+            isMobile() {
+                return window.innerWidth < 768 || window.matchMedia("(max-width: 768px)").matches;
             }
             
             setupInput() {
@@ -1504,8 +1622,12 @@
                 const x = touch.clientX - rect.left;
                 const y = touch.clientY - rect.top;
                 
-                this.localPlayer.targetX = x;
-                this.localPlayer.targetY = y;
+                // Convert screen coordinates to world coordinates based on camera
+                const worldX = ((x - canvas.width / 2) / this.camera.scale) + this.camera.x;
+                const worldY = ((y - canvas.height / 2) / this.camera.scale) + this.camera.y;
+                
+                this.localPlayer.targetX = worldX;
+                this.localPlayer.targetY = worldY;
             }
             
             handleTouchMove(e) {
@@ -1517,8 +1639,12 @@
                 const x = touch.clientX - rect.left;
                 const y = touch.clientY - rect.top;
                 
-                this.localPlayer.targetX = x;
-                this.localPlayer.targetY = y;
+                // Convert screen coordinates to world coordinates based on camera
+                const worldX = ((x - canvas.width / 2) / this.camera.scale) + this.camera.x;
+                const worldY = ((y - canvas.height / 2) / this.camera.scale) + this.camera.y;
+                
+                this.localPlayer.targetX = worldX;
+                this.localPlayer.targetY = worldY;
             }
             
             handleMouseDown(e) {
@@ -1528,8 +1654,12 @@
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
                 
-                this.localPlayer.targetX = x;
-                this.localPlayer.targetY = y;
+                // Convert screen coordinates to world coordinates based on camera
+                const worldX = ((x - canvas.width / 2) / this.camera.scale) + this.camera.x;
+                const worldY = ((y - canvas.height / 2) / this.camera.scale) + this.camera.y;
+                
+                this.localPlayer.targetX = worldX;
+                this.localPlayer.targetY = worldY;
             }
             
             handleMouseMove(e) {
@@ -1539,8 +1669,18 @@
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
                 
-                this.localPlayer.targetX = x;
-                this.localPlayer.targetY = y;
+                // Convert screen coordinates to world coordinates based on camera
+                const worldX = ((x - canvas.width / 2) / this.camera.scale) + this.camera.x;
+                const worldY = ((y - canvas.height / 2) / this.camera.scale) + this.camera.y;
+                
+                this.localPlayer.targetX = worldX;
+                this.localPlayer.targetY = worldY;
+            }
+            
+            updateCamera(deltaTime) {
+                // Smooth camera movement towards target
+                this.camera.x += (this.camera.targetX - this.camera.x) * this.camera.smoothing * (deltaTime / 16.67);
+                this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing * (deltaTime / 16.67);
             }
             
             startGame() {
@@ -1558,7 +1698,17 @@
                 
                 // Start BGM
                 if (soundEnabled) {
-                    bgm.play().catch(e => console.log("BGM play error:", e));
+                    bgm.play().catch(e => {
+                        console.log("BGM play error:", e);
+                        // Attempt to recover from autoplay policy
+                        const resumeAudio = () => {
+                            bgm.play().catch(e => console.log("Still can't play BGM:", e));
+                            document.removeEventListener('click', resumeAudio);
+                            document.removeEventListener('touchstart', resumeAudio);
+                        };
+                        document.addEventListener('click', resumeAudio);
+                        document.addEventListener('touchstart', resumeAudio);
+                    });
                 }
                 
                 // Start game loop
@@ -1588,6 +1738,12 @@
                 this.nextBossId = 0;
                 this.lastBossSpawn = 0;
                 
+                // Reset camera position
+                this.camera.x = 0;
+                this.camera.y = 0;
+                this.camera.targetX = 0;
+                this.camera.targetY = 0;
+                
                 // Set up the local player and other players from initial state
                 if (initialState) {
                     // Create players
@@ -1606,6 +1762,11 @@
                         
                         if (isLocal) {
                             this.localPlayer = player;
+                            // Set initial camera position to local player
+                            this.camera.x = player.x;
+                            this.camera.y = player.y;
+                            this.camera.targetX = player.x;
+                            this.camera.targetY = player.y;
                         }
                     }
                     
@@ -1755,7 +1916,17 @@
                 // Play boss spawn sound
                 if (soundEnabled) {
                     bossSpawnSound.currentTime = 0;
-                    bossSpawnSound.play().catch(e => console.log("Audio play error:", e));
+                    bossSpawnSound.play().catch(e => {
+                        console.log("Boss spawn sound error:", e);
+                        // Try again with user interaction
+                        const playSound = () => {
+                            bossSpawnSound.play().catch(e => console.log("Still can't play sound:", e));
+                            document.removeEventListener('click', playSound);
+                            document.removeEventListener('touchstart', playSound);
+                        };
+                        document.addEventListener('click', playSound);
+                        document.addEventListener('touchstart', playSound);
+                    });
                 }
                 
                 this.showNotification("⚠️ Boss has appeared! ⚠️", 3000);
@@ -1769,7 +1940,17 @@
                 // Play boss spawn sound if not triggered by our own spawnBoss
                 if (soundEnabled && !isRoomOwner) {
                     bossSpawnSound.currentTime = 0;
-                    bossSpawnSound.play().catch(e => console.log("Audio play error:", e));
+                    bossSpawnSound.play().catch(e => {
+                        console.log("Boss spawn sound error:", e);
+                        // Try again with user interaction
+                        const playSound = () => {
+                            bossSpawnSound.play().catch(e => console.log("Still can't play sound:", e));
+                            document.removeEventListener('click', playSound);
+                            document.removeEventListener('touchstart', playSound);
+                        };
+                        document.addEventListener('click', playSound);
+                        document.addEventListener('touchstart', playSound);
+                    });
                 }
                 
                 this.showNotification("⚠️ Boss has appeared! ⚠️", 3000);
@@ -1818,7 +1999,7 @@
                         if (soundEnabled && playerId !== this.localPlayer.id) {
                             collectSound.currentTime = 0;
                             collectSound.volume = 0.3; // Lower volume for other players
-                            collectSound.play().catch(e => console.log("Audio play error:", e));
+                            collectSound.play().catch(e => console.log("Collect sound error:", e));
                         }
                     }
                 }
@@ -1949,33 +2130,36 @@
                 const deltaTime = timestamp - this.lastTimestamp;
                 this.lastTimestamp = timestamp;
                 
+                // Update camera position
+                this.updateCamera(deltaTime);
+                
                 // Xóa canvas
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 // Cập nhật và vẽ background
                 this.background.update(deltaTime);
-                this.background.draw(ctx);
+                this.background.draw(ctx, this.camera);
                 
                 // Cập nhật và vẽ play area
                 this.playArea.update(deltaTime);
-                this.playArea.draw(ctx);
+                this.playArea.draw(ctx, this.camera);
                 
                 // Cập nhật và vẽ hoa
                 for (const flower of this.flowers) {
                     flower.update(deltaTime);
-                    flower.draw(ctx);
+                    flower.draw(ctx, this.camera);
                 }
                 
                 // Cập nhật và vẽ boss
                 for (const boss of this.bosses) {
                     boss.update(deltaTime, this.players, this.playArea);
-                    boss.draw(ctx);
+                    boss.draw(ctx, this.camera);
                 }
                 
                 // Cập nhật và vẽ người chơi
                 for (const player of Object.values(this.players)) {
                     player.update(deltaTime, this.flowers, this.playArea, this);
-                    player.draw(ctx);
+                    player.draw(ctx, this.camera);
                     
                     // Kiểm tra va chạm với hoa
                     const collectedCount = player.collectFlowers(this.flowers, this);
@@ -2106,7 +2290,17 @@
                 // Play game over sound
                 if (soundEnabled) {
                     bgm.pause();
-                    gameOverSound.play().catch(e => console.log("Audio play error:", e));
+                    gameOverSound.play().catch(e => {
+                        console.log("Game over sound error:", e);
+                        // Try again with user interaction
+                        const playSound = () => {
+                            gameOverSound.play().catch(e => console.log("Still can't play sound:", e));
+                            document.removeEventListener('click', playSound);
+                            document.removeEventListener('touchstart', playSound);
+                        };
+                        document.addEventListener('click', playSound);
+                        document.addEventListener('touchstart', playSound);
+                    });
                 }
                 
                 // Tạo hiệu ứng confetti
@@ -2427,6 +2621,7 @@
         
         // Initialize
         createLogo();
+        preloadAudio();
     </script>
 </body>
 </html>
