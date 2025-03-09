@@ -582,17 +582,17 @@
         }
 
         .room-code {
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
-            color: var(--accent);
-            font-size: 32px;
-            padding: 15px 25px;
-            border-radius: var(--border-radius-lg);
-            margin: 15px 0;
-            font-weight: 700;
-            letter-spacing: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            border: 3px solid rgba(255, 255, 255, 0.3);
-        }
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
+    color: var(--accent);
+    font-size: 32px;
+    padding: 15px 25px;
+    border-radius: var(--border-radius-lg);
+    margin: 15px 0;
+    font-weight: 700;
+    letter-spacing: 4px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
 
         .room-info-title {
             font-size: 20px;
@@ -5158,14 +5158,20 @@ const maxInterval = 100000 - (gameProgressRatio * 200000); // 45s to 15s as game
         });
         
         joinRoomSubmit.addEventListener('click', () => {
-            const roomCode = roomCodeInput.value.trim().toUpperCase();
-            if (roomCode) {
-                socket.emit('joinRoom', { playerName, roomId: roomCode });
-                joinRoomModal.style.display = 'none';
-            } else {
-                showNotification('Vui lòng nhập mã phòng!');
-            }
-        });
+    const roomCode = roomCodeInput.value.trim();
+    if (roomCode && !isNaN(roomCode)) {
+        socket.emit('joinRoom', { playerName, roomId: roomCode });
+        joinRoomModal.style.display = 'none';
+    } else {
+        showNotification('Vui lòng nhập mã phòng hợp lệ (chỉ gồm các chữ số)!');
+    }
+});
+        // Ensure room code input only accepts numbers
+roomCodeInput.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+});
+
+        
         
         joinRoomCancel.addEventListener('click', () => {
             joinRoomModal.style.display = 'none';
