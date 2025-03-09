@@ -2,415 +2,417 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Hiếu Gà Huyền Thoại</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.3.1/dist/pixi.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hiếu Gà - Flower Battle Royale Multiplayer</title>
     <style>
         :root {
-            --primary: #5D5CDE;
-            --secondary: #ff9500;
-            --accent: #fc3d03;
-            --background: #ffffff;
-            --text: #333333;
-            --card: #f5f5f5;
-            --border: #dddddd;
+            --primary: #ff69b4;
+            --secondary: #5D5CDE;
+            --accent: #ff1493;
+            --background: #fff5f8;
+            --background-dark: #2a1a24;
+            --text: #333;
+            --text-dark: #f0f0f0;
         }
 
         .dark {
-            --primary: #6665e0;
-            --secondary: #ffb040;
-            --accent: #ff5c3a;
-            --background: #181818;
-            --text: #e0e0e0;
-            --card: #282828;
-            --border: #3d3d3d;
+            --primary: #ff69b4;
+            --secondary: #7d7cee;
+            --accent: #ff1493;
+            --background: var(--background-dark);
+            --text: var(--text-dark);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Arial Rounded MT Bold', 'Avenir Next', 'Segoe UI', sans-serif;
             background-color: var(--background);
             color: var(--text);
-            margin: 0;
-            padding: 0;
             overflow: hidden;
-            touch-action: manipulation;
+            transition: background-color 0.3s;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
         }
 
         #game-container {
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 100vh;
+            height: 100%;
             overflow: hidden;
+        }
+
+        #login-screen,
+        #room-screen,
+        #start-screen, 
+        #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 105, 180, 0.9);
+            z-index: 100;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        #room-screen {
+            background-color: rgba(93, 92, 222, 0.9);
+        }
+        
+        #game-over-screen {
+            display: none;
+            background-color: rgba(93, 92, 222, 0.9);
+        }
+
+        #logo-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 20px;
+        }
+
+        #logo {
+            width: 100%;
+            height: 100%;
+        }
+
+        .btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+
+        .btn:hover, .btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+            background-color: var(--accent);
         }
 
         #game-canvas {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
         }
 
-        .ui-overlay {
+        #hud {
             position: absolute;
-            z-index: 10;
-            pointer-events: none;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 100%;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
         }
 
-        .control-area {
+        #score-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #time-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #room-info {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+        }
+
+        #scoreboard {
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 200px;
+            pointer-events: none;
+        }
+
+        .scoreboard-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .rank1 {
+            color: gold;
+            font-weight: bold;
+        }
+
+        .rank2 {
+            color: silver;
+            font-weight: bold;
+        }
+
+        .rank3 {
+            color: #cd7f32; /* bronze */
+            font-weight: bold;
+        }
+
+        #instructions {
+            margin: 15px 0;
+            font-size: 18px;
+            max-width: 80%;
+        }
+        
+        #winner-list {
+            margin: 20px 0;
+            font-size: 24px;
+            text-align: center;
+        }
+        
+        .winner {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .winner.rank1 {
+            font-size: 32px;
+            color: gold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .winner.rank2 {
+            font-size: 28px;
+            color: silver;
+        }
+        
+        .winner.rank3 {
+            font-size: 24px;
+            color: #cd7f32;
+        }
+        
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 200;
+        }
+        
+        #notification {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--accent);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        #volume-control {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 150;
+            font-size: 24px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #player-list {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-height: 300px;
+            overflow-y: auto;
+            width: 90%;
+            max-width: 400px;
+            margin: 20px 0;
+        }
+
+        .player-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 10px;
+        }
+
+        .player-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .player-name {
+            flex-grow: 1;
+            text-align: left;
+            color: #333;
+        }
+
+        .room-code {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--accent);
+            font-size: 24px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-weight: bold;
+            letter-spacing: 5px;
+        }
+
+        .room-info-title {
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chat-box {
             position: absolute;
             bottom: 10px;
             left: 10px;
-            width: 150px;
-            height: 150px;
-            background-color: rgba(0, 0, 0, 0.2);
-            border-radius: 50%;
-            touch-action: none;
-            pointer-events: auto;
-        }
-
-        .joystick {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 50px;
-            height: 50px;
-            background-color: rgba(255, 255, 255, 0.6);
-            border-radius: 50%;
-        }
-
-        .abilities {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            display: flex;
-            gap: 10px;
-            pointer-events: auto;
-        }
-
-        .ability-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            color: white;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid gold;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            position: relative;
-        }
-
-        .ability-cooldown {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 0%;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 50%;
-            transition: height 0.1s linear;
-        }
-
-        .menu {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--background);
-            color: var(--text);
-            z-index: 20;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            margin: 10px;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        .character-selection {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-            max-width: 600px;
-        }
-
-        .character-card {
-            width: 120px;
-            background-color: var(--card);
-            border-radius: 10px;
-            padding: 10px;
-            text-align: center;
-            border: 2px solid var(--border);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .character-card:hover, .character-card.selected {
-            border-color: var(--accent);
-            transform: scale(1.05);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .character-image {
-            width: 80px;
-            height: 80px;
-            background-color: var(--primary);
-            border-radius: 50%;
-            margin: 0 auto 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .logo-container {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .game-logo {
-            width: 150px;
-            height: 150px;
-            margin: 0 auto;
-        }
-
-        .logo-text {
-            font-size: 32px;
-            font-weight: bold;
-            margin-top: 10px;
-            color: var(--accent);
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .stats-bar {
-            position: absolute;
-            top: 10px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 10px;
-            pointer-events: auto;
-        }
-
-        .health-bar, .mana-bar {
-            height: 20px;
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-            margin: 5px 0;
-            width: 45%;
-        }
-
-        .health-bar {
-            background-color: rgba(255, 0, 0, 0.3);
-            border: 2px solid #a00;
-        }
-
-        .mana-bar {
-            background-color: rgba(0, 0, 255, 0.3);
-            border: 2px solid #00a;
-        }
-
-        .health-fill, .mana-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-        }
-
-        .health-fill {
-            background-color: #f00;
-            width: 100%;
-        }
-
-        .mana-fill {
-            background-color: #00f;
-            width: 100%;
-        }
-
-        .health-text, .mana-text {
-            position: absolute;
-            width: 100%;
-            text-align: center;
-            color: white;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-            line-height: 20px;
-        }
-
-        .score-display {
-            position: absolute;
-            top: 50px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 24px;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-        }
-
-        .team-score {
-            padding: 5px 15px;
-            margin: 0 10px;
-            border-radius: 5px;
-        }
-
-        .team-blue {
-            background-color: rgba(0, 100, 255, 0.7);
-        }
-
-        .team-red {
-            background-color: rgba(255, 50, 50, 0.7);
-        }
-
-        .minimap {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150px;
-            height: 150px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border: 2px solid gold;
-            border-radius: 5px;
-            pointer-events: auto;
-        }
-
-        #loading-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--background);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 30;
-        }
-
-        .loading-bar-container {
-            width: 80%;
-            max-width: 400px;
-            height: 30px;
-            background-color: var(--card);
+            width: 300px;
+            height: 200px;
+            background-color: rgba(255, 255, 255, 0.8);
             border-radius: 15px;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
-            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 50;
         }
-
-        .loading-bar {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            transition: width 0.5s ease;
+        
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
         }
-
-        .loading-text {
-            margin-top: 10px;
-            font-size: 18px;
-            color: var(--text);
+        
+        .chat-input-container {
+            display: flex;
+            padding: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
         }
-
-        @media (max-width: 768px) {
-            .character-card {
-                width: 100px;
-            }
-            
-            .ability-btn {
-                width: 50px;
-                height: 50px;
-            }
-            
-            .control-area {
-                width: 120px;
-                height: 120px;
-            }
-            
-            .minimap {
-                width: 100px;
-                height: 100px;
-            }
-        }
-
-        .game-over {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            z-index: 25;
-        }
-
-        .entity-name {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            white-space: nowrap;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-
-        .floating-text {
-            position: absolute;
-            color: white;
-            font-weight: bold;
+        
+        .chat-input {
+            flex-grow: 1;
+            border: none;
+            border-radius: 15px;
+            padding: 8px 12px;
+            margin-right: 5px;
             font-size: 14px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-            pointer-events: none;
-            animation: float-up 1s forwards;
         }
-
-        @keyframes float-up {
-            0% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
+        
+        .chat-send {
+            border: none;
+            background-color: var(--secondary);
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .message {
+            padding: 5px 10px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .message-self {
+            background-color: var(--secondary);
+            color: white;
+            align-self: flex-end;
+        }
+        
+        .message-other {
+            background-color: #e0e0e0;
+            color: #333;
+            align-self: flex-start;
+        }
+        
+        .message-system {
+            background-color: rgba(0, 0, 0, 0.1);
+            color: #666;
+            align-self: center;
+            font-style: italic;
+            font-size: 12px;
         }
     </style>
 </head>
@@ -418,154 +420,128 @@
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
         
-        <div class="ui-overlay">
-            <div class="stats-bar">
-                <div class="health-bar">
-                    <div class="health-fill"></div>
-                    <div class="health-text">100/100</div>
-                </div>
-                <div class="mana-bar">
-                    <div class="mana-fill"></div>
-                    <div class="mana-text">100/100</div>
-                </div>
+        <div id="hud">
+            <div id="score-container">
+                Hoa: <span id="score">0</span>
             </div>
-            
-            <div class="score-display">
-                <div class="team-score team-blue">0</div>
-                <div class="team-score team-red">0</div>
+            <div id="time-container">
+                Thời gian: <span id="time">900</span>s
             </div>
-            
-            <div class="control-area">
-                <div class="joystick"></div>
-            </div>
-            
-            <div class="abilities">
-                <div class="ability-btn" data-ability="1">K1
-                    <div class="ability-cooldown"></div>
-                </div>
-                <div class="ability-btn" data-ability="2">K2
-                    <div class="ability-cooldown"></div>
-                </div>
-                <div class="ability-btn" data-ability="3">K3
-                    <div class="ability-cooldown"></div>
-                </div>
-                <div class="ability-btn" data-ability="ult">ULT
-                    <div class="ability-cooldown"></div>
-                </div>
-            </div>
-            
-            <div class="minimap"></div>
         </div>
         
-        <div id="loading-screen">
-            <div class="logo-container">
-                <svg class="game-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="100" cy="100" r="95" fill="#ff9500" />
-                    <circle cx="100" cy="100" r="85" fill="#ffcc00" />
-                    
-                    <!-- Body -->
-                    <ellipse cx="100" cy="110" rx="60" ry="65" fill="#ff6b00" />
-                    
-                    <!-- Head -->
-                    <circle cx="100" cy="60" r="30" fill="#ff6b00" />
-                    
-                    <!-- Eyes -->
-                    <circle cx="90" cy="55" r="5" fill="black" />
-                    <circle cx="110" cy="55" r="5" fill="black" />
-                    
-                    <!-- Beak -->
-                    <polygon points="100,65 85,80 115,80" fill="#ff3300" />
-                    
-                    <!-- Comb -->
-                    <path d="M100,35 L85,25 L100,30 L115,20 L110,30 L125,25 L115,35 Z" fill="#ff3300" />
-                    
-                    <!-- Legs -->
-                    <rect x="85" y="170" width="6" height="20" fill="#ff6b00" />
-                    <rect x="109" y="170" width="6" height="20" fill="#ff6b00" />
-                    
-                    <!-- Feet -->
-                    <polygon points="85,190 75,190 85,195" fill="#ff3300" />
-                    <polygon points="115,190 125,190 115,195" fill="#ff3300" />
-                    
-                    <!-- Wings -->
-                    <path d="M40,110 Q60,90 60,140 Z" fill="#ff9900" />
-                    <path d="M160,110 Q140,90 140,140 Z" fill="#ff9900" />
-                </svg>
-                <div class="logo-text">HIẾU GÀ HUYỀN THOẠI</div>
+        <div id="room-info"></div>
+        <div id="scoreboard"></div>
+        <div id="notification"></div>
+        <div id="volume-control">🔊</div>
+        
+        <div class="chat-box">
+            <div class="chat-messages" id="chat-messages">
+                <div class="message message-system">Chào mừng đến với Flower Battle Royale!</div>
             </div>
-            <div class="loading-bar-container">
-                <div class="loading-bar"></div>
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chat-input" placeholder="Nhập tin nhắn..." maxlength="100">
+                <button class="chat-send" id="chat-send">📤</button>
             </div>
-            <div class="loading-text">Đang tải game...</div>
         </div>
         
-        <div class="menu" id="main-menu">
-            <div class="logo-container">
-                <svg class="game-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="100" cy="100" r="95" fill="#ff9500" />
-                    <circle cx="100" cy="100" r="85" fill="#ffcc00" />
-                    
-                    <!-- Body -->
-                    <ellipse cx="100" cy="110" rx="60" ry="65" fill="#ff6b00" />
-                    
-                    <!-- Head -->
-                    <circle cx="100" cy="60" r="30" fill="#ff6b00" />
-                    
-                    <!-- Eyes -->
-                    <circle cx="90" cy="55" r="5" fill="black" />
-                    <circle cx="110" cy="55" r="5" fill="black" />
-                    
-                    <!-- Beak -->
-                    <polygon points="100,65 85,80 115,80" fill="#ff3300" />
-                    
-                    <!-- Comb -->
-                    <path d="M100,35 L85,25 L100,30 L115,20 L110,30 L125,25 L115,35 Z" fill="#ff3300" />
-                    
-                    <!-- Legs -->
-                    <rect x="85" y="170" width="6" height="20" fill="#ff6b00" />
-                    <rect x="109" y="170" width="6" height="20" fill="#ff6b00" />
-                    
-                    <!-- Feet -->
-                    <polygon points="85,190 75,190 85,195" fill="#ff3300" />
-                    <polygon points="115,190 125,190 115,195" fill="#ff3300" />
-                    
-                    <!-- Wings -->
-                    <path d="M40,110 Q60,90 60,140 Z" fill="#ff9900" />
-                    <path d="M160,110 Q140,90 140,140 Z" fill="#ff9900" />
-                </svg>
-                <div class="logo-text">HIẾU GÀ HUYỀN THOẠI</div>
+        <!-- Login Screen -->
+        <div id="login-screen">
+            <div id="logo-container">
+                <!-- Logo sẽ được tạo bằng JavaScript -->
             </div>
-            <button class="btn" id="start-game-btn">CHƠI NGAY</button>
-            <button class="btn" id="how-to-play-btn">HƯỚNG DẪN</button>
+            <h1>Flower Battle Royale</h1>
+            <p id="login-instructions">Nhập tên của bạn để tham gia trò chơi</p>
+            
+            <div class="form-group">
+                <label for="player-name">Tên người chơi:</label>
+                <input type="text" id="player-name" placeholder="Nhập tên của bạn" maxlength="15">
+            </div>
+            
+            <button id="create-room-btn" class="btn">Tạo phòng mới</button>
+            <button id="join-room-btn" class="btn">Tham gia phòng</button>
         </div>
         
-        <div class="menu" id="character-menu" style="display: none;">
-            <h2 class="text-2xl font-bold mb-4">Chọn Tướng</h2>
-            <div class="character-selection">
-                <!-- Characters will be dynamically generated here -->
+        <!-- Room Screen -->
+        <div id="room-screen" style="display: none;">
+            <h1>Phòng chờ</h1>
+            <div class="room-info-title">Mã phòng:</div>
+            <div class="room-code" id="room-code">------</div>
+            
+            <div class="room-info-title">Người chơi (<span id="player-count">1</span>/8):</div>
+            <div id="player-list">
+                <!-- Player list will be populated here -->
             </div>
-            <button class="btn" id="start-battle-btn">BẮT ĐẦU TRẬN ĐẤU</button>
+            
+            <div id="room-status">Đang chờ người chơi khác tham gia...</div>
+            <button id="start-game-btn" class="btn" disabled>Bắt đầu trò chơi</button>
+            <button id="leave-room-btn" class="btn">Rời phòng</button>
         </div>
         
-        <div class="menu" id="how-to-play" style="display: none;">
-            <h2 class="text-2xl font-bold mb-4">Hướng Dẫn Chơi</h2>
-            <div class="p-4 max-w-md bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <p class="mb-3">- Di chuyển: Sử dụng cần điều khiển (joystick) ở góc trái màn hình</p>
-                <p class="mb-3">- Tấn công: Tự động khi đến gần quái vật hoặc kẻ địch</p>
-                <p class="mb-3">- Kỹ năng: Nhấn các nút kỹ năng ở góc phải màn hình</p>
-                <p class="mb-3">- Mục tiêu: Phá hủy trụ và tiêu diệt đối thủ để giành chiến thắng</p>
-                <p class="mb-3">- Chiến thắng: Đội đầu tiên đạt 30 điểm sẽ thắng</p>
+        <!-- Join Room Modal -->
+        <div id="join-room-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 200; display: flex; justify-content: center; align-items: center;">
+            <div style="background-color: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 400px;">
+                <h2 style="color: var(--accent); margin-bottom: 20px;">Tham gia phòng</h2>
+                <div class="form-group">
+                    <label for="room-code-input" style="color: #333;">Mã phòng:</label>
+                    <input type="text" id="room-code-input" placeholder="Nhập mã phòng" maxlength="6" style="text-transform: uppercase;">
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <button id="join-room-submit" class="btn">Tham gia</button>
+                    <button id="join-room-cancel" class="btn" style="background-color: #999;">Hủy</button>
+                </div>
             </div>
-            <button class="btn mt-4" id="back-to-menu-btn">QUAY LẠI</button>
+        </div>
+        
+        <!-- Start Screen -->
+        <div id="start-screen" style="display: none;">
+            <div id="logo-container">
+                <!-- Logo sẽ được tạo bằng JavaScript -->
+            </div>
+            <h1>Flower Battle Royale</h1>
+            <p id="instructions">Thu thập hoa trong bản đồ đang thu hẹp! Boss xuất hiện mỗi 3 phút. Top 3 người chơi có nhiều hoa nhất sẽ chiến thắng. Kéo màn hình để di chuyển.</p>
+            <button id="start-btn" class="btn">Bắt Đầu</button>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="game-over-screen">
+            <h1>Game Kết Thúc!</h1>
+            <div id="winner-list"></div>
+            <button id="restart-btn" class="btn">Chơi Lại</button>
+            <button id="back-to-rooms-btn" class="btn">Về Phòng Chờ</button>
         </div>
     </div>
+    
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Audio Elements -->
+    <audio id="bgm" loop preload="none">
+        <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/happy-cheerful-cute-music-loop.mp3" type="audio/mp3">
+    </audio>
+    
+    <audio id="collect-sound" preload="none">
+        <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/collect-sound.mp3" type="audio/mp3">
+    </audio>
+    
+    <audio id="boss-spawn-sound" preload="none">
+        <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/boss-appear.mp3" type="audio/mp3">
+    </audio>
+    
+    <audio id="game-over-sound" preload="none">
+        <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/game-over.mp3" type="audio/mp3">
+    </audio>
+    
+    <audio id="boss-defeated-sound" preload="none">
+        <source src="https://cdn.jsdelivr.net/gh/fesandoval/audio-files@main/boss-defeated.mp3" type="audio/mp3">
+    </audio>
+
+    <!-- Socket.IO Client -->
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
 
     <script>
-        // Check for dark mode preference
+        // Kiểm tra chế độ tối
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
         }
-
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
             if (event.matches) {
                 document.documentElement.classList.add('dark');
@@ -574,1840 +550,1883 @@
             }
         });
 
-        // Game variables
-        let app;
-        let player;
-        let gameStarted = false;
-        let gameLoop;
-        let selectedCharacter = null;
-        let entities = [];
-        let projectiles = [];
-        let joystickActive = false;
-        let joystickData = { x: 0, y: 0 };
-        let gameState = {
-            blueScore: 0,
-            redScore: 0
-        };
-        let abilities = {
-            1: { cooldown: 5000, lastUsed: 0, damage: 30, range: 200, type: 'burst' },
-            2: { cooldown: 10000, lastUsed: 0, damage: 50, range: 300, type: 'projectile' },
-            3: { cooldown: 15000, lastUsed: 0, damage: 20, range: 400, type: 'area' },
-            ult: { cooldown: 30000, lastUsed: 0, damage: 100, range: 500, type: 'buff' }
-        };
+        // Canvas và Context
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
         
-        // Character data
-        const characters = [
-            { id: 'warrior', name: 'Chiến Binh', color: 0xff0000, health: 500, mana: 200, damage: 40, attackSpeed: 1, range: 100, abilities: {
-                1: { name: 'Chém Xoáy', description: 'Tấn công xoay quanh gây sát thương', damage: 50 },
-                2: { name: 'Khiên Bảo Vệ', description: 'Tạo khiên bảo vệ bản thân', damage: 0 },
-                3: { name: 'Xung Kích', description: 'Lao nhanh về phía trước và gây choáng', damage: 30 },
-                ult: { name: 'Phẫn Nộ', description: 'Tăng sức mạnh và tốc độ tấn công', damage: 0 }
-            }},
-            { id: 'mage', name: 'Pháp Sư', color: 0x0000ff, health: 300, mana: 500, damage: 60, attackSpeed: 0.8, range: 400, abilities: {
-                1: { name: 'Cầu Lửa', description: 'Ném một quả cầu lửa gây sát thương', damage: 70 },
-                2: { name: 'Băng Giá', description: 'Làm chậm và gây sát thương kẻ địch', damage: 50 },
-                3: { name: 'Dịch Chuyển', description: 'Di chuyển nhanh một khoảng cách', damage: 0 },
-                ult: { name: 'Bão Thiên Thạch', description: 'Triệu hồi thiên thạch rơi xuống gây sát thương diện rộng', damage: 150 }
-            }},
-            { id: 'assassin', name: 'Sát Thủ', color: 0x00ff00, health: 350, mana: 300, damage: 70, attackSpeed: 1.5, range: 150, abilities: {
-                1: { name: 'Vô Hình', description: 'Trở nên vô hình trong thời gian ngắn', damage: 0 },
-                2: { name: 'Phi Tiêu', description: 'Ném phi tiêu gây sát thương và làm chậm', damage: 60 },
-                3: { name: 'Đòn Kết Liễu', description: 'Gây sát thương cao hơn với mục tiêu có máu thấp', damage: 80 },
-                ult: { name: 'Sát Thủ Bóng Đêm', description: 'Tấn công liên tục và nhanh chóng mục tiêu', damage: 200 }
-            }},
-            { id: 'archer', name: 'Cung Thủ', color: 0xff00ff, health: 300, mana: 250, damage: 55, attackSpeed: 1.2, range: 450, abilities: {
-                1: { name: 'Mưa Tên', description: 'Bắn nhiều mũi tên cùng lúc', damage: 80 },
-                2: { name: 'Tên Xuyên Thấu', description: 'Bắn một mũi tên xuyên qua nhiều mục tiêu', damage: 70 },
-                3: { name: 'Nhảy Lùi', description: 'Nhảy lùi và tăng tốc độ di chuyển', damage: 0 },
-                ult: { name: 'Tiễn Vũ Bão', description: 'Bắn hàng loạt mũi tên lên trời, gây sát thương diện rộng', damage: 180 }
-            }},
-            { id: 'support', name: 'Hỗ Trợ', color: 0xffff00, health: 400, mana: 400, damage: 30, attackSpeed: 0.9, range: 300, abilities: {
-                1: { name: 'Hồi Phục', description: 'Hồi phục máu cho bản thân và đồng minh', damage: -50 },
-                2: { name: 'Tăng Tốc', description: 'Tăng tốc độ di chuyển cho đồng minh', damage: 0 },
-                3: { name: 'Khống Chế', description: 'Khống chế kẻ địch trong khu vực nhỏ', damage: 30 },
-                ult: { name: 'Hộ Mệnh', description: 'Làm vô hiệu mọi sát thương trong thời gian ngắn', damage: 0 }
-            }},
-        ];
-
-        // Function to simulate loading
-        function startLoading() {
-            const loadingBar = document.querySelector('.loading-bar');
-            const loadingText = document.querySelector('.loading-text');
-            const loadingScreen = document.getElementById('loading-screen');
-            
-            let progress = 0;
-            const loadingInterval = setInterval(() => {
-                progress += Math.random() * 10;
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(loadingInterval);
-                    
-                    setTimeout(() => {
-                        loadingScreen.style.display = 'none';
-                        document.getElementById('main-menu').style.display = 'flex';
-                    }, 500);
-                }
-                
-                loadingBar.style.width = `${progress}%`;
-                loadingText.textContent = `Đang tải game... ${Math.floor(progress)}%`;
-            }, 200);
+        // Audio elements
+        const bgm = document.getElementById('bgm');
+        const collectSound = document.getElementById('collect-sound');
+        const bossSpawnSound = document.getElementById('boss-spawn-sound');
+        const gameOverSound = document.getElementById('game-over-sound');
+        const bossDefeatedSound = document.getElementById('boss-defeated-sound');
+        
+        // Các phần tử DOM
+        const loginScreen = document.getElementById('login-screen');
+        const roomScreen = document.getElementById('room-screen');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const joinRoomModal = document.getElementById('join-room-modal');
+        
+        const playerNameInput = document.getElementById('player-name');
+        const createRoomBtn = document.getElementById('create-room-btn');
+        const joinRoomBtn = document.getElementById('join-room-btn');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const leaveRoomBtn = document.getElementById('leave-room-btn');
+        const roomCodeDisplay = document.getElementById('room-code');
+        const playerListElement = document.getElementById('player-list');
+        const playerCountElement = document.getElementById('player-count');
+        const roomCodeInput = document.getElementById('room-code-input');
+        const joinRoomSubmit = document.getElementById('join-room-submit');
+        const joinRoomCancel = document.getElementById('join-room-cancel');
+        
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const backToRoomsBtn = document.getElementById('back-to-rooms-btn');
+        const scoreElement = document.getElementById('score');
+        const timeElement = document.getElementById('time');
+        const roomInfoElement = document.getElementById('room-info');
+        const scoreboardElement = document.getElementById('scoreboard');
+        const winnerListElement = document.getElementById('winner-list');
+        const logoContainer = document.getElementById('logo-container');
+        const notificationElement = document.getElementById('notification');
+        const volumeControl = document.getElementById('volume-control');
+        
+        // Chat elements
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        
+        // Socket.io connection
+        // Change this to your deployed server URL when running on Railway
+        const socket = io('https://flower-battle-server.up.railway.app');
+        
+        // Game state
+        let soundEnabled = true;
+        let currentRoom = null;
+        let playerId = null;
+        let playerName = '';
+        let isRoomOwner = false;
+        
+        // Thiết lập kích thước canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
         }
         
-        // Initialize PixiJS
-        function initPixi() {
-            // Create PixiJS application
-            app = new PIXI.Application({
-                width: window.innerWidth,
-                height: window.innerHeight,
-                backgroundColor: 0x2c3e50,
-                view: document.getElementById('game-canvas'),
-                resolution: window.devicePixelRatio || 1,
-                autoDensity: true
-            });
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Tạo logo Hiếu Gà
+        function createLogo() {
+            const logoCanvas = document.createElement('canvas');
+            logoCanvas.width = 200;
+            logoCanvas.height = 200;
+            const logoCtx = logoCanvas.getContext('2d');
             
-            // Create game map
-            createMap();
+            // Draw circular background
+            logoCtx.fillStyle = '#FFDE59';
+            logoCtx.beginPath();
+            logoCtx.arc(100, 100, 95, 0, Math.PI * 2);
+            logoCtx.fill();
             
-            // Handle window resize
-            window.addEventListener('resize', onResize);
-            onResize();
+            // Draw border
+            logoCtx.strokeStyle = '#FF9A5A';
+            logoCtx.lineWidth = 10;
+            logoCtx.stroke();
+            
+            // Draw chicken body
+            logoCtx.fillStyle = '#FF5A5A';
+            logoCtx.beginPath();
+            logoCtx.ellipse(100, 110, 50, 60, 0, 0, Math.PI * 2);
+            logoCtx.fill();
+            
+            // Draw chicken head
+            logoCtx.fillStyle = '#FF5A5A';
+            logoCtx.beginPath();
+            logoCtx.arc(100, 60, 30, 0, Math.PI * 2);
+            logoCtx.fill();
+            
+            // Draw chicken eyes
+            logoCtx.fillStyle = 'white';
+            logoCtx.beginPath();
+            logoCtx.arc(85, 55, 8, 0, Math.PI * 2);
+            logoCtx.fill();
+            logoCtx.beginPath();
+            logoCtx.arc(115, 55, 8, 0, Math.PI * 2);
+            logoCtx.fill();
+            
+            logoCtx.fillStyle = 'black';
+            logoCtx.beginPath();
+            logoCtx.arc(85, 55, 4, 0, Math.PI * 2);
+            logoCtx.fill();
+            logoCtx.beginPath();
+            logoCtx.arc(115, 55, 4, 0, Math.PI * 2);
+            logoCtx.fill();
+            
+            // Draw chicken comb
+            logoCtx.fillStyle = '#FF0000';
+            logoCtx.beginPath();
+            logoCtx.moveTo(100, 30);
+            logoCtx.lineTo(85, 45);
+            logoCtx.lineTo(100, 40);
+            logoCtx.lineTo(115, 45);
+            logoCtx.closePath();
+            logoCtx.fill();
+            
+            // Draw chicken beak
+            logoCtx.fillStyle = '#FFA500';
+            logoCtx.beginPath();
+            logoCtx.moveTo(100, 65);
+            logoCtx.lineTo(90, 75);
+            logoCtx.lineTo(110, 75);
+            logoCtx.closePath();
+            logoCtx.fill();
+            
+            // Draw chicken wings
+            logoCtx.fillStyle = '#FF7A7A';
+            logoCtx.beginPath();
+            logoCtx.ellipse(60, 110, 15, 30, Math.PI / 4, 0, Math.PI * 2);
+            logoCtx.fill();
+            logoCtx.beginPath();
+            logoCtx.ellipse(140, 110, 15, 30, -Math.PI / 4, 0, Math.PI * 2);
+            logoCtx.fill();
+            
+            // Draw chicken legs
+            logoCtx.fillStyle = '#FFA500';
+            logoCtx.fillRect(85, 165, 8, 20);
+            logoCtx.fillRect(107, 165, 8, 20);
+            
+            // Draw chicken feet
+            logoCtx.beginPath();
+            logoCtx.moveTo(85, 185);
+            logoCtx.lineTo(70, 190);
+            logoCtx.lineTo(85, 185);
+            logoCtx.lineTo(93, 190);
+            logoCtx.stroke();
+            
+            logoCtx.beginPath();
+            logoCtx.moveTo(115, 185);
+            logoCtx.lineTo(130, 190);
+            logoCtx.lineTo(115, 185);
+            logoCtx.lineTo(107, 190);
+            logoCtx.stroke();
+            
+            // Add text
+            logoCtx.fillStyle = '#5D5CDE';
+            logoCtx.font = 'bold 36px Arial';
+            logoCtx.textAlign = 'center';
+            logoCtx.textBaseline = 'bottom';
+            logoCtx.fillText('Hiếu Gà', 100, 240);
+            
+            // Create img element from canvas
+            const logoImg = document.createElement('img');
+            logoImg.src = logoCanvas.toDataURL();
+            logoImg.id = 'logo';
+            
+            // Clear and append
+            logoContainer.innerHTML = '';
+            logoContainer.appendChild(logoImg);
         }
         
-        // Create game map
-        function createMap() {
-            // Create main background
-            const background = new PIXI.Graphics();
-            background.beginFill(0x357b4c);
-            background.drawRect(0, 0, 2000, 2000);
-            background.endFill();
-            app.stage.addChild(background);
+        // Audio Controls
+        volumeControl.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
             
-            // Create paths/lanes
-            const paths = new PIXI.Graphics();
-            paths.beginFill(0xc2b280);
-            // Top lane
-            paths.drawRect(0, 300, 2000, 150);
-            // Middle lane
-            paths.drawRect(925, 0, 150, 2000);
-            // Bottom lane
-            paths.drawRect(0, 1550, 2000, 150);
-            paths.endFill();
-            app.stage.addChild(paths);
-            
-            // Create base areas
-            const blueBase = new PIXI.Graphics();
-            blueBase.beginFill(0x0088ff, 0.5);
-            blueBase.drawCircle(200, 200, 200);
-            blueBase.endFill();
-            
-            const redBase = new PIXI.Graphics();
-            redBase.beginFill(0xff3333, 0.5);
-            redBase.drawCircle(1800, 1800, 200);
-            redBase.endFill();
-            
-            app.stage.addChild(blueBase, redBase);
-            
-            // Create jungle areas with bushes
-            createJungle();
-            
-            // Create structures (towers, inhibitors)
-            createStructures();
-        }
-        
-        // Create jungle areas
-        function createJungle() {
-            // Create jungle bushes
-            const jungleBushes = [
-                { x: 500, y: 500, radius: 100 },
-                { x: 1500, y: 1500, radius: 100 },
-                { x: 500, y: 1500, radius: 100 },
-                { x: 1500, y: 500, radius: 100 },
-                { x: 1000, y: 1000, radius: 150 },
-                { x: 700, y: 1000, radius: 80 },
-                { x: 1300, y: 1000, radius: 80 },
-                { x: 1000, y: 700, radius: 80 },
-                { x: 1000, y: 1300, radius: 80 }
-            ];
-            
-            const bushGraphics = new PIXI.Graphics();
-            bushGraphics.alpha = 0.7;
-            
-            for (const bush of jungleBushes) {
-                bushGraphics.beginFill(0x326432);
-                bushGraphics.drawCircle(bush.x, bush.y, bush.radius);
-                bushGraphics.endFill();
-            }
-            
-            app.stage.addChild(bushGraphics);
-        }
-        
-        // Create structures
-        function createStructures() {
-            // Blue team towers
-            const blueTowers = [
-                { x: 400, y: 350, team: 'blue' },
-                { x: 400, y: 1000, team: 'blue' },
-                { x: 400, y: 1650, team: 'blue' },
-                { x: 1000, y: 400, team: 'blue' },
-                { x: 1650, y: 400, team: 'blue' }
-            ];
-            
-            // Red team towers
-            const redTowers = [
-                { x: 1600, y: 350, team: 'red' },
-                { x: 1600, y: 1000, team: 'red' },
-                { x: 1600, y: 1650, team: 'red' },
-                { x: 1000, y: 1600, team: 'red' },
-                { x: 350, y: 1600, team: 'red' }
-            ];
-            
-            // Create towers
-            createTowers(blueTowers);
-            createTowers(redTowers);
-        }
-        
-        // Create towers
-        function createTowers(towerData) {
-            for (const tower of towerData) {
-                const towerGraphics = new PIXI.Graphics();
-                towerGraphics.beginFill(tower.team === 'blue' ? 0x0088ff : 0xff3333);
-                towerGraphics.drawRect(-20, -20, 40, 100);
-                towerGraphics.endFill();
-                
-                const towerTop = new PIXI.Graphics();
-                towerTop.beginFill(tower.team === 'blue' ? 0x0066cc : 0xcc0000);
-                towerTop.drawCircle(0, -30, 30);
-                towerTop.endFill();
-                
-                const towerContainer = new PIXI.Container();
-                towerContainer.addChild(towerGraphics, towerTop);
-                towerContainer.position.set(tower.x, tower.y);
-                app.stage.addChild(towerContainer);
-                
-                // Add to entities
-                entities.push({
-                    sprite: towerContainer,
-                    type: 'tower',
-                    team: tower.team,
-                    health: 500,
-                    maxHealth: 500,
-                    damage: 50,
-                    attackSpeed: 1,
-                    lastAttack: 0,
-                    range: 300,
-                    x: tower.x,
-                    y: tower.y,
-                    width: 40,
-                    height: 100,
-                    target: null,
-                    alive: true
-                });
-                
-                // Add health bar
-                const healthBar = new PIXI.Graphics();
-                healthBar.beginFill(0x00ff00);
-                healthBar.drawRect(-30, -60, 60, 10);
-                healthBar.endFill();
-                towerContainer.addChild(healthBar);
-                
-                // Add entity name
-                const nameText = new PIXI.Text(tower.team === 'blue' ? 'Trụ Xanh' : 'Trụ Đỏ', {
-                    fontFamily: 'Arial',
-                    fontSize: 12,
-                    fill: 0xffffff,
-                    align: 'center'
-                });
-                nameText.anchor.set(0.5, 0.5);
-                nameText.position.set(0, -80);
-                towerContainer.addChild(nameText);
-            }
-        }
-        
-        // Create player character
-        function createPlayer(character) {
-            // Create player graphics
-            const playerGraphics = new PIXI.Graphics();
-            playerGraphics.beginFill(character.color);
-            playerGraphics.drawCircle(0, 0, 30);
-            playerGraphics.endFill();
-            
-            // Add facial features
-            const face = new PIXI.Graphics();
-            face.beginFill(0xffffff);
-            face.drawCircle(-10, -5, 5);  // Left eye
-            face.drawCircle(10, -5, 5);   // Right eye
-            face.endFill();
-            
-            face.beginFill(0x000000);
-            face.drawCircle(-10, -5, 2);  // Left pupil
-            face.drawCircle(10, -5, 2);   // Right pupil
-            face.endFill();
-            
-            // Mouth depends on character
-            face.beginFill(0x000000);
-            if (character.id === 'warrior' || character.id === 'assassin') {
-                face.drawRect(-15, 10, 30, 3);  // Straight mouth
-            } else if (character.id === 'mage' || character.id === 'support') {
-                face.arc(0, 10, 15, 0, Math.PI);  // Smile
-            } else {
-                face.arc(0, 20, 15, Math.PI, 0);  // Frown
-            }
-            face.endFill();
-            
-            // Create container for player
-            const playerContainer = new PIXI.Container();
-            playerContainer.addChild(playerGraphics, face);
-            playerContainer.position.set(200, 200);
-            app.stage.addChild(playerContainer);
-            
-            // Add name text
-            const nameText = new PIXI.Text(`${character.name}`, {
-                fontFamily: 'Arial',
-                fontSize: 14,
-                fill: 0xffffff,
-                align: 'center'
-            });
-            nameText.anchor.set(0.5, 0.5);
-            nameText.position.set(0, -50);
-            playerContainer.addChild(nameText);
-            
-            // Add health bar
-            const healthBar = new PIXI.Graphics();
-            healthBar.beginFill(0x00ff00);
-            healthBar.drawRect(-30, -40, 60, 5);
-            healthBar.endFill();
-            playerContainer.addChild(healthBar);
-            
-            // Add mana bar
-            const manaBar = new PIXI.Graphics();
-            manaBar.beginFill(0x0000ff);
-            manaBar.drawRect(-30, -35, 60, 5);
-            manaBar.endFill();
-            playerContainer.addChild(manaBar);
-            
-            // Create player object
-            player = {
-                sprite: playerContainer,
-                type: 'player',
-                character: character,
-                team: 'blue',
-                health: character.health,
-                maxHealth: character.health,
-                mana: character.mana,
-                maxMana: character.mana,
-                damage: character.damage,
-                attackSpeed: character.attackSpeed,
-                range: character.range,
-                lastAttack: 0,
-                x: 200,
-                y: 200,
-                speed: 5,
-                width: 60,
-                height: 60,
-                target: null,
-                alive: true,
-                healthBar: healthBar,
-                manaBar: manaBar,
-                kills: 0,
-                deaths: 0,
-                level: 1,
-                experience: 0
-            };
-            
-            // Add player to entities
-            entities.push(player);
-            
-            // Center camera on player
-            centerCamera();
-            
-            // Update UI with initial values
-            updateUI();
-        }
-        
-        // Create enemy AI
-        function createEnemies() {
-            for (let i = 0; i < 5; i++) {
-                const randomChar = characters[Math.floor(Math.random() * characters.length)];
-                createEnemy(randomChar, 'red', 1800 - i * 100, 1800 - i * 100);
-            }
-            
-            // Create allied bots
-            for (let i = 0; i < 4; i++) {
-                const randomChar = characters[Math.floor(Math.random() * characters.length)];
-                createEnemy(randomChar, 'blue', 300 + i * 100, 300 + i * 100);
-            }
-            
-            // Create minions that spawn periodically
-            setInterval(spawnMinions, 30000);
-        }
-        
-        // Create a single enemy
-        function createEnemy(character, team, x, y) {
-            // Create enemy graphics
-            const enemyGraphics = new PIXI.Graphics();
-            enemyGraphics.beginFill(team === 'blue' ? 0x0088ff : 0xff3333);
-            enemyGraphics.drawCircle(0, 0, 30);
-            enemyGraphics.endFill();
-            
-            // Add facial features
-            const face = new PIXI.Graphics();
-            face.beginFill(0xffffff);
-            face.drawCircle(-10, -5, 5);  // Left eye
-            face.drawCircle(10, -5, 5);   // Right eye
-            face.endFill();
-            
-            face.beginFill(0x000000);
-            face.drawCircle(-10, -5, 2);  // Left pupil
-            face.drawCircle(10, -5, 2);   // Right pupil
-            face.endFill();
-            
-            // Mouth
-            face.beginFill(0x000000);
-            if (team === 'red') {
-                face.arc(0, 20, 15, Math.PI, 0);  // Frown for enemies
-            } else {
-                face.arc(0, 10, 15, 0, Math.PI);  // Smile for allies
-            }
-            face.endFill();
-            
-            // Create container for enemy
-            const enemyContainer = new PIXI.Container();
-            enemyContainer.addChild(enemyGraphics, face);
-            enemyContainer.position.set(x, y);
-            app.stage.addChild(enemyContainer);
-            
-            // Add name text
-            const nameText = new PIXI.Text(`${character.name} ${team === 'blue' ? '(Đồng đội)' : '(Địch)'}`, {
-                fontFamily: 'Arial',
-                fontSize: 14,
-                fill: 0xffffff,
-                align: 'center'
-            });
-            nameText.anchor.set(0.5, 0.5);
-            nameText.position.set(0, -50);
-            enemyContainer.addChild(nameText);
-            
-            // Add health bar
-            const healthBar = new PIXI.Graphics();
-            healthBar.beginFill(0x00ff00);
-            healthBar.drawRect(-30, -40, 60, 5);
-            healthBar.endFill();
-            enemyContainer.addChild(healthBar);
-            
-            // Create enemy object
-            const enemy = {
-                sprite: enemyContainer,
-                type: 'champion',
-                character: character,
-                team: team,
-                health: character.health,
-                maxHealth: character.health,
-                damage: character.damage,
-                attackSpeed: character.attackSpeed,
-                range: character.range,
-                lastAttack: 0,
-                x: x,
-                y: y,
-                speed: 3,
-                width: 60,
-                height: 60,
-                target: null,
-                alive: true,
-                healthBar: healthBar,
-                path: generateRandomPath(x, y, team),
-                pathIndex: 0,
-                waitTime: 0,
-                aiState: 'patrolling',
-                lastAbilityUse: 0
-            };
-            
-            // Add enemy to entities
-            entities.push(enemy);
-        }
-        
-        // Spawn minions
-        function spawnMinions() {
-            // Blue team minions
-            for (let i = 0; i < 9; i++) {
-                const lane = i % 3; // 0 = top, 1 = mid, 2 = bot
-                let x, y;
-                
-                // Position based on lane
-                if (lane === 0) {
-                    x = 200;
-                    y = 350;
-                } else if (lane === 1) {
-                    x = 1000;
-                    y = 200;
-                } else {
-                    x = 200;
-                    y = 1650;
-                }
-                
-                createMinion('blue', x + (i % 3) * 40, y + (i % 3) * 40, lane);
-            }
-            
-            // Red team minions
-            for (let i = 0; i < 9; i++) {
-                const lane = i % 3; // 0 = top, 1 = mid, 2 = bot
-                let x, y;
-                
-                // Position based on lane
-                if (lane === 0) {
-                    x = 1800;
-                    y = 350;
-                } else if (lane === 1) {
-                    x = 1000;
-                    y = 1800;
-                } else {
-                    x = 1800;
-                    y = 1650;
-                }
-                
-                createMinion('red', x - (i % 3) * 40, y - (i % 3) * 40, lane);
-            }
-        }
-        
-        // Create a single minion
-        function createMinion(team, x, y, lane) {
-            // Create minion graphics
-            const minionGraphics = new PIXI.Graphics();
-            minionGraphics.beginFill(team === 'blue' ? 0x0088ff : 0xff3333);
-            minionGraphics.drawCircle(0, 0, 15);
-            minionGraphics.endFill();
-            
-            // Create container for minion
-            const minionContainer = new PIXI.Container();
-            minionContainer.addChild(minionGraphics);
-            minionContainer.position.set(x, y);
-            app.stage.addChild(minionContainer);
-            
-            // Add name text
-            const nameText = new PIXI.Text(`Lính ${team === 'blue' ? 'Xanh' : 'Đỏ'}`, {
-                fontFamily: 'Arial',
-                fontSize: 10,
-                fill: 0xffffff,
-                align: 'center'
-            });
-            nameText.anchor.set(0.5, 0.5);
-            nameText.position.set(0, -25);
-            minionContainer.addChild(nameText);
-            
-            // Add health bar
-            const healthBar = new PIXI.Graphics();
-            healthBar.beginFill(0x00ff00);
-            healthBar.drawRect(-15, -20, 30, 3);
-            healthBar.endFill();
-            minionContainer.addChild(healthBar);
-            
-            // Generate path based on lane
-            let path = [];
-            if (team === 'blue') {
-                if (lane === 0) {
-                    path = [
-                        { x: 400, y: 350 },
-                        { x: 1600, y: 350 }
-                    ];
-                } else if (lane === 1) {
-                    path = [
-                        { x: 1000, y: 400 },
-                        { x: 1000, y: 1600 }
-                    ];
-                } else {
-                    path = [
-                        { x: 400, y: 1650 },
-                        { x: 1600, y: 1650 }
-                    ];
+            if (soundEnabled) {
+                volumeControl.textContent = '🔊';
+                if (game && game.gameActive) {
+                    bgm.play();
                 }
             } else {
-                if (lane === 0) {
-                    path = [
-                        { x: 1600, y: 350 },
-                        { x: 400, y: 350 }
-                    ];
-                } else if (lane === 1) {
-                    path = [
-                        { x: 1000, y: 1600 },
-                        { x: 1000, y: 400 }
-                    ];
+                volumeControl.textContent = '🔇';
+                bgm.pause();
+            }
+        });
+        
+        // Lớp Player
+        class Player {
+            constructor(id, x, y, color, name, isLocal = false) {
+                this.id = id;
+                this.x = x;
+                this.y = y;
+                this.targetX = x;
+                this.targetY = y;
+                this.radius = 20;
+                this.color = color;
+                this.score = 0;
+                this.isLocal = isLocal;
+                this.name = name || (isLocal ? 'Bạn' : `Người chơi ${id}`);
+                this.speed = isLocal ? 5 : 5; // Same speed for all
+                this.lastUpdate = Date.now();
+                this.isAlive = true;
+                this.angle = 0;
+                this.moveDirection = Math.random() * Math.PI * 2;
+                this.animationFrame = 0;
+                this.animationSpeed = 0.1;
+                this.lastSyncTime = 0;
+                this.syncInterval = 50; // sync every 50ms
+            }
+            
+            update(deltaTime, flowers, playArea, game) {
+                if (!this.isAlive) return;
+                
+                const now = Date.now();
+                
+                // Cập nhật chuyển động
+                if (this.isLocal) {
+                    // Player di chuyển đến vị trí target (đã xử lý bởi touch/mouse events)
+                    const dx = this.targetX - this.x;
+                    const dy = this.targetY - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > 5) {
+                        this.x += (dx / distance) * this.speed * (deltaTime / 16.67);
+                        this.y += (dy / distance) * this.speed * (deltaTime / 16.67);
+                        this.moveDirection = Math.atan2(dy, dx);
+                        
+                        // Sync with server if moved
+                        if (now - this.lastSyncTime > this.syncInterval) {
+                            socket.emit('playerMove', {
+                                roomId: currentRoom,
+                                x: this.x,
+                                y: this.y,
+                                targetX: this.targetX,
+                                targetY: this.targetY,
+                                moveDirection: this.moveDirection
+                            });
+                            this.lastSyncTime = now;
+                        }
+                    }
                 } else {
-                    path = [
-                        { x: 1600, y: 1650 },
-                        { x: 400, y: 1650 }
-                    ];
-                }
-            }
-            
-            // Create minion object
-            const minion = {
-                sprite: minionContainer,
-                type: 'minion',
-                team: team,
-                health: 100,
-                maxHealth: 100,
-                damage: 10,
-                attackSpeed: 1,
-                range: 100,
-                lastAttack: 0,
-                x: x,
-                y: y,
-                speed: 2,
-                width: 30,
-                height: 30,
-                target: null,
-                alive: true,
-                healthBar: healthBar,
-                path: path,
-                pathIndex: 0,
-                aiState: 'pushing'
-            };
-            
-            // Add minion to entities
-            entities.push(minion);
-        }
-        
-        // Generate random patrol path
-        function generateRandomPath(x, y, team) {
-            const path = [];
-            const pathLength = 5 + Math.floor(Math.random() * 5);
-            
-            // Starting point
-            path.push({ x, y });
-            
-            // Team-based patrol areas
-            const baseX = team === 'blue' ? 600 : 1400;
-            const baseY = team === 'blue' ? 600 : 1400;
-            
-            // Generate path points around the base area
-            for (let i = 0; i < pathLength; i++) {
-                const radius = 200 + Math.random() * 600;
-                const angle = Math.random() * Math.PI * 2;
-                
-                const pathX = baseX + Math.cos(angle) * radius;
-                const pathY = baseY + Math.sin(angle) * radius;
-                
-                path.push({ x: pathX, y: pathY });
-            }
-            
-            // Add base point to return to
-            path.push({ x, y });
-            
-            return path;
-        }
-        
-        // Start the game
-        function startGame() {
-            // Hide menu
-            document.getElementById('character-menu').style.display = 'none';
-            
-            // Show UI elements
-            document.querySelector('.ui-overlay').style.display = 'block';
-            
-            // Create players and enemies
-            createPlayer(selectedCharacter);
-            createEnemies();
-            
-            // Start game loop
-            gameStarted = true;
-            gameLoop = setInterval(updateGame, 1000 / 60); // 60 FPS
-        }
-        
-        // Update game
-        function updateGame() {
-            // Handle player movement
-            if (joystickActive && player.alive) {
-                movePlayer();
-            }
-            
-            // Update entities
-            for (let i = 0; i < entities.length; i++) {
-                const entity = entities[i];
-                
-                // Skip dead entities
-                if (!entity.alive) continue;
-                
-                // Update entity position
-                entity.sprite.position.x = entity.x;
-                entity.sprite.position.y = entity.y;
-                
-                // Update health bar
-                if (entity.healthBar) {
-                    const healthPercent = entity.health / entity.maxHealth;
-                    entity.healthBar.width = 60 * healthPercent;
-                    entity.healthBar.tint = getHealthColor(healthPercent);
-                }
-                
-                // Update mana bar if it exists
-                if (entity.manaBar) {
-                    const manaPercent = entity.mana / entity.maxMana;
-                    entity.manaBar.width = 60 * manaPercent;
-                }
-                
-                // Apply AI for non-player entities
-                if (entity !== player) {
-                    updateEntityAI(entity);
-                }
-                
-                // Check for attack
-                if (entity.target && entity.target.alive) {
-                    const targetDistance = getDistance(entity.x, entity.y, entity.target.x, entity.target.y);
+                    // Remote player - interpolate movement
+                    const dx = this.targetX - this.x;
+                    const dy = this.targetY - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
                     
-                    // If target is in range, attack
-                    if (targetDistance <= entity.range) {
-                        const now = Date.now();
-                        if (now - entity.lastAttack > 1000 / entity.attackSpeed) {
-                            attackTarget(entity, entity.target);
-                            entity.lastAttack = now;
-                        }
+                    if (distance > 5) {
+                        this.x += (dx / distance) * this.speed * (deltaTime / 16.67);
+                        this.y += (dy / distance) * this.speed * (deltaTime / 16.67);
                     }
                 }
-            }
-            
-            // Update projectiles
-            updateProjectiles();
-            
-            // Center camera on player
-            centerCamera();
-            
-            // Update UI
-            updateUI();
-            
-            // Check if game should end
-            checkGameEnd();
-        }
-        
-        // Move player
-        function movePlayer() {
-            if (!player) return;
-            
-            // Calculate new position
-            const newX = player.x + joystickData.x * player.speed;
-            const newY = player.y + joystickData.y * player.speed;
-            
-            // Boundary checks
-            const boundaryPadding = 50;
-            const newXClamped = Math.max(boundaryPadding, Math.min(2000 - boundaryPadding, newX));
-            const newYClamped = Math.max(boundaryPadding, Math.min(2000 - boundaryPadding, newY));
-            
-            // Update player position
-            player.x = newXClamped;
-            player.y = newYClamped;
-            
-            // Find closest enemy if no target
-            if (!player.target || !player.target.alive) {
-                findClosestTarget(player);
-            }
-        }
-        
-        // Update entity AI
-        function updateEntityAI(entity) {
-            // Different AI based on entity type
-            if (entity.type === 'champion') {
-                updateChampionAI(entity);
-            } else if (entity.type === 'minion') {
-                updateMinionAI(entity);
-            } else if (entity.type === 'tower') {
-                updateTowerAI(entity);
-            }
-        }
-        
-        // Update champion AI
-        function updateChampionAI(entity) {
-            // State machine for AI
-            switch (entity.aiState) {
-                case 'patrolling':
-                    // Follow patrol path
-                    if (entity.pathIndex < entity.path.length) {
-                        const targetPoint = entity.path[entity.pathIndex];
-                        const distToPoint = getDistance(entity.x, entity.y, targetPoint.x, targetPoint.y);
+                
+                // Kiểm tra xem người chơi có nằm trong khu vực chơi không
+                const distanceToCenter = Math.sqrt(
+                    Math.pow(this.x - playArea.x, 2) + 
+                    Math.pow(this.y - playArea.y, 2)
+                );
+                
+                if (distanceToCenter > playArea.radius) {
+                    // Di chuyển người chơi trở lại vào trong khu vực chơi
+                    const angle = Math.atan2(this.y - playArea.y, this.x - playArea.x);
+                    const newX = playArea.x + Math.cos(angle) * (playArea.radius - 5);
+                    const newY = playArea.y + Math.sin(angle) * (playArea.radius - 5);
+                    
+                    this.x = newX;
+                    this.y = newY;
+                    
+                    if (this.isLocal) {
+                        this.targetX = this.x;
+                        this.targetY = this.y;
                         
-                        if (distToPoint < 20) {
-                            // Reached point, move to next or wait
-                            entity.pathIndex = (entity.pathIndex + 1) % entity.path.length;
-                            entity.waitTime = Math.random() * 2000; // Random wait time up to 2 seconds
-                            entity.aiState = 'waiting';
-                        } else {
-                            // Move towards point
-                            moveTowardsPoint(entity, targetPoint.x, targetPoint.y);
-                        }
+                        // Sync position after boundary correction
+                        socket.emit('playerMove', {
+                            roomId: currentRoom,
+                            x: this.x,
+                            y: this.y,
+                            targetX: this.targetX,
+                            targetY: this.targetY,
+                            moveDirection: this.moveDirection
+                        });
                     }
-                    
-                    // Check for enemies
-                    findClosestTarget(entity);
-                    if (entity.target) {
-                        entity.aiState = 'attacking';
-                    }
-                    break;
-                
-                case 'waiting':
-                    // Wait at current point
-                    entity.waitTime -= 16; // Approx 16ms per frame at 60fps
-                    if (entity.waitTime <= 0) {
-                        entity.aiState = 'patrolling';
-                    }
-                    
-                    // Check for enemies
-                    findClosestTarget(entity);
-                    if (entity.target) {
-                        entity.aiState = 'attacking';
-                    }
-                    break;
-                
-                case 'attacking':
-                    // If no target or target is dead, go back to patrolling
-                    if (!entity.target || !entity.target.alive) {
-                        entity.target = null;
-                        entity.aiState = 'patrolling';
-                        break;
-                    }
-                    
-                    // Calculate distance to target
-                    const distToTarget = getDistance(entity.x, entity.y, entity.target.x, entity.target.y);
-                    
-                    // If target is out of range, move towards it
-                    if (distToTarget > entity.range) {
-                        moveTowardsPoint(entity, entity.target.x, entity.target.y);
-                    }
-                    
-                    // Use abilities sometimes (only for champions)
-                    const now = Date.now();
-                    if (now - entity.lastAbilityUse > 5000 + Math.random() * 5000) { // Random cooldown between 5-10 seconds
-                        useRandomAbility(entity);
-                        entity.lastAbilityUse = now;
-                    }
-                    break;
-                
-                case 'retreating':
-                    // Run away towards base
-                    const baseX = entity.team === 'blue' ? 200 : 1800;
-                    const baseY = entity.team === 'blue' ? 200 : 1800;
-                    
-                    moveTowardsPoint(entity, baseX, baseY);
-                    
-                    // If health is recovered enough, go back to patrolling
-                    if (entity.health > entity.maxHealth * 0.7) {
-                        entity.aiState = 'patrolling';
-                    }
-                    break;
-            }
-            
-            // Check health and retreat if low
-            if (entity.health < entity.maxHealth * 0.3 && entity.aiState !== 'retreating') {
-                entity.aiState = 'retreating';
-                entity.target = null;
-            }
-        }
-        
-        // Update minion AI
-        function updateMinionAI(entity) {
-            // Follow path
-            if (entity.pathIndex < entity.path.length) {
-                const targetPoint = entity.path[entity.pathIndex];
-                const distToPoint = getDistance(entity.x, entity.y, targetPoint.x, targetPoint.y);
-                
-                if (distToPoint < 20) {
-                    // Reached point, move to next
-                    entity.pathIndex++;
-                } else {
-                    // Move towards point
-                    moveTowardsPoint(entity, targetPoint.x, targetPoint.y);
                 }
-            }
-            
-            // Find targets
-            if (!entity.target || !entity.target.alive) {
-                findClosestTarget(entity);
-            }
-        }
-        
-        // Update tower AI
-        function updateTowerAI(entity) {
-            // Towers only attack when enemies are in range
-            if (!entity.target || !entity.target.alive) {
-                findClosestTarget(entity);
-            }
-        }
-        
-        // Move entity towards point
-        function moveTowardsPoint(entity, targetX, targetY) {
-            const dx = targetX - entity.x;
-            const dy = targetY - entity.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance > 0) {
-                const speed = entity.speed;
-                entity.x += (dx / distance) * speed;
-                entity.y += (dy / distance) * speed;
-            }
-        }
-        
-        // Find closest target for an entity
-        function findClosestTarget(entity) {
-            let closestDist = Infinity;
-            let closestTarget = null;
-            
-            for (const target of entities) {
-                // Skip same team, dead targets or self
-                if (target.team === entity.team || !target.alive || target === entity) continue;
                 
-                const dist = getDistance(entity.x, entity.y, target.x, target.y);
+                // Cập nhật animation
+                this.animationFrame += this.animationSpeed * (deltaTime / 16.67);
+                this.angle = this.moveDirection;
+            }
+            
+            draw(ctx) {
+                if (!this.isAlive) return;
                 
-                // Check if within search range (slightly larger than attack range)
-                if (dist < entity.range * 3 && dist < closestDist) {
-                    closestDist = dist;
-                    closestTarget = target;
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle + Math.PI / 2);
+                
+                // Body
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Mắt
+                const eyeX = Math.sin(this.animationFrame) * 2;
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(-8 + eyeX, -10, 5, 0, Math.PI * 2);
+                ctx.arc(8 + eyeX, -10, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(-8 + eyeX, -10, 2.5, 0, Math.PI * 2);
+                ctx.arc(8 + eyeX, -10, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Cánh tay
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 3;
+                
+                // Cánh tay trái
+                ctx.beginPath();
+                ctx.arc(-this.radius - 2, 0, 8, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Cánh tay phải
+                ctx.beginPath();
+                ctx.arc(this.radius + 2, 0, 8, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Tên
+                ctx.rotate(-this.angle - Math.PI / 2);
+                ctx.fillStyle = this.isLocal ? '#FF1493' : '#333';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(this.name, 0, -this.radius - 5);
+                
+                // Số hoa
+                if (this.score > 0) {
+                    ctx.font = '12px Arial';
+                    ctx.fillText(`🌸 ${this.score}`, 0, -this.radius - 20);
                 }
+                
+                ctx.restore();
             }
             
-            if (closestTarget) {
-                entity.target = closestTarget;
-            }
-        }
-        
-        // Attack target
-        function attackTarget(attacker, target) {
-            const damage = attacker.damage;
-            target.health -= damage;
-            
-            // Show damage text
-            showFloatingText(`-${damage}`, target.x, target.y, '#ff0000');
-            
-            // Check if target died
-            if (target.health <= 0) {
-                killEntity(target, attacker);
-            }
-        }
-        
-        // Use ability
-        function useAbility(abilityKey) {
-            if (!player || !player.alive) return;
-            
-            const ability = abilities[abilityKey];
-            const now = Date.now();
-            
-            // Check cooldown
-            if (now - ability.lastUsed < ability.cooldown) return;
-            
-            // Check mana
-            if (player.mana < 30) {
-                showFloatingText("Không đủ năng lượng!", player.x, player.y, '#0000ff');
-                return;
-            }
-            
-            // Use mana
-            player.mana -= 30;
-            
-            // Update cooldown
-            ability.lastUsed = now;
-            updateCooldownUI(abilityKey);
-            
-            // Different ability types
-            switch (ability.type) {
-                case 'burst':
-                    // Burst damage around player
-                    for (const entity of entities) {
-                        if (entity.team !== player.team && entity.alive) {
-                            const dist = getDistance(player.x, player.y, entity.x, entity.y);
-                            if (dist <= ability.range) {
-                                const damage = ability.damage;
-                                entity.health -= damage;
-                                showFloatingText(`-${damage}`, entity.x, entity.y, '#ff9900');
+            collectFlowers(flowers, game) {
+                if (!this.isAlive) return 0;
+                
+                let collected = 0;
+                
+                for (const flower of flowers) {
+                    if (!flower.collected) {
+                        const dx = this.x - flower.x;
+                        const dy = this.y - flower.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < this.radius + flower.radius) {
+                            if (this.isLocal) {
+                                // Send flower collection to server
+                                socket.emit('collectFlower', {
+                                    roomId: currentRoom,
+                                    flowerId: flower.id,
+                                    playerId: this.id
+                                });
                                 
-                                // Check if entity died
-                                if (entity.health <= 0) {
-                                    killEntity(entity, player);
+                                // Play sound locally
+                                if (soundEnabled) {
+                                    collectSound.currentTime = 0;
+                                    collectSound.play().catch(e => console.log("Audio play error:", e));
                                 }
                             }
+                            
+                            flower.collected = true;
+                            flower.collectedBy = this.id;
+                            this.score++;
+                            collected++;
                         }
                     }
-                    
-                    // Show visual effect
-                    showAbilityEffect('burst', player.x, player.y, ability.range);
-                    break;
-                
-                case 'projectile':
-                    // Create projectile towards target or direction
-                    if (player.target && player.target.alive) {
-                        createProjectile(player, player.target, ability.damage);
-                    } else {
-                        // Shoot in movement direction or forward
-                        const angle = joystickActive ? Math.atan2(joystickData.y, joystickData.x) : 0;
-                        const targetX = player.x + Math.cos(angle) * 500;
-                        const targetY = player.y + Math.sin(angle) * 500;
-                        
-                        createProjectile(player, { x: targetX, y: targetY }, ability.damage);
-                    }
-                    break;
-                
-                case 'area':
-                    // Area effect at target location or in front of player
-                    let targetX, targetY;
-                    
-                    if (player.target && player.target.alive) {
-                        targetX = player.target.x;
-                        targetY = player.target.y;
-                    } else {
-                        // Place in movement direction or forward
-                        const angle = joystickActive ? Math.atan2(joystickData.y, joystickData.x) : 0;
-                        targetX = player.x + Math.cos(angle) * 300;
-                        targetY = player.y + Math.sin(angle) * 300;
-                    }
-                    
-                    // Show area effect
-                    showAbilityEffect('area', targetX, targetY, 150);
-                    
-                    // Damage entities in area
-                    for (const entity of entities) {
-                        if (entity.team !== player.team && entity.alive) {
-                            const dist = getDistance(targetX, targetY, entity.x, entity.y);
-                            if (dist <= 150) { // Area radius
-                                const damage = ability.damage;
-                                entity.health -= damage;
-                                showFloatingText(`-${damage}`, entity.x, entity.y, '#00ffff');
-                                
-                                // Check if entity died
-                                if (entity.health <= 0) {
-                                    killEntity(entity, player);
-                                }
-                            }
-                        }
-                    }
-                    break;
-                
-                case 'buff':
-                    // Buff the player
-                    player.damage *= 1.5; // Increase damage by 50%
-                    player.speed *= 1.3; // Increase speed by 30%
-                    
-                    // Show buff effect
-                    showAbilityEffect('buff', player.x, player.y, 50);
-                    
-                    // Reset after 10 seconds
-                    setTimeout(() => {
-                        if (player && player.alive) {
-                            player.damage /= 1.5;
-                            player.speed /= 1.3;
-                        }
-                    }, 10000);
-                    break;
-            }
-        }
-        
-        // Use random ability for AI
-        function useRandomAbility(entity) {
-            if (!entity.alive) return;
-            
-            // Choose a random ability type
-            const abilityTypes = ['burst', 'projectile', 'area'];
-            const abilityType = abilityTypes[Math.floor(Math.random() * abilityTypes.length)];
-            
-            // Check if there's a target
-            if (!entity.target || !entity.target.alive) return;
-            
-            // Different ability types
-            switch (abilityType) {
-                case 'burst':
-                    // Burst damage around entity
-                    for (const target of entities) {
-                        if (target.team !== entity.team && target.alive) {
-                            const dist = getDistance(entity.x, entity.y, target.x, target.y);
-                            if (dist <= 200) {
-                                const damage = 30;
-                                target.health -= damage;
-                                showFloatingText(`-${damage}`, target.x, target.y, '#ff9900');
-                                
-                                // Check if target died
-                                if (target.health <= 0) {
-                                    killEntity(target, entity);
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Show visual effect
-                    showAbilityEffect('burst', entity.x, entity.y, 200);
-                    break;
-                
-                case 'projectile':
-                    // Create projectile towards target
-                    createProjectile(entity, entity.target, 50);
-                    break;
-                
-                case 'area':
-                    // Area effect at target location
-                    const targetX = entity.target.x;
-                    const targetY = entity.target.y;
-                    
-                    // Show area effect
-                    showAbilityEffect('area', targetX, targetY, 150);
-                    
-                    // Damage entities in area
-                    for (const target of entities) {
-                        if (target.team !== entity.team && target.alive) {
-                            const dist = getDistance(targetX, targetY, target.x, target.y);
-                            if (dist <= 150) { // Area radius
-                                const damage = 40;
-                                target.health -= damage;
-                                showFloatingText(`-${damage}`, target.x, target.y, '#00ffff');
-                                
-                                // Check if target died
-                                if (target.health <= 0) {
-                                    killEntity(target, entity);
-                                }
-                            }
-                        }
-                    }
-                    break;
-            }
-        }
-        
-        // Create projectile
-        function createProjectile(source, target, damage) {
-            const projectileGraphics = new PIXI.Graphics();
-            projectileGraphics.beginFill(source.team === 'blue' ? 0x00ffff : 0xff5555);
-            projectileGraphics.drawCircle(0, 0, 10);
-            projectileGraphics.endFill();
-            
-            app.stage.addChild(projectileGraphics);
-            
-            // Calculate direction
-            let targetX, targetY;
-            if (typeof target.x === 'number') {
-                // Target is a point or entity
-                targetX = target.x;
-                targetY = target.y;
-            } else {
-                // Default direction if no valid target
-                targetX = source.x + 100;
-                targetY = source.y;
-            }
-            
-            const dx = targetX - source.x;
-            const dy = targetY - source.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const normalizedDx = dx / distance;
-            const normalizedDy = dy / distance;
-            
-            // Create projectile object
-            const projectile = {
-                sprite: projectileGraphics,
-                x: source.x,
-                y: source.y,
-                dx: normalizedDx,
-                dy: normalizedDy,
-                speed: 10,
-                damage: damage,
-                source: source,
-                target: typeof target.alive === 'boolean' ? target : null,
-                radius: 10,
-                traveled: 0,
-                maxRange: 600
-            };
-            
-            projectiles.push(projectile);
-        }
-        
-        // Update projectiles
-        function updateProjectiles() {
-            for (let i = projectiles.length - 1; i >= 0; i--) {
-                const projectile = projectiles[i];
-                
-                // Move projectile
-                projectile.x += projectile.dx * projectile.speed;
-                projectile.y += projectile.dy * projectile.speed;
-                projectile.traveled += projectile.speed;
-                
-                // Update sprite position
-                projectile.sprite.position.x = projectile.x;
-                projectile.sprite.position.y = projectile.y;
-                
-                // Check for collision with entities
-                for (const entity of entities) {
-                    // Skip same team or dead entities
-                    if (entity.team === projectile.source.team || !entity.alive) continue;
-                    
-                    // Check collision
-                    const dist = getDistance(projectile.x, projectile.y, entity.x, entity.y);
-                    if (dist < projectile.radius + entity.width / 2) {
-                        // Hit entity
-                        entity.health -= projectile.damage;
-                        showFloatingText(`-${projectile.damage}`, entity.x, entity.y, '#ff5555');
-                        
-                        // Check if entity died
-                        if (entity.health <= 0) {
-                            killEntity(entity, projectile.source);
-                        }
-                        
-                        // Remove projectile
-                        app.stage.removeChild(projectile.sprite);
-                        projectiles.splice(i, 1);
-                        break;
-                    }
                 }
                 
-                // Check if projectile reached max range
-                if (projectile.traveled >= projectile.maxRange) {
-                    app.stage.removeChild(projectile.sprite);
-                    projectiles.splice(i, 1);
-                }
-            }
-        }
-        
-        // Show ability effect
-        function showAbilityEffect(type, x, y, radius) {
-            const effectGraphics = new PIXI.Graphics();
-            
-            switch (type) {
-                case 'burst':
-                    effectGraphics.lineStyle(3, 0xff9900, 0.8);
-                    effectGraphics.drawCircle(0, 0, radius);
-                    effectGraphics.beginFill(0xff9900, 0.3);
-                    effectGraphics.drawCircle(0, 0, radius);
-                    effectGraphics.endFill();
-                    break;
-                
-                case 'area':
-                    effectGraphics.lineStyle(3, 0x00ffff, 0.8);
-                    effectGraphics.drawCircle(0, 0, radius);
-                    effectGraphics.beginFill(0x00ffff, 0.3);
-                    effectGraphics.drawCircle(0, 0, radius);
-                    effectGraphics.endFill();
-                    break;
-                
-                case 'buff':
-                    effectGraphics.beginFill(0xffff00, 0.5);
-                    for (let i = 0; i < 8; i++) {
-                        const angle = (i / 8) * Math.PI * 2;
-                        effectGraphics.moveTo(0, 0);
-                        effectGraphics.lineTo(
-                            Math.cos(angle) * radius,
-                            Math.sin(angle) * radius
-                        );
-                    }
-                    effectGraphics.endFill();
-                    break;
+                return collected;
             }
             
-            effectGraphics.position.set(x, y);
-            app.stage.addChild(effectGraphics);
-            
-            // Animate and remove effect
-            let alpha = 1;
-            let scale = 1;
-            
-            const effectInterval = setInterval(() => {
-                alpha -= 0.05;
-                scale += 0.05;
+            // attack boss
+            attackBoss(boss, game) {
+                if (!this.isAlive || !boss || boss.defeated) return false;
                 
-                effectGraphics.alpha = alpha;
-                effectGraphics.scale.set(scale);
-                
-                if (alpha <= 0) {
-                    clearInterval(effectInterval);
-                    app.stage.removeChild(effectGraphics);
-                }
-            }, 50);
-        }
-        
-        // Kill entity
-        function killEntity(entity, killer) {
-            entity.alive = false;
-            entity.health = 0;
-            
-            // Update sprite to show death
-            entity.sprite.alpha = 0.5;
-            
-            // Award points/gold
-            if (killer) {
-                if (entity.type === 'champion' || entity.type === 'tower') {
-                    if (killer.team === 'blue') {
-                        gameState.blueScore += entity.type === 'champion' ? 1 : 5;
-                    } else {
-                        gameState.redScore += entity.type === 'champion' ? 1 : 5;
-                    }
-                }
-                
-                // Show kill message
-                if (entity.type === 'champion' || entity.type === 'tower') {
-                    const messageContainer = document.createElement('div');
-                    messageContainer.className = 'floating-text';
-                    messageContainer.style.left = `${window.innerWidth / 2}px`;
-                    messageContainer.style.top = `${100}px`;
-                    messageContainer.textContent = `${killer.team === 'blue' ? 'Đội Xanh' : 'Đội Đỏ'} đã tiêu diệt ${entity.type === 'champion' ? entity.character.name : (entity.team === 'blue' ? 'Trụ Xanh' : 'Trụ Đỏ')}!`;
-                    document.body.appendChild(messageContainer);
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(messageContainer);
-                    }, 3000);
-                }
-                
-                // Player stats
-                if (killer === player && (entity.type === 'champion' || entity.type === 'tower')) {
-                    player.kills++;
-                }
-            }
-            
-            // Remove entity after animation
-            setTimeout(() => {
-                // If entity is player, respawn after delay
-                if (entity === player) {
-                    player.deaths++;
-                    respawnPlayer();
-                } else {
-                    // Remove from stage
-                    app.stage.removeChild(entity.sprite);
-                    
-                    // Remove from entities array (find index first)
-                    const index = entities.indexOf(entity);
-                    if (index !== -1) {
-                        entities.splice(index, 1);
-                    }
-                    
-                    // Respawn if it's a champion or tower
-                    if (entity.type === 'champion') {
-                        setTimeout(() => {
-                            createEnemy(entity.character, entity.team, 
-                                entity.team === 'blue' ? 200 + Math.random() * 200 : 1800 - Math.random() * 200,
-                                entity.team === 'blue' ? 200 + Math.random() * 200 : 1800 - Math.random() * 200);
-                        }, 10000); // 10 second respawn time
-                    } else if (entity.type === 'tower') {
-                        // Towers respawn after longer delay
-                        setTimeout(() => {
-                            createTowers([{
-                                x: entity.x,
-                                y: entity.y,
-                                team: entity.team
-                            }]);
-                        }, 30000); // 30 second respawn time
-                    }
-                }
-            }, 1000);
-        }
-        
-        // Respawn player
-        function respawnPlayer() {
-            if (!player) return;
-            
-            setTimeout(() => {
-                player.alive = true;
-                player.health = player.maxHealth;
-                player.mana = player.maxMana;
-                player.x = 200;
-                player.y = 200;
-                player.sprite.alpha = 1;
-                
-                // Show respawn message
-                showFloatingText("Hồi sinh!", player.x, player.y, '#00ff00');
-            }, 5000); // 5 second respawn time
-        }
-        
-        // Center camera on player
-        function centerCamera() {
-            if (!player) return;
-            
-            // Calculate position to center player on screen
-            const targetX = -player.x + window.innerWidth / 2;
-            const targetY = -player.y + window.innerHeight / 2;
-            
-            // Clamp to map boundaries
-            const clampedX = Math.min(0, Math.max(-(2000 - window.innerWidth), targetX));
-            const clampedY = Math.min(0, Math.max(-(2000 - window.innerHeight), targetY));
-            
-            // Set position
-            app.stage.position.set(clampedX, clampedY);
-        }
-        
-        // Update UI elements
-        function updateUI() {
-            if (!player) return;
-            
-            // Update health bar
-            const healthFill = document.querySelector('.health-fill');
-            const healthText = document.querySelector('.health-text');
-            const healthPercent = player.health / player.maxHealth * 100;
-            
-            healthFill.style.width = `${healthPercent}%`;
-            healthText.textContent = `${Math.floor(player.health)}/${player.maxHealth}`;
-            
-            // Update mana bar
-            const manaFill = document.querySelector('.mana-fill');
-            const manaText = document.querySelector('.mana-text');
-            const manaPercent = player.mana / player.maxMana * 100;
-            
-            manaFill.style.width = `${manaPercent}%`;
-            manaText.textContent = `${Math.floor(player.mana)}/${player.maxMana}`;
-            
-            // Update score display
-            const blueScore = document.querySelector('.team-score.team-blue');
-            const redScore = document.querySelector('.team-score.team-red');
-            
-            blueScore.textContent = gameState.blueScore;
-            redScore.textContent = gameState.redScore;
-            
-            // Regenerate mana over time
-            if (player.mana < player.maxMana) {
-                player.mana += 0.1; // Adjust regen rate as needed
-                if (player.mana > player.maxMana) {
-                    player.mana = player.maxMana;
-                }
-            }
-            
-            // Regenerate health over time
-            if (player.health < player.maxHealth && player.alive) {
-                player.health += 0.05; // Adjust regen rate as needed
-                if (player.health > player.maxHealth) {
-                    player.health = player.maxHealth;
-                }
-            }
-            
-            // Update minimap (simplified)
-            updateMinimap();
-        }
-        
-        // Update ability cooldown UI
-        function updateCooldownUI(abilityKey) {
-            const ability = abilities[abilityKey];
-            const abilityBtn = document.querySelector(`.ability-btn[data-ability="${abilityKey}"]`);
-            const cooldownOverlay = abilityBtn.querySelector('.ability-cooldown');
-            
-            // Full height = full cooldown
-            cooldownOverlay.style.height = '100%';
-            
-            // Animate cooldown
-            const startTime = Date.now();
-            const cooldownTime = ability.cooldown;
-            
-            const cooldownInterval = setInterval(() => {
-                const elapsed = Date.now() - startTime;
-                const remaining = Math.max(0, cooldownTime - elapsed);
-                const percentage = (remaining / cooldownTime) * 100;
-                
-                cooldownOverlay.style.height = `${percentage}%`;
-                
-                if (remaining <= 0) {
-                    clearInterval(cooldownInterval);
-                }
-            }, 100);
-        }
-        
-        // Update minimap
-        function updateMinimap() {
-            const minimap = document.querySelector('.minimap');
-            minimap.innerHTML = '';
-            
-            // Calculate scale factor for minimap (map is 2000x2000)
-            const scale = minimap.offsetWidth / 2000;
-            
-            // Draw entities on minimap
-            for (const entity of entities) {
-                if (!entity.alive) continue;
-                
-                const dot = document.createElement('div');
-                dot.style.position = 'absolute';
-                dot.style.width = '6px';
-                dot.style.height = '6px';
-                dot.style.borderRadius = '50%';
-                dot.style.backgroundColor = entity.team === 'blue' ? '#00f' : '#f00';
-                
-                // Special style for player
-                if (entity === player) {
-                    dot.style.width = '8px';
-                    dot.style.height = '8px';
-                    dot.style.border = '1px solid white';
-                }
-                
-                // Position on minimap
-                dot.style.left = `${entity.x * scale - 3}px`;
-                dot.style.top = `${entity.y * scale - 3}px`;
-                
-                minimap.appendChild(dot);
-            }
-        }
-        
-        // Show floating text at position
-        function showFloatingText(text, x, y, color = '#ffffff') {
-            // Convert game coordinates to screen coordinates
-            const screenX = x + app.stage.position.x;
-            const screenY = y + app.stage.position.y;
-            
-            const textElement = document.createElement('div');
-            textElement.className = 'floating-text';
-            textElement.style.left = `${screenX}px`;
-            textElement.style.top = `${screenY - 50}px`;
-            textElement.style.color = color;
-            textElement.textContent = text;
-            
-            document.body.appendChild(textElement);
-            
-            setTimeout(() => {
-                document.body.removeChild(textElement);
-            }, 1000);
-        }
-        
-        // Check if game should end
-        function checkGameEnd() {
-            if (gameState.blueScore >= 30 || gameState.redScore >= 30) {
-                // Game over
-                clearInterval(gameLoop);
-                gameStarted = false;
-                
-                // Show game over message
-                const gameOver = document.createElement('div');
-                gameOver.className = 'game-over';
-                gameOver.innerHTML = `
-                    <h2>Trò Chơi Kết Thúc</h2>
-                    <p>${gameState.blueScore >= 30 ? 'Đội Xanh' : 'Đội Đỏ'} Chiến Thắng!</p>
-                    <p>Điểm số: ${gameState.blueScore} - ${gameState.redScore}</p>
-                    <button class="btn" id="restart-game-btn">Chơi Lại</button>
-                `;
-                document.body.appendChild(gameOver);
-                
-                // Add event listener to restart button
-                document.getElementById('restart-game-btn').addEventListener('click', () => {
-                    document.body.removeChild(gameOver);
-                    resetGame();
-                });
-            }
-        }
-        
-        // Reset game
-        function resetGame() {
-            // Stop game loop
-            clearInterval(gameLoop);
-            
-            // Reset game state
-            gameState.blueScore = 0;
-            gameState.redScore = 0;
-            
-            // Clear entities
-            for (const entity of entities) {
-                app.stage.removeChild(entity.sprite);
-            }
-            entities = [];
-            
-            // Clear projectiles
-            for (const projectile of projectiles) {
-                app.stage.removeChild(projectile.sprite);
-            }
-            projectiles = [];
-            
-            // Reset player
-            player = null;
-            
-            // Clear stage
-            while (app.stage.children.length > 0) {
-                app.stage.removeChild(app.stage.children[0]);
-            }
-            
-            // Recreate map
-            createMap();
-            
-            // Show character selection menu
-            document.getElementById('character-menu').style.display = 'flex';
-        }
-        
-        // Handle joystick controls
-        function initJoystick() {
-            const joystickArea = document.querySelector('.control-area');
-            const joystick = document.querySelector('.joystick');
-            const joystickRadius = joystickArea.offsetWidth / 2;
-            const centerX = joystickRadius;
-            const centerY = joystickRadius;
-            
-            // Touch start
-            joystickArea.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                handleJoystickStart(e.touches[0].clientX, e.touches[0].clientY);
-            });
-            
-            // Mouse down
-            joystickArea.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                handleJoystickStart(e.clientX, e.clientY);
-                
-                // Add temporary mouse move and up handlers
-                document.addEventListener('mousemove', handleMouseMove);
-                document.addEventListener('mouseup', handleMouseUp);
-            });
-            
-            // Touch move
-            joystickArea.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
-            });
-            
-            // Touch end
-            joystickArea.addEventListener('touchend', () => {
-                handleJoystickEnd();
-            });
-            
-            // Mouse move handler (temporary)
-            function handleMouseMove(e) {
-                e.preventDefault();
-                handleJoystickMove(e.clientX, e.clientY);
-            }
-            
-            // Mouse up handler (temporary)
-            function handleMouseUp(e) {
-                e.preventDefault();
-                handleJoystickEnd();
-                
-                // Remove temporary handlers
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-            }
-            
-            // Start joystick
-            function handleJoystickStart(clientX, clientY) {
-                joystickActive = true;
-                const rect = joystickArea.getBoundingClientRect();
-                updateJoystickPosition(clientX - rect.left, clientY - rect.top);
-            }
-            
-            // Move joystick
-            function handleJoystickMove(clientX, clientY) {
-                if (!joystickActive) return;
-                
-                const rect = joystickArea.getBoundingClientRect();
-                updateJoystickPosition(clientX - rect.left, clientY - rect.top);
-            }
-            
-            // End joystick
-            function handleJoystickEnd() {
-                joystickActive = false;
-                joystick.style.transform = `translate(-50%, -50%)`;
-                joystickData = { x: 0, y: 0 };
-            }
-            
-            // Update joystick position
-            function updateJoystickPosition(x, y) {
-                // Calculate distance from center
-                const dx = x - centerX;
-                const dy = y - centerY;
+                const dx = this.x - boss.x;
+                const dy = this.y - boss.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                // Normalize to unit vector
-                let normalizedX = dx / distance;
-                let normalizedY = dy / distance;
-                
-                // Clamp to joystick radius
-                const clampedDistance = Math.min(distance, joystickRadius - 25);
-                const clampedX = normalizedX * clampedDistance;
-                const clampedY = normalizedY * clampedDistance;
-                
-                // Update joystick position
-                joystick.style.transform = `translate(calc(-50% + ${clampedX}px), calc(-50% + ${clampedY}px))`;
-                
-                // Update joystick data for movement
-                joystickData = {
-                    x: normalizedX,
-                    y: normalizedY
-                };
-            }
-        }
-        
-        // Handle ability buttons
-        function initAbilityButtons() {
-            const abilityButtons = document.querySelectorAll('.ability-btn');
-            
-            abilityButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const abilityKey = button.getAttribute('data-ability');
-                    useAbility(abilityKey);
-                });
-                
-                button.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    const abilityKey = button.getAttribute('data-ability');
-                    useAbility(abilityKey);
-                });
-            });
-        }
-        
-        // Initialize character selection
-        function initCharacterSelection() {
-            const characterSelection = document.querySelector('.character-selection');
-            
-            characters.forEach(character => {
-                const card = document.createElement('div');
-                card.className = 'character-card';
-                card.dataset.id = character.id;
-                
-                // Create character image
-                const imageDiv = document.createElement('div');
-                imageDiv.className = 'character-image';
-                imageDiv.style.backgroundColor = `#${character.color.toString(16).padStart(6, '0')}`;
-                
-                // Add simple face
-                const face = document.createElement('div');
-                face.style.width = '100%';
-                face.style.height = '100%';
-                face.style.position = 'relative';
-                
-                // Eyes
-                const leftEye = document.createElement('div');
-                leftEye.style.position = 'absolute';
-                leftEye.style.width = '10px';
-                leftEye.style.height = '10px';
-                leftEye.style.backgroundColor = 'white';
-                leftEye.style.borderRadius = '50%';
-                leftEye.style.top = '30px';
-                leftEye.style.left = '25px';
-                
-                const rightEye = document.createElement('div');
-                rightEye.style.position = 'absolute';
-                rightEye.style.width = '10px';
-                rightEye.style.height = '10px';
-                rightEye.style.backgroundColor = 'white';
-                rightEye.style.borderRadius = '50%';
-                rightEye.style.top = '30px';
-                rightEye.style.right = '25px';
-                
-                // Mouth
-                const mouth = document.createElement('div');
-                mouth.style.position = 'absolute';
-                mouth.style.width = '30px';
-                mouth.style.height = '10px';
-                mouth.style.backgroundColor = 'black';
-                mouth.style.borderRadius = '0 0 10px 10px';
-                mouth.style.top = '50px';
-                mouth.style.left = '25px';
-                
-                face.appendChild(leftEye);
-                face.appendChild(rightEye);
-                face.appendChild(mouth);
-                imageDiv.appendChild(face);
-                
-                // Character name
-                const name = document.createElement('div');
-                name.className = 'text-sm font-bold mt-2';
-                name.textContent = character.name;
-                
-                // Stats
-                const stats = document.createElement('div');
-                stats.className = 'text-xs mt-1';
-                stats.innerHTML = `
-                    HP: ${character.health}<br>
-                    Sát thương: ${character.damage}<br>
-                    Tầm đánh: ${character.range < 200 ? 'Cận chiến' : 'Xa'}
-                `;
-                
-                card.appendChild(imageDiv);
-                card.appendChild(name);
-                card.appendChild(stats);
-                
-                // Add click event
-                card.addEventListener('click', () => {
-                    document.querySelectorAll('.character-card').forEach(c => {
-                        c.classList.remove('selected');
-                    });
-                    card.classList.add('selected');
-                    selectedCharacter = character;
-                });
-                
-                characterSelection.appendChild(card);
-            });
-        }
-        
-        // Get distance between two points
-        function getDistance(x1, y1, x2, y2) {
-            const dx = x2 - x1;
-            const dy = y2 - y1;
-            return Math.sqrt(dx * dx + dy * dy);
-        }
-        
-        // Get health color based on percentage
-        function getHealthColor(percent) {
-            if (percent > 0.6) {
-                return 0x00ff00; // Green
-            } else if (percent > 0.3) {
-                return 0xffff00; // Yellow
-            } else {
-                return 0xff0000; // Red
-            }
-        }
-        
-        // Handle window resize
-        function onResize() {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            
-            app.renderer.resize(width, height);
-            
-            // Adjust UI elements for mobile/desktop
-            if (width < 768) {
-                document.querySelector('.control-area').style.width = '120px';
-                document.querySelector('.control-area').style.height = '120px';
-                document.querySelector('.joystick').style.width = '40px';
-                document.querySelector('.joystick').style.height = '40px';
-                
-                document.querySelector('.minimap').style.width = '100px';
-                document.querySelector('.minimap').style.height = '100px';
-            } else {
-                document.querySelector('.control-area').style.width = '150px';
-                document.querySelector('.control-area').style.height = '150px';
-                document.querySelector('.joystick').style.width = '50px';
-                document.querySelector('.joystick').style.height = '50px';
-                
-                document.querySelector('.minimap').style.width = '150px';
-                document.querySelector('.minimap').style.height = '150px';
-            }
-            
-            // Update minimap
-            updateMinimap();
-            
-            // Center camera on player if game started
-            if (gameStarted && player) {
-                centerCamera();
-            }
-        }
-        
-        // Initialize game
-        function init() {
-            // Start loading sequence
-            startLoading();
-            
-            // Initialize PixiJS
-            initPixi();
-            
-            // Initialize character selection
-            initCharacterSelection();
-            
-            // Initialize joystick controls
-            initJoystick();
-            
-            // Initialize ability buttons
-            initAbilityButtons();
-            
-            // Add event listeners for buttons
-            document.getElementById('start-game-btn').addEventListener('click', () => {
-                document.getElementById('main-menu').style.display = 'none';
-                document.getElementById('character-menu').style.display = 'flex';
-            });
-            
-            document.getElementById('how-to-play-btn').addEventListener('click', () => {
-                document.getElementById('main-menu').style.display = 'none';
-                document.getElementById('how-to-play').style.display = 'flex';
-            });
-            
-            document.getElementById('back-to-menu-btn').addEventListener('click', () => {
-                document.getElementById('how-to-play').style.display = 'none';
-                document.getElementById('main-menu').style.display = 'flex';
-            });
-            
-            document.getElementById('start-battle-btn').addEventListener('click', () => {
-                if (!selectedCharacter) {
-                    alert('Vui lòng chọn tướng!');
-                    return;
+                if (distance < this.radius + boss.radius) {
+                    if (this.isLocal) {
+                        // Send boss attack to server
+                        socket.emit('attackBoss', {
+                            roomId: currentRoom,
+                            bossId: boss.id,
+                            playerId: this.id
+                        });
+                    }
+                    
+                    boss.health -= 1;
+                    
+                    // bounce back from boss
+                    const angle = Math.atan2(dy, dx);
+                    this.x += Math.cos(angle) * 15;
+                    this.y += Math.sin(angle) * 15;
+                    
+                    if (this.isLocal) {
+                        this.targetX = this.x;
+                        this.targetY = this.y;
+                    }
+                    
+                    if (boss.health <= 0 && !boss.defeated) {
+                        boss.defeated = true;
+                        this.score += 20; // Big bonus for defeating boss
+                        
+                        if (soundEnabled && this.isLocal) {
+                            bossDefeatedSound.currentTime = 0;
+                            bossDefeatedSound.play().catch(e => console.log("Audio play error:", e));
+                        }
+                        
+                        game.showNotification("Boss defeated! +20 hoa 🌸🌸🌸", 3000);
+                        
+                        // Create flowers when boss is defeated
+                        game.spawnFlowersAtLocation(boss.x, boss.y, 15);
+                    }
+                    
+                    return true;
                 }
                 
-                startGame();
+                return false;
+            }
+        }
+        
+        // Lớp Boss
+        class Boss {
+            constructor(id, x, y) {
+                this.id = id;
+                this.x = x;
+                this.y = y;
+                this.targetX = x;
+                this.targetY = y;
+                this.radius = 50;
+                this.color = '#FF4500';
+                this.health = 50;
+                this.maxHealth = 50;
+                this.speed = 1.5;
+                this.defeated = false;
+                this.angle = 0;
+                this.animationFrame = 0;
+                this.animationSpeed = 0.05;
+                this.moveDirection = Math.random() * Math.PI * 2;
+                this.lastTargetChange = 0;
+                this.targetChangeInterval = 3000;
+                this.lastAttackTime = 0;
+                this.attackCooldown = 2000;
+            }
+            
+            update(deltaTime, players, playArea) {
+                if (this.defeated) return;
+                
+                const now = Date.now();
+                
+                // Boss AI - follow nearest player
+                let nearestPlayer = null;
+                let nearestDistance = Infinity;
+                
+                for (const player of Object.values(players)) {
+                    if (player.isAlive) {
+                        const dx = player.x - this.x;
+                        const dy = player.y - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < nearestDistance) {
+                            nearestDistance = distance;
+                            nearestPlayer = player;
+                        }
+                    }
+                }
+                
+                // Change target periodically or when there's a player to chase
+                if (now - this.lastTargetChange > this.targetChangeInterval || 
+                    (nearestPlayer && now - this.lastTargetChange > 500)) {
+                    
+                    if (nearestPlayer && Math.random() < 0.7) {
+                        // Target nearest player
+                        this.targetX = nearestPlayer.x;
+                        this.targetY = nearestPlayer.y;
+                    } else {
+                        // Random movement
+                        const angle = Math.random() * Math.PI * 2;
+                        const distance = Math.random() * playArea.radius * 0.6;
+                        
+                        this.targetX = playArea.x + Math.cos(angle) * distance;
+                        this.targetY = playArea.y + Math.sin(angle) * distance;
+                    }
+                    
+                    this.lastTargetChange = now;
+                }
+                
+                // Move towards target
+                const dx = this.targetX - this.x;
+                const dy = this.targetY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 5) {
+                    this.x += (dx / distance) * this.speed * (deltaTime / 16.67);
+                    this.y += (dy / distance) * this.speed * (deltaTime / 16.67);
+                    this.moveDirection = Math.atan2(dy, dx);
+                }
+                
+                // Stay within play area
+                const distanceToCenter = Math.sqrt(
+                    Math.pow(this.x - playArea.x, 2) + 
+                    Math.pow(this.y - playArea.y, 2)
+                );
+                
+                if (distanceToCenter > playArea.radius * 0.8) {
+                    // Move back towards center
+                    const angle = Math.atan2(this.y - playArea.y, this.x - playArea.x);
+                    this.x = playArea.x + Math.cos(angle) * (playArea.radius * 0.75);
+                    this.y = playArea.y + Math.sin(angle) * (playArea.radius * 0.75);
+                    
+                    // Change target to center
+                    this.targetX = playArea.x + (Math.random() * 200 - 100);
+                    this.targetY = playArea.y + (Math.random() * 200 - 100);
+                }
+                
+                // Update animation
+                this.animationFrame += this.animationSpeed * (deltaTime / 16.67);
+                this.angle = this.moveDirection;
+            }
+            
+            draw(ctx) {
+                if (this.defeated) return;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle + Math.PI / 2);
+                
+                // Body
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Eyes
+                const eyeX = Math.sin(this.animationFrame) * 3;
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(-15 + eyeX, -20, 10, 0, Math.PI * 2);
+                ctx.arc(15 + eyeX, -20, 10, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(-15 + eyeX, -20, 5, 0, Math.PI * 2);
+                ctx.arc(15 + eyeX, -20, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Mouth
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 10, 20, 0.1 * Math.PI, 0.9 * Math.PI);
+                ctx.stroke();
+                
+                // Spikes
+                ctx.fillStyle = '#FF6347';
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i / 8) * Math.PI * 2;
+                    const spikeLength = 15 + Math.sin(this.animationFrame + i) * 5;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(angle) * this.radius, Math.sin(angle) * this.radius);
+                    ctx.lineTo(
+                        Math.cos(angle) * (this.radius + spikeLength),
+                        Math.sin(angle) * (this.radius + spikeLength)
+                    );
+                    ctx.lineTo(
+                        Math.cos(angle + 0.2) * this.radius,
+                        Math.sin(angle + 0.2) * this.radius
+                    );
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                
+                // Health bar
+                ctx.rotate(-this.angle - Math.PI / 2);
+                const healthBarWidth = this.radius * 2;
+                const healthBarHeight = 8;
+                const healthPercentage = this.health / this.maxHealth;
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(-healthBarWidth/2, -this.radius - 20, healthBarWidth, healthBarHeight);
+                
+                ctx.fillStyle = healthPercentage > 0.5 ? 'limegreen' : 
+                                healthPercentage > 0.25 ? 'yellow' : 'red';
+                ctx.fillRect(
+                    -healthBarWidth/2, 
+                    -this.radius - 20, 
+                    healthBarWidth * healthPercentage, 
+                    healthBarHeight
+                );
+                
+                // Label
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText('BOSS', 0, -this.radius - 25);
+                
+                ctx.restore();
+            }
+        }
+        
+        // Lớp Flower
+        class Flower {
+            constructor(id, x, y, type) {
+                this.id = id;
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.radius = 10;
+                this.collected = false;
+                this.collectedBy = null;
+                this.angle = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() * 0.02) - 0.01;
+                this.scale = 0.8 + Math.random() * 0.4;
+            }
+            
+            update(deltaTime) {
+                if (!this.collected) {
+                    this.angle += this.rotationSpeed * (deltaTime / 16.67);
+                }
+            }
+            
+            draw(ctx) {
+                if (this.collected) return;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.scale(this.scale, this.scale);
+                
+                const colors = [
+                    '#FF69B4', // pink
+                    '#FF1493', // deep pink
+                    '#FFB6C1', // light pink
+                    '#FFC0CB', // pink
+                    '#FF77FF', // fuchsia
+                ];
+                
+                const centerColors = [
+                    '#FFFF00', // yellow
+                    '#FFD700', // gold
+                    '#FFA500', // orange
+                ];
+                
+                const flowerColor = colors[this.type % colors.length];
+                const centerColor = centerColors[this.type % centerColors.length];
+                
+                // Draw petals
+                ctx.fillStyle = flowerColor;
+                
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * Math.PI * 2) / 5;
+                    ctx.beginPath();
+                    ctx.ellipse(
+                        Math.cos(angle) * 8,
+                        Math.sin(angle) * 8,
+                        7, 5, 
+                        angle, 0, Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+                
+                // Draw center
+                ctx.fillStyle = centerColor;
+                ctx.beginPath();
+                ctx.arc(0, 0, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+        
+        // Lớp PlayArea
+        class PlayArea {
+            constructor(x, y, radius) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.targetRadius = radius;
+                this.shrinkRate = 0.1; // much slower for 15 minute game
+                this.minRadius = 150;
+                this.warningThreshold = 0.3; // khi còn 30% diện tích ban đầu
+                this.criticalThreshold = 0.15; // khi còn 15% diện tích ban đầu
+                this.lastPulse = 0;
+                this.pulseInterval = 500;
+                this.pulseAmount = 0;
+            }
+            
+            update(deltaTime) {
+                // Giảm kích thước mục tiêu theo thời gian
+                this.targetRadius = Math.max(
+                    this.minRadius,
+                    this.targetRadius - this.shrinkRate * deltaTime / 1000
+                );
+                
+                // Làm mượt việc giảm kích thước
+                this.radius += (this.targetRadius - this.radius) * 0.05;
+                
+                // Hiệu ứng nhịp đập khi khu vực chơi nhỏ
+                const now = Date.now();
+                const ratio = this.radius / this.targetRadius;
+                
+                if (ratio < this.warningThreshold) {
+                    if (now - this.lastPulse > this.pulseInterval) {
+                        this.pulseAmount = ratio < this.criticalThreshold ? 10 : 5;
+                        this.lastPulse = now;
+                    }
+                    
+                    this.pulseAmount *= 0.9;
+                }
+            }
+            
+            draw(ctx) {
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.radius + this.pulseAmount
+                );
+                
+                const ratio = this.radius / this.targetRadius;
+                
+                if (ratio < this.criticalThreshold) {
+                    // Đỏ khi rất nhỏ
+                    gradient.addColorStop(0, 'rgba(255, 100, 100, 0.1)');
+                    gradient.addColorStop(0.7, 'rgba(255, 50, 50, 0.2)');
+                    gradient.addColorStop(0.9, 'rgba(255, 0, 0, 0.3)');
+                    gradient.addColorStop(1, 'rgba(255, 0, 0, 0.8)');
+                } else if (ratio < this.warningThreshold) {
+                    // Cam khi nhỏ
+                    gradient.addColorStop(0, 'rgba(255, 200, 100, 0.1)');
+                    gradient.addColorStop(0.7, 'rgba(255, 150, 50, 0.2)');
+                    gradient.addColorStop(0.9, 'rgba(255, 100, 0, 0.3)');
+                    gradient.addColorStop(1, 'rgba(255, 100, 0, 0.8)');
+                } else {
+                    // Bình thường là màu hồng
+                    gradient.addColorStop(0, 'rgba(255, 105, 180, 0.0)');
+                    gradient.addColorStop(0.7, 'rgba(255, 105, 180, 0.1)');
+                    gradient.addColorStop(0.9, 'rgba(255, 105, 180, 0.2)');
+                    gradient.addColorStop(1, 'rgba(255, 105, 180, 0.5)');
+                }
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius + this.pulseAmount, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Viền
+                ctx.strokeStyle = ratio < this.criticalThreshold ? 'rgba(255, 0, 0, 0.8)' : 
+                                 ratio < this.warningThreshold ? 'rgba(255, 100, 0, 0.8)' : 
+                                 'rgba(255, 105, 180, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius + this.pulseAmount, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+        
+        // Lớp Background
+        class Background {
+            constructor(width, height) {
+                this.width = width;
+                this.height = height;
+                this.elements = [];
+                
+                // Tạo các phần tử nền
+                for (let i = 0; i < 50; i++) {
+                    this.elements.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        size: 5 + Math.random() * 15,
+                        type: Math.floor(Math.random() * 5),
+                        rotation: Math.random() * Math.PI * 2,
+                        rotationSpeed: (Math.random() * 0.01) - 0.005,
+                        alpha: 0.1 + Math.random() * 0.2
+                    });
+                }
+            }
+            
+            update(deltaTime) {
+                for (const element of this.elements) {
+                    element.rotation += element.rotationSpeed * (deltaTime / 16.67);
+                }
+            }
+            
+            draw(ctx) {
+                const colors = [
+                    '#FF69B4', // pink
+                    '#FF1493', // deep pink
+                    '#FFB6C1', // light pink
+                    '#FFC0CB', // pink
+                    '#FF77FF', // fuchsia
+                ];
+                
+                for (const element of this.elements) {
+                    ctx.save();
+                    ctx.translate(element.x, element.y);
+                    ctx.rotate(element.rotation);
+                    ctx.globalAlpha = element.alpha;
+                    
+                    const color = colors[element.type % colors.length];
+                    ctx.fillStyle = color;
+                    
+                    if (element.type === 0) {
+                        // Hoa
+                        for (let i = 0; i < 5; i++) {
+                            const angle = (i * Math.PI * 2) / 5;
+                            ctx.beginPath();
+                            ctx.ellipse(
+                                Math.cos(angle) * element.size * 0.4,
+                                Math.sin(angle) * element.size * 0.4,
+                                element.size * 0.4, element.size * 0.3, 
+                                angle, 0, Math.PI * 2
+                            );
+                            ctx.fill();
+                        }
+                        
+                        ctx.fillStyle = '#FFFF00';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, element.size * 0.25, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (element.type === 1) {
+                        // Trái tim
+                        const size = element.size * 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(0, size);
+                        ctx.bezierCurveTo(size, -size, 2*size, size, 0, 2*size);
+                        ctx.bezierCurveTo(-2*size, size, -size, -size, 0, size);
+                        ctx.fill();
+                    } else if (element.type === 2) {
+                        // Sao
+                        const outerRadius = element.size * 0.5;
+                        const innerRadius = element.size * 0.25;
+                        
+                        ctx.beginPath();
+                        for (let i = 0; i < 10; i++) {
+                            const angle = (i * Math.PI) / 5;
+                            const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                            const x = Math.cos(angle) * radius;
+                            const y = Math.sin(angle) * radius;
+                            
+                            if (i === 0) {
+                                ctx.moveTo(x, y);
+                            } else {
+                                ctx.lineTo(x, y);
+                            }
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+                    } else if (element.type === 3) {
+                        // Hình tròn
+                        ctx.beginPath();
+                        ctx.arc(0, 0, element.size * 0.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        // Cánh hoa
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, element.size * 0.3, element.size * 0.6, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    ctx.restore();
+                }
+            }
+            
+            resize(width, height) {
+                this.width = width;
+                this.height = height;
+                
+                // Điều chỉnh các phần tử nền cho phù hợp với kích thước mới
+                for (const element of this.elements) {
+                    if (element.x > width) element.x = Math.random() * width;
+                    if (element.y > height) element.y = Math.random() * height;
+                }
+            }
+        }
+        
+        // Lớp Game
+        class Game {
+            constructor() {
+                this.players = {};
+                this.flowers = [];
+                this.bosses = [];
+                this.background = new Background(canvas.width, canvas.height);
+                this.playArea = new PlayArea(canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) * 0.45);
+                this.gameTime = 900; // 15 minutes in seconds
+                this.timeRemaining = this.gameTime;
+                this.gameActive = false;
+                this.lastTimestamp = 0;
+                this.localPlayer = null;
+                this.scoreboardUpdateTime = 0;
+                this.flowerSpawnTime = 0;
+                this.notificationTimeout = null;
+                this.confetti = [];
+                this.nextFlowerId = 0;
+                this.nextBossId = 0;
+                this.bossSpawnInterval = 180000; // 3 minutes
+                this.lastBossSpawn = 0;
+                
+                // Setup input
+                this.setupInput();
+            }
+            
+            setupInput() {
+                // Touch events
+                canvas.addEventListener('touchstart', this.handleTouchStart.bind(this));
+                canvas.addEventListener('touchmove', this.handleTouchMove.bind(this));
+                
+                // Mouse events
+                canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                
+                // Buttons
+                startBtn.addEventListener('click', this.startGame.bind(this));
+                restartBtn.addEventListener('click', this.restartGame.bind(this));
+                backToRoomsBtn.addEventListener('click', this.backToRooms.bind(this));
+            }
+            
+            handleTouchStart(e) {
+                e.preventDefault();
+                if (!this.gameActive || !this.localPlayer) return;
+                
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                
+                this.localPlayer.targetX = x;
+                this.localPlayer.targetY = y;
+            }
+            
+            handleTouchMove(e) {
+                e.preventDefault();
+                if (!this.gameActive || !this.localPlayer) return;
+                
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                
+                this.localPlayer.targetX = x;
+                this.localPlayer.targetY = y;
+            }
+            
+            handleMouseDown(e) {
+                if (!this.gameActive || !this.localPlayer) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                this.localPlayer.targetX = x;
+                this.localPlayer.targetY = y;
+            }
+            
+            handleMouseMove(e) {
+                if (!this.gameActive || !this.localPlayer || e.buttons !== 1) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                this.localPlayer.targetX = x;
+                this.localPlayer.targetY = y;
+            }
+            
+            startGame() {
+                socket.emit('startGame', { roomId: currentRoom });
+            }
+            
+            startGameFromServer(initialState) {
+                this.resetGame(initialState);
+                this.gameActive = true;
+                startScreen.style.display = 'none';
+                this.lastTimestamp = performance.now();
+                
+                // Update room info
+                roomInfoElement.innerHTML = `<strong>Phòng:</strong> ${currentRoom}`;
+                
+                // Start BGM
+                if (soundEnabled) {
+                    bgm.play().catch(e => console.log("BGM play error:", e));
+                }
+                
+                // Start game loop
+                requestAnimationFrame(this.gameLoop.bind(this));
+            }
+            
+            restartGame() {
+                socket.emit('restartGame', { roomId: currentRoom });
+            }
+            
+            backToRooms() {
+                gameOverScreen.style.display = 'none';
+                roomScreen.style.display = 'flex';
+                
+                // Stop BGM
+                bgm.pause();
+                bgm.currentTime = 0;
+            }
+            
+            resetGame(initialState) {
+                this.players = {};
+                this.flowers = [];
+                this.bosses = [];
+                this.timeRemaining = this.gameTime;
+                this.confetti = [];
+                this.nextFlowerId = 0;
+                this.nextBossId = 0;
+                this.lastBossSpawn = 0;
+                
+                // Set up the local player and other players from initial state
+                if (initialState) {
+                    // Create players
+                    for (const playerData of initialState.players) {
+                        const isLocal = playerData.id === playerId;
+                        const player = new Player(
+                            playerData.id,
+                            playerData.x,
+                            playerData.y,
+                            playerData.color,
+                            playerData.name,
+                            isLocal
+                        );
+                        
+                        this.players[playerData.id] = player;
+                        
+                        if (isLocal) {
+                            this.localPlayer = player;
+                        }
+                    }
+                    
+                    // Create flowers
+                    for (const flowerData of initialState.flowers) {
+                        this.flowers.push(new Flower(
+                            flowerData.id,
+                            flowerData.x,
+                            flowerData.y,
+                            flowerData.type
+                        ));
+                        this.nextFlowerId = Math.max(this.nextFlowerId, flowerData.id + 1);
+                    }
+                    
+                    // Set time remaining
+                    this.timeRemaining = initialState.timeRemaining;
+                    
+                    // Set play area
+                    this.playArea = new PlayArea(
+                        initialState.playArea.x,
+                        initialState.playArea.y,
+                        initialState.playArea.radius
+                    );
+                    this.playArea.targetRadius = initialState.playArea.targetRadius;
+                } else {
+                    // Reset playArea
+                    this.playArea = new PlayArea(canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) * 0.45);
+                }
+                
+                // Update scoreboard
+                this.updateScoreboard();
+                
+                // Update score display
+                if (this.localPlayer) {
+                    scoreElement.textContent = '0';
+                }
+                timeElement.textContent = Math.ceil(this.timeRemaining);
+            }
+            
+            spawnFlowers(count) {
+                const newFlowers = [];
+                const centerX = this.playArea.x;
+                const centerY = this.playArea.y;
+                const radius = this.playArea.radius * 0.9;
+                
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * radius;
+                    const x = centerX + Math.cos(angle) * distance;
+                    const y = centerY + Math.sin(angle) * distance;
+                    const type = Math.floor(Math.random() * 5);
+                    const flower = new Flower(this.nextFlowerId++, x, y, type);
+                    
+                    this.flowers.push(flower);
+                    newFlowers.push({
+                        id: flower.id,
+                        x: flower.x,
+                        y: flower.y,
+                        type: flower.type
+                    });
+                }
+                
+                // Emit flower spawns to server if we're the room owner
+                if (isRoomOwner) {
+                    socket.emit('spawnFlowers', {
+                        roomId: currentRoom,
+                        flowers: newFlowers
+                    });
+                }
+            }
+            
+            spawnFlowersAtLocation(x, y, count) {
+                const newFlowers = [];
+                
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 20 + Math.random() * 60;
+                    const flowerX = x + Math.cos(angle) * distance;
+                    const flowerY = y + Math.sin(angle) * distance;
+                    const type = Math.floor(Math.random() * 5);
+                    const flower = new Flower(this.nextFlowerId++, flowerX, flowerY, type);
+                    
+                    this.flowers.push(flower);
+                    newFlowers.push({
+                        id: flower.id,
+                        x: flower.x,
+                        y: flower.y,
+                        type: flower.type
+                    });
+                }
+                
+                // Emit flower spawns to server if we're the host
+                if (isRoomOwner) {
+                    socket.emit('spawnFlowers', {
+                        roomId: currentRoom,
+                        flowers: newFlowers
+                    });
+                }
+            }
+            
+            spawnBoss() {
+                if (!isRoomOwner) return;
+                
+                // Find a position away from players
+                const centerX = this.playArea.x;
+                const centerY = this.playArea.y;
+                const radius = this.playArea.radius * 0.5;
+                
+                // Try to find a good position
+                let x, y, tooClose;
+                let attempts = 0;
+                
+                do {
+                    tooClose = false;
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = radius * 0.5 + Math.random() * radius * 0.5;
+                    x = centerX + Math.cos(angle) * distance;
+                    y = centerY + Math.sin(angle) * distance;
+                    
+                    // Check if too close to any player
+                    for (const player of Object.values(this.players)) {
+                        const dx = player.x - x;
+                        const dy = player.y - y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (dist < 150) {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                    
+                    attempts++;
+                } while (tooClose && attempts < 10);
+                
+                const boss = {
+                    id: this.nextBossId++,
+                    x: x,
+                    y: y
+                };
+                
+                // Emit boss spawn to server
+                socket.emit('spawnBoss', {
+                    roomId: currentRoom,
+                    boss: boss
+                });
+                
+                // Play boss spawn sound
+                if (soundEnabled) {
+                    bossSpawnSound.currentTime = 0;
+                    bossSpawnSound.play().catch(e => console.log("Audio play error:", e));
+                }
+                
+                this.showNotification("⚠️ Boss has appeared! ⚠️", 3000);
+            }
+            
+            addBoss(bossData) {
+                const boss = new Boss(bossData.id, bossData.x, bossData.y);
+                this.bosses.push(boss);
+                this.nextBossId = Math.max(this.nextBossId, bossData.id + 1);
+                
+                // Play boss spawn sound if not triggered by our own spawnBoss
+                if (soundEnabled && !isRoomOwner) {
+                    bossSpawnSound.currentTime = 0;
+                    bossSpawnSound.play().catch(e => console.log("Audio play error:", e));
+                }
+                
+                this.showNotification("⚠️ Boss has appeared! ⚠️", 3000);
+            }
+            
+            updateBoss(bossData) {
+                const boss = this.bosses.find(b => b.id === bossData.id);
+                if (boss) {
+                    boss.x = bossData.x;
+                    boss.y = bossData.y;
+                    boss.targetX = bossData.targetX;
+                    boss.targetY = bossData.targetY;
+                    boss.health = bossData.health;
+                    boss.defeated = bossData.defeated;
+                }
+            }
+            
+            addFlowers(newFlowers) {
+                for (const flowerData of newFlowers) {
+                    // Check if flower already exists
+                    if (!this.flowers.some(f => f.id === flowerData.id)) {
+                        const flower = new Flower(
+                            flowerData.id,
+                            flowerData.x,
+                            flowerData.y,
+                            flowerData.type
+                        );
+                        this.flowers.push(flower);
+                        this.nextFlowerId = Math.max(this.nextFlowerId, flowerData.id + 1);
+                    }
+                }
+            }
+            
+            updateFlower(flowerId, playerId) {
+                const flower = this.flowers.find(f => f.id === flowerId);
+                if (flower && !flower.collected) {
+                    flower.collected = true;
+                    flower.collectedBy = playerId;
+                    
+                    // Update player score
+                    const player = this.players[playerId];
+                    if (player) {
+                        player.score++;
+                        
+                        // Play sound if not our collection (our collection plays sound directly)
+                        if (soundEnabled && playerId !== this.localPlayer.id) {
+                            collectSound.currentTime = 0;
+                            collectSound.volume = 0.3; // Lower volume for other players
+                            collectSound.play().catch(e => console.log("Audio play error:", e));
+                        }
+                    }
+                }
+            }
+            
+            updateScoreboard() {
+                // Sắp xếp người chơi theo điểm số
+                const sortedPlayers = Object.values(this.players).sort((a, b) => b.score - a.score);
+                
+                // Cập nhật bảng điểm
+                let html = '<div class="scoreboard-title">Bảng xếp hạng</div>';
+                
+                for (let i = 0; i < sortedPlayers.length; i++) {
+                    const player = sortedPlayers[i];
+                    let rankClass = '';
+                    
+                    if (i === 0) rankClass = 'rank1';
+                    else if (i === 1) rankClass = 'rank2';
+                    else if (i === 2) rankClass = 'rank3';
+                    
+                    html += `
+                        <div class="scoreboard-item ${rankClass} ${player.isLocal ? 'human' : ''}">
+                            <span>${i + 1}. ${player.name}</span>
+                            <span>${player.score}</span>
+                        </div>
+                    `;
+                    
+                    // Only show top 5
+                    if (i >= 4) break;
+                }
+                
+                scoreboardElement.innerHTML = html;
+                
+                // Update local player score
+                if (this.localPlayer) {
+                    scoreElement.textContent = this.localPlayer.score;
+                }
+            }
+            
+            showNotification(message, duration = 2000) {
+                // Xóa timeout cũ nếu có
+                if (this.notificationTimeout) {
+                    clearTimeout(this.notificationTimeout);
+                }
+                
+                notificationElement.textContent = message;
+                notificationElement.style.opacity = '1';
+                
+                this.notificationTimeout = setTimeout(() => {
+                    notificationElement.style.opacity = '0';
+                }, duration);
+            }
+            
+            createConfetti() {
+                const COLORS = [
+                    '#FF69B4', '#FF1493', '#FFB6C1', '#FFC0CB', '#FF77FF',
+                    '#FFFF00', '#FFD700', '#FFA500', '#5D5CDE', '#9370DB'
+                ];
+                
+                // Create confetti particles
+                for (let i = 0; i < 150; i++) {
+                    this.confetti.push({
+                        x: Math.random() * confettiCanvas.width,
+                        y: -20 - Math.random() * 100,
+                        size: 5 + Math.random() * 10,
+                        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+                        speed: 1 + Math.random() * 3,
+                        angle: Math.random() * Math.PI * 2,
+                        rotation: Math.random() * Math.PI * 2,
+                        rotationSpeed: (Math.random() - 0.5) * 0.2,
+                        oscillationSpeed: 1 + Math.random() * 2,
+                        oscillationDistance: 40 + Math.random() * 40,
+                        waviness: Math.random() * 5,
+                        type: Math.floor(Math.random() * 3) // 0: rectangle, 1: circle, 2: heart
+                    });
+                }
+            }
+            
+            updateConfetti(deltaTime) {
+                for (let i = this.confetti.length - 1; i >= 0; i--) {
+                    const confetti = this.confetti[i];
+                    
+                    confetti.y += confetti.speed * deltaTime * 0.06;
+                    confetti.x += Math.sin(confetti.angle) * confetti.oscillationDistance * Math.sin(confetti.y * confetti.waviness * 0.01) * 0.1;
+                    confetti.rotation += confetti.rotationSpeed * deltaTime * 0.06;
+                    
+                    // Remove confetti that has fallen off screen
+                    if (confetti.y > confettiCanvas.height + 20) {
+                        this.confetti.splice(i, 1);
+                    }
+                }
+            }
+            
+            drawConfetti() {
+                confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                
+                for (const confetti of this.confetti) {
+                    confettiCtx.save();
+                    confettiCtx.translate(confetti.x, confetti.y);
+                    confettiCtx.rotate(confetti.rotation);
+                    
+                    confettiCtx.fillStyle = confetti.color;
+                    
+                    if (confetti.type === 0) {
+                        // Rectangle
+                        confettiCtx.fillRect(-confetti.size / 2, -confetti.size / 2, confetti.size, confetti.size);
+                    } else if (confetti.type === 1) {
+                        // Circle
+                        confettiCtx.beginPath();
+                        confettiCtx.arc(0, 0, confetti.size / 2, 0, Math.PI * 2);
+                        confettiCtx.fill();
+                    } else {
+                        // Heart
+                        const size = confetti.size * 0.4;
+                        confettiCtx.beginPath();
+                        confettiCtx.moveTo(0, size);
+                        confettiCtx.bezierCurveTo(size, -size, 2*size, size, 0, 2*size);
+                        confettiCtx.bezierCurveTo(-2*size, size, -size, -size, 0, size);
+                        confettiCtx.fill();
+                    }
+                    
+                    confettiCtx.restore();
+                }
+            }
+            
+            gameLoop(timestamp) {
+                // Tính toán delta time
+                const deltaTime = timestamp - this.lastTimestamp;
+                this.lastTimestamp = timestamp;
+                
+                // Xóa canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Cập nhật và vẽ background
+                this.background.update(deltaTime);
+                this.background.draw(ctx);
+                
+                // Cập nhật và vẽ play area
+                this.playArea.update(deltaTime);
+                this.playArea.draw(ctx);
+                
+                // Cập nhật và vẽ hoa
+                for (const flower of this.flowers) {
+                    flower.update(deltaTime);
+                    flower.draw(ctx);
+                }
+                
+                // Cập nhật và vẽ boss
+                for (const boss of this.bosses) {
+                    boss.update(deltaTime, this.players, this.playArea);
+                    boss.draw(ctx);
+                }
+                
+                // Cập nhật và vẽ người chơi
+                for (const player of Object.values(this.players)) {
+                    player.update(deltaTime, this.flowers, this.playArea, this);
+                    player.draw(ctx);
+                    
+                    // Kiểm tra va chạm với hoa
+                    const collectedCount = player.collectFlowers(this.flowers, this);
+                    if (collectedCount > 0 && player.isLocal) {
+                        if (collectedCount === 1) {
+                            this.showNotification(`+1 Hoa! 🌸`);
+                        } else {
+                            this.showNotification(`+${collectedCount} Hoa! 🌸🌸`);
+                        }
+                    }
+                    
+                    // Check boss attacks
+                    for (const boss of this.bosses) {
+                        player.attackBoss(boss, this);
+                    }
+                }
+                
+                // Spawn boss every 3 minutes
+                const now = Date.now();
+                if (isRoomOwner && this.gameActive && now - this.lastBossSpawn > this.bossSpawnInterval) {
+                    this.spawnBoss();
+                    this.lastBossSpawn = now;
+                }
+                
+                // Đảm bảo luôn có đủ hoa
+                const uncollectedFlowers = this.flowers.filter(f => !f.collected).length;
+                if (uncollectedFlowers < 10 && isRoomOwner) {
+                    this.spawnFlowers(10);
+                }
+                
+                // Cập nhật thời gian nếu chúng ta là chủ phòng
+                if (this.gameActive && isRoomOwner) {
+                    const oldTime = this.timeRemaining;
+                    this.timeRemaining -= deltaTime / 1000;
+                    this.timeRemaining = Math.max(0, this.timeRemaining);
+                    
+                    // Sync time with clients every 1 second
+                    if (Math.floor(oldTime) !== Math.floor(this.timeRemaining)) {
+                        socket.emit('updateTime', {
+                            roomId: currentRoom,
+                            timeRemaining: this.timeRemaining
+                        });
+                    }
+                }
+                
+                // Hiển thị thời gian
+                timeElement.textContent = Math.ceil(this.timeRemaining);
+                
+                // Cập nhật bảng điểm mỗi 0.5s
+                if (timestamp - this.scoreboardUpdateTime > 500) {
+                    this.updateScoreboard();
+                    this.scoreboardUpdateTime = timestamp;
+                }
+                
+                // Tạo confetti ngẫu nhiên
+                if (this.gameActive && Math.random() < 0.01) {
+                    const singleConfetti = {
+                        x: Math.random() * confettiCanvas.width,
+                        y: -20,
+                        size: 5 + Math.random() * 10,
+                        color: '#FF69B4',
+                        speed: 1 + Math.random() * 3,
+                        angle: Math.random() * Math.PI * 2,
+                        rotation: Math.random() * Math.PI * 2,
+                        rotationSpeed: (Math.random() - 0.5) * 0.2,
+                        oscillationSpeed: 1 + Math.random() * 2,
+                        oscillationDistance: 40 + Math.random() * 40,
+                        waviness: Math.random() * 5,
+                        type: Math.floor(Math.random() * 3)
+                    };
+                    this.confetti.push(singleConfetti);
+                }
+                
+                // Cập nhật và vẽ confetti
+                this.updateConfetti(deltaTime);
+                this.drawConfetti();
+                
+                // Kiểm tra kết thúc game
+                if (this.gameActive && this.timeRemaining <= 0 && isRoomOwner) {
+                    socket.emit('endGame', { roomId: currentRoom });
+                }
+                
+                // Tiếp tục game loop
+                if (this.gameActive) {
+                    requestAnimationFrame(this.gameLoop.bind(this));
+                }
+            }
+            
+            endGame(winners) {
+                this.gameActive = false;
+                
+                // Hiển thị danh sách người chiến thắng
+                let html = '<h2>Top 3 người chơi</h2>';
+                
+                for (let i = 0; i < Math.min(3, winners.length); i++) {
+                    const winner = winners[i];
+                    const player = this.players[winner.id];
+                    let rankClass = '';
+                    let emoji = '';
+                    
+                    if (i === 0) {
+                        rankClass = 'rank1';
+                        emoji = '👑';
+                    }
+                    else if (i === 1) {
+                        rankClass = 'rank2';
+                        emoji = '🥈';
+                    }
+                    else if (i === 2) {
+                        rankClass = 'rank3';
+                        emoji = '🥉';
+                    }
+                    
+                    const playerName = player ? player.name : winner.name;
+                    
+                    html += `
+                        <div class="winner ${rankClass}">
+                            ${emoji} ${i + 1}. ${playerName}: ${winner.score} hoa 🌸
+                        </div>
+                    `;
+                }
+                
+                winnerListElement.innerHTML = html;
+                
+                // Hiển thị màn hình kết thúc
+                gameOverScreen.style.display = 'flex';
+                
+                // Play game over sound
+                if (soundEnabled) {
+                    bgm.pause();
+                    gameOverSound.play().catch(e => console.log("Audio play error:", e));
+                }
+                
+                // Tạo hiệu ứng confetti
+                this.createConfetti();
+                
+                // Tiếp tục vòng lặp confetti
+                const confettiLoop = (timestamp) => {
+                    const deltaTime = timestamp - this.lastTimestamp;
+                    this.lastTimestamp = timestamp;
+                    
+                    this.updateConfetti(deltaTime);
+                    this.drawConfetti();
+                    
+                    if (this.confetti.length > 0) {
+                        requestAnimationFrame(confettiLoop);
+                    }
+                };
+                
+                requestAnimationFrame(confettiLoop);
+            }
+        }
+        
+        // Create global game instance
+        let game = null;
+        
+        // UI event handlers
+        createRoomBtn.addEventListener('click', () => {
+            const name = playerNameInput.value.trim();
+            if (name) {
+                playerName = name;
+                socket.emit('createRoom', { playerName: name });
+            } else {
+                alert('Vui lòng nhập tên của bạn!');
+            }
+        });
+        
+        joinRoomBtn.addEventListener('click', () => {
+            const name = playerNameInput.value.trim();
+            if (name) {
+                playerName = name;
+                joinRoomModal.style.display = 'flex';
+            } else {
+                alert('Vui lòng nhập tên của bạn!');
+            }
+        });
+        
+        joinRoomSubmit.addEventListener('click', () => {
+            const roomCode = roomCodeInput.value.trim().toUpperCase();
+            if (roomCode) {
+                socket.emit('joinRoom', { playerName, roomId: roomCode });
+                joinRoomModal.style.display = 'none';
+            } else {
+                alert('Vui lòng nhập mã phòng!');
+            }
+        });
+        
+        joinRoomCancel.addEventListener('click', () => {
+            joinRoomModal.style.display = 'none';
+        });
+        
+        leaveRoomBtn.addEventListener('click', () => {
+            socket.emit('leaveRoom', { roomId: currentRoom });
+            currentRoom = null;
+            isRoomOwner = false;
+            roomScreen.style.display = 'none';
+            loginScreen.style.display = 'flex';
+        });
+        
+        startGameBtn.addEventListener('click', () => {
+            socket.emit('startGame', { roomId: currentRoom });
+        });
+        
+        // Chat functionality
+        chatSend.addEventListener('click', sendChatMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+        
+        function sendChatMessage() {
+            const message = chatInput.value.trim();
+            if (message && currentRoom) {
+                socket.emit('chatMessage', { 
+                    roomId: currentRoom,
+                    message,
+                    playerName
+                });
+                chatInput.value = '';
+            }
+        }
+        
+        function addChatMessage(data) {
+            const messageEl = document.createElement('div');
+            
+            if (data.type === 'system') {
+                messageEl.className = 'message message-system';
+                messageEl.textContent = data.message;
+            } else {
+                if (data.playerName === playerName) {
+                    messageEl.className = 'message message-self';
+                    messageEl.textContent = `${data.message}`;
+                } else {
+                    messageEl.className = 'message message-other';
+                    messageEl.textContent = `${data.playerName}: ${data.message}`;
+                }
+            }
+            
+            chatMessages.appendChild(messageEl);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Socket.io event handlers
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+        
+        socket.on('roomCreated', (data) => {
+            currentRoom = data.roomId;
+            playerId = data.playerId;
+            isRoomOwner = true;
+            
+            // Update UI
+            roomCodeDisplay.textContent = currentRoom;
+            loginScreen.style.display = 'none';
+            roomScreen.style.display = 'flex';
+            
+            // Update player list
+            updatePlayerList(data.players);
+            
+            // Enable start button
+            startGameBtn.disabled = data.players.length < 2;
+            
+            // Add system message
+            addChatMessage({
+                type: 'system',
+                message: `Phòng ${currentRoom} đã được tạo. Chia sẻ mã này với bạn bè để họ tham gia.`
+            });
+        });
+        
+        socket.on('roomJoined', (data) => {
+            currentRoom = data.roomId;
+            playerId = data.playerId;
+            isRoomOwner = data.isOwner;
+            
+            // Update UI
+            roomCodeDisplay.textContent = currentRoom;
+            loginScreen.style.display = 'none';
+            joinRoomModal.style.display = 'none';
+            roomScreen.style.display = 'flex';
+            
+            // Enable/disable start button based on ownership
+            startGameBtn.disabled = !isRoomOwner || data.players.length < 2;
+            
+            // Update player list
+            updatePlayerList(data.players);
+            
+            // Add system message
+            addChatMessage({
+                type: 'system',
+                message: `Bạn đã tham gia phòng ${currentRoom}.`
+            });
+        });
+        
+        socket.on('playerJoined', (data) => {
+            // Update player list
+            updatePlayerList(data.players);
+            
+            // Enable start button if we're the owner and have enough players
+            if (isRoomOwner) {
+                startGameBtn.disabled = data.players.length < 2;
+            }
+            
+            // Add system message
+            addChatMessage({
+                type: 'system',
+                message: `${data.playerName} đã tham gia phòng.`
+            });
+        });
+        
+        socket.on('playerLeft', (data) => {
+            // Update player list
+            updatePlayerList(data.players);
+            
+            // Disable start button if not enough players
+            if (isRoomOwner) {
+                startGameBtn.disabled = data.players.length < 2;
+            }
+            
+            // Remove player from game if active
+            if (game && game.gameActive && game.players[data.playerId]) {
+                delete game.players[data.playerId];
+                game.updateScoreboard();
+            }
+            
+            // Add system message
+            addChatMessage({
+                type: 'system',
+                message: `${data.playerName} đã rời phòng.`
+            });
+        });
+        
+        socket.on('ownerChanged', (data) => {
+            if (data.newOwnerId === playerId) {
+                isRoomOwner = true;
+                startGameBtn.disabled = data.players.length < 2;
+                
+                // Add system message
+                addChatMessage({
+                    type: 'system',
+                    message: `Bạn đã trở thành chủ phòng.`
+                });
+            }
+        });
+        
+        socket.on('gameStarted', (data) => {
+            roomScreen.style.display = 'none';
+            
+            // Create game instance if not exists
+            if (!game) {
+                game = new Game();
+            }
+            
+            // Start game with initial state
+            game.startGameFromServer(data.initialState);
+            
+            // Add system message
+            addChatMessage({
+                type: 'system',
+                message: `Trò chơi đã bắt đầu!`
+            });
+        });
+        
+        socket.on('updateTime', (data) => {
+            if (game) {
+                game.timeRemaining = data.timeRemaining;
+            }
+        });
+        
+        socket.on('playerMoved', (data) => {
+            if (game && game.players[data.playerId] && data.playerId !== playerId) {
+                const player = game.players[data.playerId];
+                player.x = data.x;
+                player.y = data.y;
+                player.targetX = data.targetX;
+                player.targetY = data.targetY;
+                player.moveDirection = data.moveDirection;
+            }
+        });
+        
+        socket.on('flowerCollected', (data) => {
+            if (game) {
+                game.updateFlower(data.flowerId, data.playerId);
+            }
+        });
+        
+        socket.on('flowersSpawned', (data) => {
+            if (game) {
+                game.addFlowers(data.flowers);
+            }
+        });
+        
+        socket.on('bossSpawned', (data) => {
+            if (game) {
+                game.addBoss(data.boss);
+            }
+        });
+        
+        socket.on('bossUpdated', (data) => {
+            if (game) {
+                game.updateBoss(data.boss);
+            }
+        });
+        
+        socket.on('gameEnded', (data) => {
+            if (game) {
+                game.endGame(data.winners);
+            }
+            
+            // Add system message
+            addChatMessage({
+                type: 'system',
+                message: `Trò chơi đã kết thúc! ${data.winners[0].name} chiến thắng với ${data.winners[0].score} hoa.`
+            });
+        });
+        
+        socket.on('roomNotFound', () => {
+            alert('Phòng không tồn tại hoặc đã đầy!');
+            joinRoomModal.style.display = 'none';
+        });
+        
+        socket.on('chatMessage', (data) => {
+            addChatMessage(data);
+        });
+        
+        // Helper functions
+        function updatePlayerList(players) {
+            playerListElement.innerHTML = '';
+            playerCountElement.textContent = players.length;
+            
+            players.forEach(player => {
+                const playerItem = document.createElement('div');
+                playerItem.className = 'player-item';
+                
+                const playerColor = document.createElement('div');
+                playerColor.className = 'player-color';
+                playerColor.style.backgroundColor = player.color;
+                
+                const playerName = document.createElement('div');
+                playerName.className = 'player-name';
+                playerName.textContent = player.name + (player.id === playerId ? ' (Bạn)' : '') + (player.isOwner ? ' 👑' : '');
+                
+                playerItem.appendChild(playerColor);
+                playerItem.appendChild(playerName);
+                playerListElement.appendChild(playerItem);
             });
         }
         
-        // Initialize on document load
-        window.addEventListener('load', init);
+        // Initialize
+        createLogo();
     </script>
 </body>
 </html>
