@@ -46,6 +46,7 @@ function createInitialGameState(room) {
   const gameState = {
     players: [],
     flowers: [],
+    powerUps: [],
     bosses: [],
     timeRemaining: GAME_TIME,
     playArea: {
@@ -332,6 +333,54 @@ io.on('connection', (socket) => {
       flowers: data.flowers
     });
   });
+  
+  // Spawn power-up
+  socket.on('spawnPowerUp', (data) => {
+    const roomId = data.roomId;
+    const room = rooms[roomId];
+
+    if (!room || !room.gameActive) return;
+    if (room.owner !== socket.id) return;
+
+    // Add power-up to game state
+    room.gameState.powerUps.push({
+      id: data.powerUp.id,
+      x: data.powerUp.x,
+      y: data.powerUp.y,
+      type: data.powerUp.type,
+      collected: false
+    });
+
+    // Broadcast power-up spawn to all players
+    io.to(roomId).emit('powerUpSpawned', {
+      powerUp: data.powerUp
+    });
+  });
+
+  // Collect power-up
+  socket.on('collectPowerUp', (data) => {
+    const roomId = data.roomId;
+    const powerUpId = data.powerUpId;
+    const playerId = data.playerId;
+    const powerUpType = data.type;
+    const room = rooms[roomId];
+
+    if (!room || !room.gameActive) return;
+
+    // Find power-up in game state
+    const powerUp = room.gameState.powerUps.find(p => p.id === powerUpId);
+    if (powerUp && !powerUp.collected) {
+      powerUp.collected = true;
+      powerUp.collectedBy = playerId;
+
+      // Broadcast power-up collection to all players
+      io.to(roomId).emit('powerUpCollected', {
+        powerUpId: powerUpId,
+        playerId: playerId,
+        type: powerUpType
+      });
+    }
+  });
 
   // Spawn boss
   socket.on('spawnBoss', (data) => {
@@ -347,7 +396,11 @@ io.on('connection', (socket) => {
       y: data.boss.y,
       health: 50,
       maxHealth: 50,
-      defeated: false
+      defeated: false,
+      specialAttackType: null,
+      isChargingAttack: false,
+      specialAttackCharge: 0,
+      specialAttackDuration: 0
     };
 
     // Add boss to game state
@@ -364,6 +417,7 @@ io.on('connection', (socket) => {
     const roomId = data.roomId;
     const bossId = data.bossId;
     const playerId = data.playerId;
+    const damageMultiplier = data.damageMultiplier || 1;
     const room = rooms[roomId];
 
     if (!room || !room.gameActive) return;
@@ -371,7 +425,7 @@ io.on('connection', (socket) => {
     // Find boss in game state
     const boss = room.gameState.bosses.find(b => b.id === bossId);
     if (boss && !boss.defeated) {
-      boss.health -= 1;
+      boss.health -= 1 * damageMultiplier;
 
       if (boss.health <= 0) {
         boss.defeated = true;
@@ -379,7 +433,7 @@ io.on('connection', (socket) => {
         // Update player score
         const player = room.gameState.players.find(p => p.id === playerId);
         if (player) {
-          player.score += 20; // Big bonus for defeating boss
+          player.score += (damageMultiplier > 1) ? 30 : 20; // More bonus for giant power-up
         }
       }
 
