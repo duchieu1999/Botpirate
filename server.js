@@ -1,601 +1,746 @@
 const express = require('express');
 const http = require('http');
-const socketIO = require('socket.io');
+const { Server } = require('socket.io');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
 });
 
-// Serve static files
+// Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Route for main page
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 // Game state
-const games = {};
-const rooms = {};
-const users = {};
+const gameState = {
+    rooms: {},
+    players: {}
+};
 
-// Generate a random room code
-function generateRoomCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+// Constants
+const GRAVITY = 0.2;
+const MAX_PLAYERS_PER_ROOM = 4;
+
+// Character definitions
+const characters = [
+    { id: 'tank', name: 'Tank', icon: '🔫', color: '#FF5722', maxHealth: 120, damageMultiplier: 1 },
+    { id: 'scout', name: 'Scout', icon: '🏃', color: '#4CAF50', maxHealth: 80, damageMultiplier: 1.2 },
+    { id: 'heavy', name: 'Heavy', icon: '🛡️', color: '#2196F3', maxHealth: 150, damageMultiplier: 0.9 },
+    { id: 'medic', name: 'Medic', icon: '❤️', color: '#F44336', maxHealth: 100, damageMultiplier: 0.8 }
+];
+
+// Map options
+const mapOptions = [
+    { id: 'hills', name: 'Rolling Hills' },
+    { id: 'mountains', name: 'Mountain Range' },
+    { id: 'canyon', name: 'Deep Canyon' },
+    { id: 'islands', name: 'Floating Islands' }
+];
+
+// Helper function to get available rooms
+function getAvailableRooms() {
+    const rooms = [];
+    
+    for (const [roomId, room] of Object.entries(gameState.rooms)) {
+        if (room.status === 'waiting' && room.players.length < MAX_PLAYERS_PER_ROOM) {
+            rooms.push({
+                id: roomId,
+                name: `${room.owner.name}'s Room`,
+                players: room.players.length,
+                maxPlayers: MAX_PLAYERS_PER_ROOM,
+                status: room.status
+            });
+        }
+    }
+    
+    return rooms;
 }
 
-// Socket.IO connection handling
-io.on('connection', (socket) => {
-  console.log(`User connected: ${socket.id}`);
-
-  // Player login
-  socket.on('login', (data, callback) => {
-    const { playerName, playerCharacter } = data;
+// Generate game map
+function generateMap(mapType) {
+    const mapWidth = 3000;
+    const mapHeight = 1500;
     
-    // Save user info
-    users[socket.id] = {
-      id: socket.id,
-      name: playerName,
-      character: playerCharacter,
-      roomId: null
+    // Create terrain based on map type
+    let terrain = [];
+    let platforms = [];
+    
+    switch(mapType) {
+        case 'hills':
+            terrain = generateHillsTerrain(mapWidth, mapHeight);
+            break;
+        case 'mountains':
+            terrain = generateMountainsTerrain(mapWidth, mapHeight);
+            break;
+        case 'canyon':
+            terrain = generateCanyonTerrain(mapWidth, mapHeight);
+            break;
+        case 'islands':
+            terrain = generateFlatTerrain(mapWidth, mapHeight);
+            platforms = generateFloatingIslands(mapWidth, mapHeight);
+            break;
+        default:
+            terrain = generateHillsTerrain(mapWidth, mapHeight);
+    }
+    
+    return {
+        width: mapWidth,
+        height: mapHeight,
+        terrain: terrain,
+        platforms: platforms
+    };
+}
+
+// Generate different terrain types
+function generateHillsTerrain(width, height) {
+    const terrain = [];
+    const TERRAIN_SEGMENTS = 100;
+    const segmentWidth = width / TERRAIN_SEGMENTS;
+    
+    // Generate a smooth, rolling terrain
+    let lastHeight = height * 0.7;
+    
+    for (let i = 0; i <= TERRAIN_SEGMENTS; i++) {
+        const x = i * segmentWidth;
+        
+        // Generate a smooth height change
+        const noise = Math.sin(i * 0.2) * 100 + Math.sin(i * 0.05) * 200;
+        const y = height * 0.7 + noise;
+        
+        terrain.push({ x, y });
+        lastHeight = y;
+    }
+    
+    return terrain;
+}
+
+function generateMountainsTerrain(width, height) {
+    const terrain = [];
+    const TERRAIN_SEGMENTS = 100;
+    const segmentWidth = width / TERRAIN_SEGMENTS;
+    
+    // Generate jagged mountain terrain
+    for (let i = 0; i <= TERRAIN_SEGMENTS; i++) {
+        const x = i * segmentWidth;
+        
+        // Create jagged mountains with occasional plateaus
+        let y;
+        
+        if (i % 20 < 2) {
+            // Plateau
+            y = height * 0.4 + Math.random() * 100;
+        } else {
+            // Mountain peaks and valleys
+            const noise = Math.sin(i * 0.3) * 250 + Math.sin(i * 0.7) * 100;
+            y = height * 0.5 + noise;
+        }
+        
+        terrain.push({ x, y });
+    }
+    
+    return terrain;
+}
+
+function generateCanyonTerrain(width, height) {
+    const terrain = [];
+    const TERRAIN_SEGMENTS = 100;
+    const segmentWidth = width / TERRAIN_SEGMENTS;
+    
+    // Generate a canyon in the middle
+    for (let i = 0; i <= TERRAIN_SEGMENTS; i++) {
+        const x = i * segmentWidth;
+        let y;
+        
+        // Create a canyon in the middle third
+        if (i > TERRAIN_SEGMENTS / 3 && i < TERRAIN_SEGMENTS * 2 / 3) {
+            y = height * 0.85;
+        } else {
+            // Higher ground on the sides
+            const distFromCenter = Math.abs(i - TERRAIN_SEGMENTS / 2);
+            const canyonEdge = TERRAIN_SEGMENTS / 6;
+            
+            if (distFromCenter < canyonEdge + 5) {
+                // Slope down to canyon
+                const slopeProgress = (distFromCenter - canyonEdge) / 5;
+                if (slopeProgress < 0) {
+                    y = height * 0.5;
+                } else {
+                    y = height * 0.5 + slopeProgress * height * 0.35;
+                }
+            } else {
+                // Flat high ground with small variations
+                y = height * 0.5 + Math.sin(i * 0.4) * 30;
+            }
+        }
+        
+        terrain.push({ x, y });
+    }
+    
+    return terrain;
+}
+
+function generateFlatTerrain(width, height) {
+    const terrain = [];
+    const TERRAIN_SEGMENTS = 100;
+    const segmentWidth = width / TERRAIN_SEGMENTS;
+    
+    // Generate a flat surface at the bottom
+    for (let i = 0; i <= TERRAIN_SEGMENTS; i++) {
+        const x = i * segmentWidth;
+        const y = height * 0.95; // Put it very low
+        terrain.push({ x, y });
+    }
+    
+    return terrain;
+}
+
+function generateFloatingIslands(width, height) {
+    const platforms = [];
+    const islandCount = 5;
+    
+    // Create several floating islands of various sizes
+    for (let i = 0; i < islandCount; i++) {
+        const islandWidth = 200 + Math.random() * 300;
+        const islandHeight = 30 + Math.random() * 50;
+        
+        // Distribute islands across the width
+        const x = width * (i + 0.5) / islandCount - islandWidth / 2;
+        
+        // Vary the heights
+        const y = height * 0.4 + Math.sin(i * 1.5) * height * 0.2;
+        
+        platforms.push({
+            x, 
+            y, 
+            width: islandWidth, 
+            height: islandHeight, 
+            type: 'island'
+        });
+    }
+    
+    return platforms;
+}
+
+// Position players on the map
+function positionPlayers(room) {
+    const { map, players } = room;
+    const { width, terrain, platforms } = map;
+    
+    // Clone players array and add initial game stats
+    const gamePlayers = players.map((player, index) => {
+        const character = characters.find(c => c.id === player.character);
+        
+        // Distribute players evenly across the map
+        const positionX = width * (index + 1) / (players.length + 1);
+        
+        // Find the height of terrain at this x position
+        let positionY = 0;
+        
+        // Check if we're on an island map
+        if (room.mapId === 'islands' && platforms.length > 0) {
+            // Find the closest platform
+            let closestPlatform = null;
+            let minDistance = Infinity;
+            
+            for (const platform of platforms) {
+                if (positionX >= platform.x && positionX <= platform.x + platform.width) {
+                    positionY = platform.y;
+                    closestPlatform = platform;
+                    break;
+                }
+                
+                const distance = Math.min(
+                    Math.abs(positionX - platform.x),
+                    Math.abs(positionX - (platform.x + platform.width))
+                );
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestPlatform = platform;
+                }
+            }
+            
+            if (closestPlatform) {
+                positionX = closestPlatform.x + closestPlatform.width / 2;
+                positionY = closestPlatform.y;
+            }
+        } else {
+            // Find height on regular terrain
+            const TERRAIN_SEGMENTS = 100;
+            const segmentWidth = width / TERRAIN_SEGMENTS;
+            const index = Math.floor(positionX / segmentWidth);
+            
+            if (index >= 0 && index < terrain.length) {
+                positionY = terrain[index].y;
+            }
+        }
+        
+        return {
+            id: player.id,
+            name: player.name,
+            character: player.character,
+            isOwner: player.isOwner,
+            x: positionX,
+            y: positionY - 40, // Position above the terrain/platform
+            health: character.maxHealth,
+            maxHealth: character.maxHealth,
+            damageMultiplier: character.damageMultiplier,
+            alive: true,
+            effects: []
+        };
+    });
+    
+    return gamePlayers;
+}
+
+// Socket.io connection handling
+io.on('connection', (socket) => {
+    console.log(`Player connected: ${socket.id}`);
+    
+    // Initialize player data
+    gameState.players[socket.id] = {
+        id: socket.id,
+        name: '',
+        room: null,
+        character: 'tank',
+        isReady: false
     };
     
-    callback({ success: true, playerId: socket.id });
-  });
-
-  // Create room
-  socket.on('create_room', (data, callback) => {
-    // Generate room code
-    const roomCode = generateRoomCode();
-    const roomId = `room_${roomCode}`;
+    // Join game
+    socket.on('join-game', (data, callback) => {
+        try {
+            console.log(`Player ${socket.id} joined game with name: ${data.playerName}`);
+            gameState.players[socket.id].name = data.playerName || `Player${Math.floor(Math.random() * 1000)}`;
+            callback({ success: true });
+        } catch (error) {
+            console.error("Error in join-game:", error);
+            callback({ success: false, message: error.message });
+        }
+    });
     
     // Create room
-    rooms[roomId] = {
-      id: roomId,
-      code: roomCode,
-      hostId: socket.id,
-      players: [socket.id],
-      terrain: 'hills',
-      gameStarted: false
-    };
-    
-    // Join socket to room
-    socket.join(roomId);
-    
-    // Update user's room
-    users[socket.id].roomId = roomId;
-    
-    callback({ success: true, roomId, roomCode });
-    
-    // Notify user joined room
-    socket.emit('room_joined', {
-      roomId,
-      roomCode,
-      isHost: true,
-      players: [
-        {
-          id: socket.id,
-          name: users[socket.id].name,
-          character: users[socket.id].character
+    socket.on('create-room', (data, callback) => {
+        try {
+            const roomId = 'R' + Math.floor(Math.random() * 10000);
+            const playerName = data.playerName || `Player${Math.floor(Math.random() * 1000)}`;
+            const character = data.character || 'tank';
+            
+            // Update player data
+            gameState.players[socket.id].name = playerName;
+            gameState.players[socket.id].character = character;
+            gameState.players[socket.id].isReady = true;
+            gameState.players[socket.id].room = roomId;
+            
+            // Create player object
+            const player = {
+                id: socket.id,
+                name: playerName,
+                character: character,
+                isReady: true,
+                isOwner: true
+            };
+            
+            // Create room
+            gameState.rooms[roomId] = {
+                id: roomId,
+                owner: player,
+                players: [player],
+                status: 'waiting',
+                mapId: 'hills',
+                map: null,
+                currentTurn: null,
+                projectiles: [],
+                wind: 0
+            };
+            
+            // Join socket room
+            socket.join(roomId);
+            
+            console.log(`Player ${socket.id} created room ${roomId}`);
+            
+            // Notify lobby about new room
+            io.emit('rooms-updated');
+            
+            callback({ success: true, roomId, players: [player] });
+        } catch (error) {
+            console.error("Error in create-room:", error);
+            callback({ success: false, message: error.message });
         }
-      ]
     });
     
-    // Update room list for all users in lobby
-    io.emit('rooms_updated', {
-      rooms: Object.values(rooms)
-        .filter(room => !room.gameStarted && room.players.length < 2)
-        .map(room => ({
-          id: room.id,
-          code: room.code,
-          players: room.players.length,
-          host: users[room.hostId].name
-        }))
-    });
-  });
-
-  // Join room
-  socket.on('join_room', (data, callback) => {
-    const { roomCode } = data;
-    
-    // Find room by code (for direct join)
-    let roomToJoin = null;
-    
-    if (roomCode) {
-      // Find specific room by code
-      roomToJoin = Object.values(rooms).find(room => 
-        room.code.toLowerCase() === roomCode.toLowerCase() && 
-        !room.gameStarted && 
-        room.players.length < 2
-      );
-    } else {
-      // Find any available room
-      roomToJoin = Object.values(rooms).find(room => 
-        !room.gameStarted && 
-        room.players.length < 2
-      );
-    }
-    
-    if (!roomToJoin) {
-      return callback({ success: false, error: roomCode ? 'Room not found or full' : 'No rooms available' });
-    }
-    
-    // Join socket to room
-    socket.join(roomToJoin.id);
-    
-    // Add player to room
-    roomToJoin.players.push(socket.id);
-    
-    // Update user's room
-    users[socket.id].roomId = roomToJoin.id;
-    
-    callback({ success: true, roomId: roomToJoin.id, roomCode: roomToJoin.code });
-    
-    // Create player list
-    const playersList = roomToJoin.players.map(playerId => ({
-      id: playerId,
-      name: users[playerId].name,
-      character: users[playerId].character
-    }));
-    
-    // Notify user joined room
-    socket.emit('room_joined', {
-      roomId: roomToJoin.id,
-      roomCode: roomToJoin.code,
-      isHost: false,
-      players: playersList
+    // Get rooms
+    socket.on('get-rooms', (callback) => {
+        try {
+            const rooms = getAvailableRooms();
+            callback({ success: true, rooms });
+        } catch (error) {
+            console.error("Error in get-rooms:", error);
+            callback({ success: false, message: error.message });
+        }
     });
     
-    // Notify other players in room
-    socket.to(roomToJoin.id).emit('player_joined', {
-      playerId: socket.id,
-      playerName: users[socket.id].name,
-      playerCharacter: users[socket.id].character
+    // Join room
+    socket.on('join-room', (data, callback) => {
+        try {
+            const { roomId, playerName, character } = data;
+            
+            if (!gameState.rooms[roomId]) {
+                return callback({ success: false, message: 'Room not found' });
+            }
+            
+            const room = gameState.rooms[roomId];
+            
+            if (room.status !== 'waiting') {
+                return callback({ success: false, message: 'Game already started' });
+            }
+            
+            if (room.players.length >= MAX_PLAYERS_PER_ROOM) {
+                return callback({ success: false, message: 'Room is full' });
+            }
+            
+            // Update player data
+            gameState.players[socket.id].name = playerName || `Player${Math.floor(Math.random() * 1000)}`;
+            gameState.players[socket.id].character = character || 'tank';
+            gameState.players[socket.id].isReady = true;
+            gameState.players[socket.id].room = roomId;
+            
+            // Create player object
+            const player = {
+                id: socket.id,
+                name: gameState.players[socket.id].name,
+                character: gameState.players[socket.id].character,
+                isReady: true,
+                isOwner: false
+            };
+            
+            // Add player to room
+            room.players.push(player);
+            
+            // Join socket room
+            socket.join(roomId);
+            
+            console.log(`Player ${socket.id} joined room ${roomId}`);
+            
+            // Notify room about new player
+            socket.to(roomId).emit('player-joined', { player });
+            
+            // Notify lobby about updated room
+            io.emit('rooms-updated');
+            
+            callback({ success: true, roomId, players: room.players });
+        } catch (error) {
+            console.error("Error in join-room:", error);
+            callback({ success: false, message: error.message });
+        }
     });
     
-    // Update room list for all users in lobby
-    io.emit('rooms_updated', {
-      rooms: Object.values(rooms)
-        .filter(room => !room.gameStarted && room.players.length < 2)
-        .map(room => ({
-          id: room.id,
-          code: room.code,
-          players: room.players.length,
-          host: users[room.hostId].name
-        }))
-    });
-  });
-
-  // Start game
-  socket.on('start_game', (data) => {
-    const { terrain } = data;
-    const user = users[socket.id];
-    
-    if (!user || !user.roomId || !rooms[user.roomId]) {
-      return;
-    }
-    
-    const room = rooms[user.roomId];
-    
-    // Check if user is host
-    if (room.hostId !== socket.id) {
-      return;
-    }
-    
-    // Check if enough players
-    if (room.players.length < 2) {
-      return;
-    }
-    
-    // Update terrain if provided
-    if (terrain) {
-      room.terrain = terrain;
-    }
-    
-    // Mark room as in-game
-    room.gameStarted = true;
-    
-    // Create game state
-    games[room.id] = {
-      roomId: room.id,
-      terrain: room.terrain,
-      players: room.players.map(playerId => ({
-        id: playerId,
-        name: users[playerId].name,
-        character: users[playerId].character,
-        health: getCharacterHealth(users[playerId].character),
-        position: { x: 0, y: 0 } // Will be updated below
-      })),
-      currentTurn: 0,
-      platforms: generatePlatforms(room.terrain),
-      worldWidth: 0,
-      worldHeight: 1000,
-      wind: getRandomWind()
-    };
-    
-    // Set world width based on platforms
-    const game = games[room.id];
-    const platforms = game.platforms;
-    game.worldWidth = platforms[platforms.length - 1].x + platforms[platforms.length - 1].width + 300;
-    
-    // Set player positions
-    game.players[0].position = {
-      x: platforms[0].x + platforms[0].width * 0.25,
-      y: platforms[0].y - 60
-    };
-    
-    game.players[1].position = {
-      x: platforms[platforms.length - 1].x + platforms[platforms.length - 1].width * 0.75,
-      y: platforms[platforms.length - 1].y - 60
-    };
-    
-    // Start game for all players in room
-    io.to(room.id).emit('game_started', {
-      terrain: game.terrain,
-      platforms: game.platforms,
-      worldWidth: game.worldWidth,
-      worldHeight: game.worldHeight,
-      playerPositions: {
-        [game.players[0].id]: game.players[0].position,
-        [game.players[1].id]: game.players[1].position
-      },
-      wind: game.wind,
-      firstPlayer: game.players[game.currentTurn].id
-    });
-    
-    // Update room list (remove this room from available rooms)
-    io.emit('rooms_updated', {
-      rooms: Object.values(rooms)
-        .filter(room => !room.gameStarted && room.players.length < 2)
-        .map(room => ({
-          id: room.id,
-          code: room.code,
-          players: room.players.length,
-          host: users[room.hostId].name
-        }))
-    });
-  });
-
-  // Fire projectile
-  socket.on('fire', (data) => {
-    const { angle, power, weapon } = data;
-    const user = users[socket.id];
-    
-    if (!user || !user.roomId || !games[user.roomId]) {
-      return;
-    }
-    
-    const game = games[user.roomId];
-    const playerIndex = game.players.findIndex(player => player.id === socket.id);
-    
-    if (playerIndex === -1 || game.players[game.currentTurn].id !== socket.id) {
-      return;
-    }
-    
-    // Calculate hit after a delay to simulate projectile flight
-    setTimeout(() => {
-      // Determine if hit or miss
-      const targetPlayer = game.players[(playerIndex + 1) % 2];
-      const targetX = targetPlayer.position.x + 30; // Half of character width
-      const targetY = targetPlayer.position.y + 30; // Half of character height
-      
-      // Simplified hit calculation (in a real game, would calculate based on physics)
-      const hitChance = 0.7; // 70% chance to hit
-      const didHit = Math.random() < hitChance;
-      
-      let hitPosition;
-      let damage = 0;
-      let hitPlayer = null;
-      
-      if (didHit) {
-        hitPosition = {
-          x: targetX + (Math.random() * 20 - 10),  // Random offset for more realism
-          y: targetY + (Math.random() * 20 - 10)
-        };
-        
-        // Calculate damage based on weapon and character stats
-        const attackerPower = getCharacterPower(user.character);
-        const defenderDefense = getCharacterDefense(targetPlayer.character);
-        const weaponDamage = getWeaponDamage(weapon);
-        
-        damage = Math.max(1, Math.floor(weaponDamage * attackerPower / defenderDefense));
-        
-        // Apply damage to target player
-        targetPlayer.health = Math.max(0, targetPlayer.health - damage);
-        hitPlayer = targetPlayer.id;
-      } else {
-        // Miss - random nearby position
-        hitPosition = {
-          x: targetX + (Math.random() * 100 - 50),
-          y: targetY + (Math.random() * 100 - 50)
-        };
-      }
-      
-      // Send hit event to all players in the game
-      io.to(user.roomId).emit('projectile_hit', {
-        x: hitPosition.x,
-        y: hitPosition.y,
-        damage: damage,
-        weapon: weapon,
-        hitPlayer: hitPlayer
-      });
-      
-      // Check for game over
-      if (targetPlayer.health <= 0) {
-        setTimeout(() => {
-          io.to(user.roomId).emit('game_over', {
-            winner: socket.id
-          });
-          
-          // Clean up game
-          delete games[user.roomId];
-        }, 1500);
-        return;
-      }
-      
-      // Change turn after a delay
-      setTimeout(() => {
-        // Change turn
-        game.currentTurn = (game.currentTurn + 1) % 2;
-        
-        // Change wind
-        game.wind = getRandomWind();
-        
-        // Send turn change event
-        io.to(user.roomId).emit('turn_change', {
-          nextPlayer: game.players[game.currentTurn].id,
-          wind: game.wind
-        });
-      }, 1500);
-    }, 2000); // 2-second delay to simulate projectile flight
-  });
-
-  // Chat message
-  socket.on('chat_message', (data) => {
-    const user = users[socket.id];
-    if (!user || !user.roomId) return;
-    
-    io.to(user.roomId).emit('chat_message', {
-      sender: user.name,
-      message: data.message
-    });
-  });
-
-  // Get available rooms
-  socket.on('get_rooms', (data, callback) => {
-    const availableRooms = Object.values(rooms)
-      .filter(room => !room.gameStarted && room.players.length < 2)
-      .map(room => ({
-        id: room.id,
-        code: room.code,
-        players: room.players.length,
-        host: users[room.hostId]?.name || 'Unknown'
-      }));
-    
-    callback({ success: true, rooms: availableRooms });
-  });
-
-  // Leave room
-  socket.on('leave_room', (data, callback) => {
-    const user = users[socket.id];
-    if (!user || !user.roomId) {
-      if (callback) callback({ success: true });
-      return;
-    }
-    
-    const roomId = user.roomId;
-    const room = rooms[roomId];
-    
-    if (!room) {
-      user.roomId = null;
-      if (callback) callback({ success: true });
-      return;
-    }
-    
-    // Remove player from room
-    room.players = room.players.filter(id => id !== socket.id);
-    
-    // Leave socket room
-    socket.leave(roomId);
-    
-    // Update user
-    user.roomId = null;
-    
-    // If room is empty or user was host, delete room
-    if (room.players.length === 0 || room.hostId === socket.id) {
-      delete rooms[roomId];
-      
-      // If game exists, delete it too
-      if (games[roomId]) {
-        delete games[roomId];
-      }
-    } else {
-      // Notify other players in room
-      io.to(roomId).emit('player_left', {
-        playerId: socket.id,
-        playerName: user.name
-      });
-    }
-    
-    if (callback) callback({ success: true });
-    
-    // Update room list for all users in lobby
-    io.emit('rooms_updated', {
-      rooms: Object.values(rooms)
-        .filter(room => !room.gameStarted && room.players.length < 2)
-        .map(room => ({
-          id: room.id,
-          code: room.code,
-          players: room.players.length,
-          host: users[room.hostId].name
-        }))
-    });
-  });
-
-  // Disconnect
-  socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.id}`);
-    
-    const user = users[socket.id];
-    if (!user) return;
-    
-    // If user was in a room, handle leaving
-    if (user.roomId) {
-      const roomId = user.roomId;
-      const room = rooms[roomId];
-      
-      if (room) {
-        // Remove player from room
-        room.players = room.players.filter(id => id !== socket.id);
-        
-        // If room is empty or user was host, delete room
-        if (room.players.length === 0 || room.hostId === socket.id) {
-          delete rooms[roomId];
-          
-          // If game exists, delete it too
-          if (games[roomId]) {
-            delete games[roomId];
-          }
-        } else {
-          // Notify other players in room
-          io.to(roomId).emit('player_left', {
-            playerId: socket.id,
-            playerName: user.name
-          });
-          
-          // If game was in progress, end it
-          if (games[roomId]) {
-            io.to(roomId).emit('game_over', {
-              winner: room.players[0],
-              reason: 'opponent_disconnected'
+    // Leave room
+    socket.on('leave-room', () => {
+        try {
+            const player = gameState.players[socket.id];
+            
+            if (!player || !player.room) return;
+            
+            const roomId = player.room;
+            const room = gameState.rooms[roomId];
+            
+            if (!room) return;
+            
+            console.log(`Player ${socket.id} left room ${roomId}`);
+            
+            // Remove player from room
+            room.players = room.players.filter(p => p.id !== socket.id);
+            
+            // Leave socket room
+            socket.leave(roomId);
+            
+            // Reset player data
+            player.room = null;
+            player.isReady = false;
+            
+            // Notify room about player leaving
+            io.to(roomId).emit('player-left', {
+                playerId: socket.id,
+                playerName: player.name
             });
             
-            delete games[roomId];
-          }
+            // If room is empty, remove it
+            if (room.players.length === 0) {
+                delete gameState.rooms[roomId];
+            } else {
+                // If room owner left, assign a new owner
+                if (room.owner.id === socket.id) {
+                    room.owner = room.players[0];
+                    room.owner.isOwner = true;
+                    
+                    // Notify room about new owner
+                    io.to(roomId).emit('owner-changed', { owner: room.owner });
+                }
+            }
+            
+            // Notify lobby about updated rooms
+            io.emit('rooms-updated');
+        } catch (error) {
+            console.error("Error in leave-room:", error);
         }
-        
-        // Update room list for all users in lobby
-        io.emit('rooms_updated', {
-          rooms: Object.values(rooms)
-            .filter(room => !room.gameStarted && room.players.length < 2)
-            .map(room => ({
-              id: room.id,
-              code: room.code,
-              players: room.players.length,
-              host: users[room.hostId].name
-            }))
-        });
-      }
-    }
+    });
     
-    // Delete user
-    delete users[socket.id];
-  });
+    // Start game
+    socket.on('start-game', (data) => {
+        try {
+            const player = gameState.players[socket.id];
+            
+            if (!player || !player.room) return;
+            
+            const roomId = player.room;
+            const room = gameState.rooms[roomId];
+            
+            if (!room || room.owner.id !== socket.id) return;
+            
+            console.log(`Game started in room ${roomId}`);
+            
+            // Update room status
+            room.status = 'playing';
+            
+            // Update map
+            const mapId = data.mapId || 'hills';
+            room.mapId = mapId;
+            room.map = generateMap(mapId);
+            
+            // Position players on map
+            const gamePlayers = positionPlayers(room);
+            
+            // Set current turn
+            room.currentTurn = gamePlayers[0].id;
+            
+            // Generate initial wind
+            room.wind = (Math.random() * 10 - 5).toFixed(1);
+            
+            // Notify room about game starting
+            io.to(roomId).emit('game-started', {
+                map: room.map,
+                players: gamePlayers,
+                currentTurn: room.currentTurn,
+                wind: room.wind
+            });
+            
+            // Notify lobby about updated rooms
+            io.emit('rooms-updated');
+        } catch (error) {
+            console.error("Error in start-game:", error);
+        }
+    });
+    
+    // Fire weapon
+    socket.on('fire', (data) => {
+        try {
+            const player = gameState.players[socket.id];
+            
+            if (!player || !player.room) return;
+            
+            const roomId = player.room;
+            const room = gameState.rooms[roomId];
+            
+            if (!room || room.status !== 'playing' || room.currentTurn !== socket.id) return;
+            
+            console.log(`Player ${socket.id} fired in room ${roomId}`);
+            
+            // Add projectile to room
+            room.projectiles.push(data.projectile);
+            
+            // Send projectile update to room
+            io.to(roomId).emit('projectile-update', data);
+        } catch (error) {
+            console.error("Error in fire:", error);
+        }
+    });
+    
+    // Turn complete
+    socket.on('turn-complete', () => {
+        try {
+            const player = gameState.players[socket.id];
+            
+            if (!player || !player.room) return;
+            
+            const roomId = player.room;
+            const room = gameState.rooms[roomId];
+            
+            if (!room || room.status !== 'playing' || room.currentTurn !== socket.id) return;
+            
+            console.log(`Turn completed in room ${roomId}`);
+            
+            // Find next player's turn
+            const currentIndex = room.players.findIndex(p => p.id === room.currentTurn);
+            const nextIndex = (currentIndex + 1) % room.players.length;
+            const nextPlayerId = room.players[nextIndex].id;
+            
+            // Generate new wind for next turn
+            room.wind = (Math.random() * 10 - 5).toFixed(1);
+            
+            // Update current turn
+            room.currentTurn = nextPlayerId;
+            
+            // Clear room projectiles
+            room.projectiles = [];
+            
+            // Notify room about turn change
+            io.to(roomId).emit('turn-changed', {
+                playerId: nextPlayerId,
+                wind: room.wind
+            });
+        } catch (error) {
+            console.error("Error in turn-complete:", error);
+        }
+    });
+    
+    // Chat message
+    socket.on('chat-message', (data) => {
+        try {
+            const player = gameState.players[socket.id];
+            
+            if (!player || !player.room) return;
+            
+            const roomId = player.room;
+            
+            console.log(`Chat message in room ${roomId}: ${data.message}`);
+            
+            // Send chat message to room
+            io.to(roomId).emit('chat-message', {
+                sender: data.sender,
+                message: data.message
+            });
+        } catch (error) {
+            console.error("Error in chat-message:", error);
+        }
+    });
+    
+    // Ready for new game
+    socket.on('ready-for-new-game', () => {
+        try {
+            const player = gameState.players[socket.id];
+            
+            if (!player || !player.room) return;
+            
+            const roomId = player.room;
+            const room = gameState.rooms[roomId];
+            
+            if (!room) return;
+            
+            console.log(`Player ${socket.id} is ready for a new game in room ${roomId}`);
+            
+            // Set player as ready
+            player.isReady = true;
+            
+            // Check if all players are ready
+            const allReady = room.players.every(p => {
+                const playerData = gameState.players[p.id];
+                return playerData && playerData.isReady;
+            });
+            
+            if (allReady && room.players.length > 0) {
+                // Reset room for new game
+                room.status = 'waiting';
+                room.map = null;
+                room.currentTurn = null;
+                room.projectiles = [];
+                
+                // Notify room that all players are ready
+                io.to(roomId).emit('all-players-ready');
+                
+                // If room owner is still in room, auto-start new game
+                if (room.owner && gameState.players[room.owner.id]) {
+                    setTimeout(() => {
+                        // Generate map
+                        room.map = generateMap(room.mapId);
+                        
+                        // Position players on map
+                        const gamePlayers = positionPlayers(room);
+                        
+                        // Set current turn
+                        room.currentTurn = gamePlayers[0].id;
+                        
+                        // Generate initial wind
+                        room.wind = (Math.random() * 10 - 5).toFixed(1);
+                        
+                        // Update room status
+                        room.status = 'playing';
+                        
+                        // Notify room about game starting
+                        io.to(roomId).emit('game-started', {
+                            map: room.map,
+                            players: gamePlayers,
+                            currentTurn: room.currentTurn,
+                            wind: room.wind
+                        });
+                    }, 2000);
+                }
+            }
+        } catch (error) {
+            console.error("Error in ready-for-new-game:", error);
+        }
+    });
+    
+    // Disconnect
+    socket.on('disconnect', () => {
+        try {
+            console.log(`Player disconnected: ${socket.id}`);
+            
+            // Handle player leaving room
+            const player = gameState.players[socket.id];
+            
+            if (player && player.room) {
+                const roomId = player.room;
+                const room = gameState.rooms[roomId];
+                
+                if (room) {
+                    // Remove player from room
+                    room.players = room.players.filter(p => p.id !== socket.id);
+                    
+                    // Notify room about player disconnecting
+                    io.to(roomId).emit('player-left', {
+                        playerId: socket.id,
+                        playerName: player.name
+                    });
+                    
+                    // If room is empty, remove it
+                    if (room.players.length === 0) {
+                        delete gameState.rooms[roomId];
+                    } else {
+                        // If room owner disconnected, assign a new owner
+                        if (room.owner.id === socket.id) {
+                            room.owner = room.players[0];
+                            room.owner.isOwner = true;
+                            
+                            // Notify room about new owner
+                            io.to(roomId).emit('owner-changed', { owner: room.owner });
+                        }
+                    }
+                    
+                    // Notify lobby about updated rooms
+                    io.emit('rooms-updated');
+                }
+            }
+            
+            // Remove player from gameState
+            delete gameState.players[socket.id];
+        } catch (error) {
+            console.error("Error in disconnect:", error);
+        }
+    });
 });
 
-// Helper functions
-function getRandomWind() {
-  return (Math.random() * 2 - 1) * 10; // Between -10 and 10
-}
-
-function generatePlatforms(terrain) {
-  let config;
-  
-  switch(terrain) {
-    case 'mountains':
-      config = {
-        platformCount: 5,
-        platformWidthMin: 200,
-        platformWidthMax: 300,
-        platformHeight: 40,
-        yVariation: 200
-      };
-      break;
-    case 'desert':
-      config = {
-        platformCount: 9,
-        platformWidthMin: 80,
-        platformWidthMax: 150,
-        platformHeight: 25,
-        yVariation: 150
-      };
-      break;
-    case 'hills':
-    default:
-      config = {
-        platformCount: 7,
-        platformWidthMin: 100,
-        platformWidthMax: 200,
-        platformHeight: 30,
-        yVariation: 100
-      };
-  }
-  
-  const platforms = [];
-  const platformSpacing = 300;
-  
-  for (let i = 0; i < config.platformCount; i++) {
-    const width = Math.random() * (config.platformWidthMax - config.platformWidthMin) + config.platformWidthMin;
-    const x = i * platformSpacing;
-    const y = 400 + Math.random() * config.yVariation;
-    
-    platforms.push({
-      x,
-      y,
-      width,
-      height: config.platformHeight
-    });
-  }
-  
-  return platforms;
-}
-
-function getCharacterHealth(character) {
-  switch(character) {
-    case 'mage': return 80;
-    case 'ranger': return 120;
-    case 'warrior':
-    default: return 100;
-  }
-}
-
-function getCharacterPower(character) {
-  switch(character) {
-    case 'mage': return 4;
-    case 'ranger': return 2;
-    case 'warrior':
-    default: return 3;
-  }
-}
-
-function getCharacterDefense(character) {
-  switch(character) {
-    case 'mage': return 1;
-    case 'ranger': return 3;
-    case 'warrior':
-    default: return 2;
-  }
-}
-
-function getWeaponDamage(weapon) {
-  switch(weapon) {
-    case 'bomb': return 20;
-    case 'missile': return 30;
-    case 'grenade': return 15;
-    case 'nuke': return 50;
-    case 'basic':
-    default: return 10;
-  }
-}
+// Default route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
