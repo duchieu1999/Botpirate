@@ -599,7 +599,7 @@ function positionPlayers(room) {
         // Find height on terrain
         const TERRAIN_SEGMENTS = 100;
         const segmentWidth = width / TERRAIN_SEGMENTS;
-        const index = Math.floor(positionX / segmentWidth);
+        
         
         if (index >= 0 && index < terrain.length) {
             positionY = terrain[index].y;
