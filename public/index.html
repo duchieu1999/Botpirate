@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Artillery Battle</title>
+    <title>Pháo Thủ - Trò Chơi Bắn Súng Theo Lượt</title>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.6.1/dist/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -22,11 +23,16 @@
                         'bounce-slow': 'bounce 3s infinite',
                         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'float': 'float 3s ease-in-out infinite',
+                        'flash': 'flash 2s infinite',
                     },
                     keyframes: {
                         float: {
                             '0%, 100%': { transform: 'translateY(0)' },
                             '50%': { transform: 'translateY(-10px)' },
+                        },
+                        flash: {
+                            '0%, 100%': { opacity: 1 },
+                            '50%': { opacity: 0.5 },
                         }
                     }
                 }
@@ -111,6 +117,10 @@
         
         .inventory-btn {
             background: linear-gradient(135deg, #F09819, #EDDE5D);
+        }
+        
+        .move-btn {
+            background: linear-gradient(135deg, #56ab2f, #a8e063);
         }
         
         .weapon-indicator {
@@ -422,6 +432,24 @@
             color: white;
             font-size: 0.875rem;
             text-align: center;
+        }
+        
+        .character-stats {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 0.75rem;
+            text-align: left;
+            width: 200px;
+            position: absolute;
+            z-index: 10;
+        }
+        
+        .character-option:hover .character-stats {
+            display: block;
         }
         
         #mapSelectionContainer {
@@ -770,6 +798,40 @@
             justify-content: center;
         }
         
+        .timer-indicator {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 20px;
+            font-weight: bold;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+        }
+        
+        .timer-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .timer-text.warning {
+            color: #FFC107;
+            animation: flash 1s infinite;
+        }
+        
+        .timer-text.danger {
+            color: #F44336;
+            animation: flash 0.5s infinite;
+        }
+        
         .chat-container {
             position: absolute;
             bottom: 80px;
@@ -862,6 +924,160 @@
             font-size: 20px;
         }
         
+        .angle-indicator {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+            z-index: 3;
+        }
+        
+        .angle-line {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 60px;
+            height: 2px;
+            background: #5D5CDE;
+            transform-origin: 0 0;
+            pointer-events: none;
+        }
+        
+        .angle-value {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .power-bar-container {
+            position: absolute;
+            width: 150px;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 3;
+        }
+        
+        .power-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #FFEB3B, #F44336);
+            width: 0%;
+            transition: width 0.1s;
+        }
+        
+        .power-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .teleport-crosshair {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+        
+        .teleport-crosshair::before,
+        .teleport-crosshair::after {
+            content: '';
+            position: absolute;
+            background: #F44336;
+        }
+        
+        .teleport-crosshair::before {
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+        
+        .teleport-crosshair::after {
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            transform: translateX(-50%);
+        }
+        
+        .teleport-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 90;
+            cursor: crosshair;
+            display: none;
+        }
+        
+        .move-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 90;
+            cursor: pointer;
+            display: none;
+        }
+        
+        .move-info {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 10px;
+            z-index: 91;
+        }
+        
+        .move-range {
+            position: absolute;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            z-index: 91;
+            pointer-events: none;
+        }
+        
+        .language-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+            font-weight: bold;
+        }
+        
         @media (max-width: 640px) {
             .inventory-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -874,68 +1090,70 @@
     </style>
 </head>
 <body>
+    <button id="languageToggle" class="language-toggle">EN/VI</button>
+    
     <div id="loadingScreen">
         <div class="loader"></div>
-        <p class="mt-4 text-white font-bold">Loading Artillery Battle...</p>
+        <p class="mt-4 text-white font-bold" data-lang="loading">Đang tải trò chơi...</p>
     </div>
     
     <div id="menuScreen">
         <div class="menu-container">
-            <h1 class="menu-title">Artillery Battle</h1>
+            <h1 class="menu-title" data-lang="game-title">Pháo Thủ</h1>
             <div class="input-group">
-                <label for="playerName" class="input-label">Your Name</label>
-                <input type="text" id="playerName" class="input-field" placeholder="Enter your name" maxlength="15">
+                <label for="playerName" class="input-label" data-lang="your-name">Tên của bạn</label>
+                <input type="text" id="playerName" class="input-field" data-lang-placeholder="name-placeholder" placeholder="Nhập tên của bạn" maxlength="15">
             </div>
             
             <div class="character-selection">
                 <!-- Character options will be generated here -->
             </div>
             
-            <button id="createRoomBtn" class="menu-btn">Create Room</button>
+            <button id="createRoomBtn" class="menu-btn" data-lang="create-room">Tạo Phòng</button>
             
             <div class="menu-divider">
-                <span>or</span>
+                <span data-lang="or">hoặc</span>
             </div>
             
-            <button id="joinRoomBtn" class="menu-btn">Join Room</button>
+            <button id="joinRoomBtn" class="menu-btn" data-lang="join-room">Tham Gia Phòng</button>
         </div>
     </div>
     
     <div id="roomScreen" style="display: none;">
         <div class="rooms-container">
-            <h1 class="menu-title">Available Rooms</h1>
+            <h1 class="menu-title" data-lang="available-rooms">Phòng Hiện Có</h1>
             <div id="roomsList">
                 <!-- Room list items will be generated here -->
             </div>
             <div class="mt-4 flex justify-between">
-                <button id="refreshRoomsBtn" class="menu-btn w-auto px-4">Refresh</button>
-                <button id="backToMenuBtn" class="menu-btn w-auto px-4">Back</button>
+                <button id="refreshRoomsBtn" class="menu-btn w-auto px-4" data-lang="refresh">Làm Mới</button>
+                <button id="backToMenuBtn" class="menu-btn w-auto px-4" data-lang="back">Quay Lại</button>
             </div>
         </div>
     </div>
     
     <div id="waitingRoom" class="waiting-room" style="display: none;">
         <div class="waiting-container">
-            <h2 class="waiting-title">Waiting for Players</h2>
+            <h2 class="waiting-title" data-lang="waiting-for-players">Đang Chờ Người Chơi</h2>
             <div id="roomCode" class="mb-4 bg-white/10 py-2 px-4 rounded-md inline-block">
-                Room Code: <span id="roomCodeValue" class="font-bold">XXXX</span>
+                <span data-lang="room-code">Mã Phòng:</span> <span id="roomCodeValue" class="font-bold">XXXX</span>
             </div>
-            <p class="waiting-subtitle"><span class="pulse-dot"></span> Waiting for players to join...</p>
+            <p class="waiting-subtitle"><span class="pulse-dot"></span> <span data-lang="waiting-message">Đang chờ người chơi tham gia...</span></p>
             
             <div class="players-list" id="waitingPlayersList">
                 <!-- Players will be added here -->
             </div>
             
             <div id="mapSelectionContainer" style="display: none;">
-                <h3 class="text-white font-bold mb-2">Select Map</h3>
+                <h3 class="text-white font-bold mb-2" data-lang="select-map">Chọn Bản Đồ</h3>
                 <div class="map-selection" id="mapSelectionList">
                     <!-- Map options will be generated here -->
                 </div>
             </div>
             
             <div class="flex justify-between mt-4">
-                <button id="leaveRoomBtn" class="menu-btn w-auto px-4">Leave Room</button>
-                <button id="startGameBtn" class="menu-btn w-auto px-4" style="display: none;">Start Game</button>
+                <button id="leaveRoomBtn" class="menu-btn w-auto px-4" data-lang="leave-room">Rời Phòng</button>
+                <button id="startGameBtn" class="menu-btn w-auto px-4" style="display: none;" data-lang="start-game">Bắt Đầu</button>
             </div>
         </div>
     </div>
@@ -946,16 +1164,31 @@
     <div id="gameUI" style="display: none;">
         <div class="turn-indicator">
             <div class="turn-icon">🎯</div>
-            <span id="turnText">Your Turn</span>
+            <span id="turnText" data-lang="your-turn">Lượt Của Bạn</span>
         </div>
         
         <div class="wind-indicator">
             <div class="wind-arrow" id="windArrow">→</div>
-            <span id="windText">Wind: 0 m/s</span>
+            <span id="windText" data-lang="wind">Gió: 0 m/s</span>
+        </div>
+        
+        <div class="timer-indicator">
+            <div class="timer-icon">⏱️</div>
+            <span id="timerText" class="timer-text" data-lang="time">Thời gian: 30s</span>
         </div>
         
         <div class="weapon-indicator">
-            <span id="weaponName">Basic Cannon</span>
+            <span id="weaponName">Đại Bác</span>
+        </div>
+        
+        <div class="angle-indicator" id="angleIndicator">
+            <div class="angle-line" id="angleLine"></div>
+            <div class="angle-value" id="angleValue">45°</div>
+        </div>
+        
+        <div class="power-bar-container" id="powerBarContainer">
+            <div class="power-bar" id="powerBar"></div>
+            <div class="power-value" id="powerValue">50%</div>
         </div>
         
         <div class="game-ui" style="bottom: 20px; left: 20px;">
@@ -975,11 +1208,15 @@
         </div>
         
         <div class="game-ui" style="bottom: 20px; left: 50%; transform: translateX(-50%);">
-            <div class="control-btn fire-btn" id="fireBtn">FIRE!</div>
+            <div class="control-btn fire-btn" id="fireBtn" data-lang="fire">BẮN!</div>
         </div>
         
         <div class="game-ui" style="bottom: 20px; left: 160px;">
             <div class="control-btn inventory-btn" id="inventoryBtn">🎒</div>
+        </div>
+        
+        <div class="game-ui" style="bottom: 20px; left: 220px;">
+            <div class="control-btn move-btn" id="moveBtn">🏃</div>
         </div>
         
         <div class="game-ui chat-toggle" id="chatToggleBtn">💬</div>
@@ -987,40 +1224,184 @@
         <div class="chat-container" id="chatContainer">
             <div class="chat-messages" id="chatMessages"></div>
             <div class="chat-input-container">
-                <input type="text" class="chat-input" id="chatInput" placeholder="Type a message...">
+                <input type="text" class="chat-input" id="chatInput" data-lang-placeholder="chat-placeholder" placeholder="Nhập tin nhắn...">
                 <div class="chat-send" id="chatSendBtn">➤</div>
             </div>
         </div>
         
         <div class="inventory-panel" id="inventoryPanel">
-            <div class="inventory-title">Weapons & Items</div>
+            <div class="inventory-title" data-lang="inventory">Vũ Khí & Vật Phẩm</div>
             <div class="inventory-grid" id="inventoryGrid">
                 <!-- Inventory items will be generated here -->
             </div>
             <div class="close-inventory" id="closeInventoryBtn">×</div>
         </div>
+        
+        <div class="teleport-overlay" id="teleportOverlay">
+            <div class="move-info" data-lang="teleport-instruction">Chọn vị trí để dịch chuyển</div>
+        </div>
+        <div class="teleport-crosshair" id="teleportCrosshair"></div>
+        
+        <div class="move-overlay" id="moveOverlay">
+            <div class="move-info" data-lang="move-instruction">Chọn vị trí để di chuyển (giới hạn khoảng cách)</div>
+            <div class="move-range" id="moveRange"></div>
+        </div>
     </div>
     
     <div id="gameOverScreen" class="game-over" style="display: none;">
         <div class="game-over-container win-animation">
-            <h1 class="game-over-title" id="gameOverTitle">Victory!</h1>
-            <div class="winner-info" id="winnerInfo">
-                Player Name won the match!
+            <h1 class="game-over-title" id="gameOverTitle" data-lang="victory">Chiến Thắng!</h1>
+            <div class="winner-info" id="winnerInfo" data-lang="winner-message">
+                Người chơi đã thắng trận đấu!
             </div>
-            <button id="playAgainBtn" class="menu-btn">Play Again</button>
-            <button id="exitGameBtn" class="menu-btn mt-4">Exit to Menu</button>
+            <button id="playAgainBtn" class="menu-btn" data-lang="play-again">Chơi Lại</button>
+            <button id="exitGameBtn" class="menu-btn mt-4" data-lang="exit-to-menu">Về Menu</button>
         </div>
     </div>
     
     <div id="toast" class="toast"></div>
     
     <script>
+        // Language support
+        const languages = {
+            vi: {
+                "loading": "Đang tải trò chơi...",
+                "game-title": "Pháo Thủ",
+                "your-name": "Tên của bạn",
+                "name-placeholder": "Nhập tên của bạn",
+                "create-room": "Tạo Phòng",
+                "or": "hoặc",
+                "join-room": "Tham Gia Phòng",
+                "available-rooms": "Phòng Hiện Có",
+                "refresh": "Làm Mới",
+                "back": "Quay Lại",
+                "waiting-for-players": "Đang Chờ Người Chơi",
+                "room-code": "Mã Phòng:",
+                "waiting-message": "Đang chờ người chơi tham gia...",
+                "select-map": "Chọn Bản Đồ",
+                "leave-room": "Rời Phòng",
+                "start-game": "Bắt Đầu",
+                "your-turn": "Lượt Của Bạn",
+                "wind": "Gió: 0 m/s",
+                "time": "Thời gian: 30s",
+                "fire": "BẮN!",
+                "inventory": "Vũ Khí & Vật Phẩm",
+                "chat-placeholder": "Nhập tin nhắn...",
+                "victory": "Chiến Thắng!",
+                "defeat": "Thất Bại!",
+                "winner-message": "Người chơi đã thắng trận đấu!",
+                "play-again": "Chơi Lại",
+                "exit-to-menu": "Về Menu",
+                "teleport-instruction": "Chọn vị trí để dịch chuyển",
+                "move-instruction": "Chọn vị trí để di chuyển (giới hạn khoảng cách)",
+                "players": "Người chơi:",
+                "waiting": "Đang chờ",
+                "owner": "Chủ phòng",
+                "no-rooms": "Không có phòng nào. Hãy tạo phòng mới!",
+                "loading-rooms": "Đang tải danh sách phòng...",
+                "room": "Phòng",
+                "turn-other": "Lượt của {name}"
+            },
+            en: {
+                "loading": "Loading game...",
+                "game-title": "Artillery Battle",
+                "your-name": "Your Name",
+                "name-placeholder": "Enter your name",
+                "create-room": "Create Room",
+                "or": "or",
+                "join-room": "Join Room",
+                "available-rooms": "Available Rooms",
+                "refresh": "Refresh",
+                "back": "Back",
+                "waiting-for-players": "Waiting for Players",
+                "room-code": "Room Code:",
+                "waiting-message": "Waiting for players to join...",
+                "select-map": "Select Map",
+                "leave-room": "Leave Room",
+                "start-game": "Start Game",
+                "your-turn": "Your Turn",
+                "wind": "Wind: 0 m/s",
+                "time": "Time: 30s",
+                "fire": "FIRE!",
+                "inventory": "Weapons & Items",
+                "chat-placeholder": "Type a message...",
+                "victory": "Victory!",
+                "defeat": "Defeat!",
+                "winner-message": "Player won the match!",
+                "play-again": "Play Again",
+                "exit-to-menu": "Exit to Menu",
+                "teleport-instruction": "Select a location to teleport",
+                "move-instruction": "Select a location to move (distance limited)",
+                "players": "Players:",
+                "waiting": "Waiting",
+                "owner": "Room Owner",
+                "no-rooms": "No rooms available. Create a new one!",
+                "loading-rooms": "Loading rooms...",
+                "room": "Room",
+                "turn-other": "{name}'s Turn"
+            }
+        };
+        
+        let currentLanguage = 'vi';
+        
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Update all elements with data-lang attribute
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                const key = el.getAttribute('data-lang');
+                if (languages[lang][key]) {
+                    el.textContent = languages[lang][key];
+                }
+            });
+            
+            // Update placeholders
+            document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-lang-placeholder');
+                if (languages[lang][key]) {
+                    el.placeholder = languages[lang][key];
+                }
+            });
+            
+            // Update dynamic content that's currently shown
+            updateDynamicLanguage();
+        }
+        
+        function updateDynamicLanguage() {
+            // Update turn text
+            const turnText = document.getElementById('turnText');
+            if (turnText.dataset.playerName) {
+                turnText.textContent = languages[currentLanguage]['turn-other'].replace('{name}', turnText.dataset.playerName);
+            }
+            
+            // Update weapon name based on selected weapon
+            updateWeaponName();
+            
+            // Update any other dynamic content here
+        }
+        
+        function updateWeaponName() {
+            const weaponName = document.getElementById('weaponName');
+            if (gameState.selectedWeapon && gameState.weapons) {
+                const weapon = gameState.weapons[gameState.selectedWeapon];
+                if (weapon) {
+                    weaponName.textContent = currentLanguage === 'vi' ? weapon.viName : weapon.name;
+                }
+            }
+        }
+        
+        document.getElementById('languageToggle').addEventListener('click', () => {
+            setLanguage(currentLanguage === 'vi' ? 'en' : 'vi');
+        });
+        
         // Constants
         const GRAVITY = 0.2;
-        const MAX_POWER = 100;
+        const MAX_POWER = 150; // Increased for longer range
+        const WIND_FACTOR = 0.03; // Increased for stronger wind effect
         const TERRAIN_SEGMENTS = 100;
         const CLOUD_COUNT = 8;
         const TICK_RATE = 16; // ~60fps
+        const TURN_TIME = 30; // seconds
         
         // Game state
         let gameState = {
@@ -1031,6 +1412,10 @@
             isRoomOwner: false,
             isMyTurn: false,
             players: [],
+            characters: [],
+            mapOptions: [],
+            weapons: null,
+            items: null,
             terrain: [],
             platforms: [],
             projectiles: [],
@@ -1041,35 +1426,19 @@
             power: 50,
             wind: 0,
             gravity: GRAVITY,
+            windFactor: WIND_FACTOR,
             selectedWeapon: 'basic',
-            inventory: {
-                basic: { type: 'weapon', name: 'Basic Cannon', icon: '💣', ammo: -1 },
-                missile: { type: 'weapon', name: 'Missile', icon: '🚀', ammo: 5 },
-                cluster: { type: 'weapon', name: 'Cluster Bomb', icon: '🧨', ammo: 3 },
-                sniper: { type: 'weapon', name: 'Sniper Shot', icon: '🎯', ammo: 3 },
-                grenade: { type: 'weapon', name: 'Grenade', icon: '💥', ammo: 3 },
-                healthpack: { type: 'item', name: 'Health Pack', icon: '❤️', ammo: 2 },
-                shield: { type: 'item', name: 'Shield', icon: '🛡️', ammo: 1 }
-            },
+            inventory: {},
             clouds: [],
             camera: { x: 0, y: 0, targetX: 0, targetY: 0, scale: 1 },
             map: null,
-            mapOptions: [
-                { id: 'hills', name: 'Rolling Hills', preview: createMapPreview('hills') },
-                { id: 'mountains', name: 'Mountain Range', preview: createMapPreview('mountains') },
-                { id: 'canyon', name: 'Deep Canyon', preview: createMapPreview('canyon') },
-                { id: 'islands', name: 'Floating Islands', preview: createMapPreview('islands') }
-            ],
-            characters: [
-                { id: 'tank', name: 'Tank', icon: '🔫', color: '#FF5722', maxHealth: 120, damageMultiplier: 1 },
-                { id: 'scout', name: 'Scout', icon: '🏃', color: '#4CAF50', maxHealth: 80, damageMultiplier: 1.2 },
-                { id: 'heavy', name: 'Heavy', icon: '🛡️', color: '#2196F3', maxHealth: 150, damageMultiplier: 0.9 },
-                { id: 'medic', name: 'Medic', icon: '❤️', color: '#F44336', maxHealth: 100, damageMultiplier: 0.8 }
-            ],
-            selectedCharacter: 'tank',
             dragStart: null,
             lastFrameTime: 0,
-            chatVisible: false
+            chatVisible: false,
+            turnTimeRemaining: TURN_TIME,
+            teleportMode: false,
+            moveMode: false,
+            moveDistance: 0
         };
         
         // Socket connection
@@ -1085,6 +1454,16 @@
         const gameUI = document.getElementById('gameUI');
         const gameOverScreen = document.getElementById('gameOverScreen');
         const toast = document.getElementById('toast');
+        const angleIndicator = document.getElementById('angleIndicator');
+        const angleLine = document.getElementById('angleLine');
+        const angleValue = document.getElementById('angleValue');
+        const powerBarContainer = document.getElementById('powerBarContainer');
+        const powerBar = document.getElementById('powerBar');
+        const powerValue = document.getElementById('powerValue');
+        const teleportOverlay = document.getElementById('teleportOverlay');
+        const teleportCrosshair = document.getElementById('teleportCrosshair');
+        const moveOverlay = document.getElementById('moveOverlay');
+        const moveRange = document.getElementById('moveRange');
         
         // Game canvases and contexts
         const ctx = gameCanvas.getContext('2d');
@@ -1126,49 +1505,6 @@
                 }
             });
             
-            // Create character selection UI
-            const characterSelection = document.querySelector('.character-selection');
-            gameState.characters.forEach(char => {
-                const charElement = document.createElement('div');
-                charElement.className = `character-option ${char.id === gameState.selectedCharacter ? 'selected' : ''}`;
-                charElement.dataset.characterId = char.id;
-                charElement.innerHTML = `
-                    <div class="character-preview" style="background-color: ${char.color}">${char.icon}</div>
-                    <div class="character-name">${char.name}</div>
-                `;
-                charElement.addEventListener('click', () => {
-                    document.querySelectorAll('.character-option').forEach(el => {
-                        el.classList.remove('selected');
-                    });
-                    charElement.classList.add('selected');
-                    gameState.selectedCharacter = char.id;
-                });
-                characterSelection.appendChild(charElement);
-            });
-            
-            // Generate map selection UI
-            const mapSelectionList = document.getElementById('mapSelectionList');
-            gameState.mapOptions.forEach((map, index) => {
-                const mapElement = document.createElement('div');
-                mapElement.className = `map-option ${index === 0 ? 'selected' : ''}`;
-                mapElement.dataset.mapId = map.id;
-                mapElement.innerHTML = `
-                    <div class="map-preview">${map.preview}</div>
-                    <div class="map-name">${map.name}</div>
-                `;
-                mapElement.addEventListener('click', () => {
-                    document.querySelectorAll('.map-option').forEach(el => {
-                        el.classList.remove('selected');
-                    });
-                    mapElement.classList.add('selected');
-                    gameState.map = map.id;
-                });
-                mapSelectionList.appendChild(mapElement);
-            });
-            
-            // Generate inventory items
-            populateInventory();
-            
             // Set up event listeners for UI elements
             setupEventListeners();
             
@@ -1178,6 +1514,9 @@
             // Start game loop
             requestAnimationFrame(gameLoop);
             
+            // Load language
+            setLanguage(currentLanguage);
+            
             // Simulate loading complete
             setTimeout(() => {
                 loadingScreen.style.display = 'none';
@@ -1186,7 +1525,7 @@
         }
         
         // Generate map previews
-        function createMapPreview(type) {
+        function createMapPreview(type, viName) {
             const canvas = document.createElement('canvas');
             canvas.width = 100;
             canvas.height = 60;
@@ -1250,7 +1589,36 @@
                     ctx.arc(70, 40, 12, 0, Math.PI * 2);
                     ctx.fill();
                     break;
+                case 'complex':
+                    // Complex terrain with multiple islands and platforms
+                    ctx.beginPath();
+                    ctx.moveTo(0, 45);
+                    ctx.lineTo(20, 35);
+                    ctx.lineTo(30, 50);
+                    ctx.lineTo(50, 30);
+                    ctx.lineTo(70, 45);
+                    ctx.lineTo(100, 35);
+                    ctx.lineTo(100, 60);
+                    ctx.lineTo(0, 60);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Add some floating platforms
+                    ctx.fillStyle = '#8D6E63';
+                    ctx.fillRect(15, 20, 20, 5);
+                    ctx.fillRect(60, 15, 25, 5);
+                    ctx.fillRect(40, 30, 15, 5);
+                    break;
             }
+            
+            // Add map name
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, 100, 15);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(viName || type, 50, 7);
             
             return canvas.outerHTML;
         }
@@ -1300,7 +1668,7 @@
             // Game controls
             document.getElementById('angleUpBtn').addEventListener('click', () => {
                 if (gameState.isMyTurn) {
-                    gameState.angle = Math.min(90, gameState.angle + 5);
+                    gameState.angle = Math.min(180, gameState.angle + 5);
                     updateAngleUI();
                 }
             });
@@ -1327,13 +1695,63 @@
             });
             
             document.getElementById('fireBtn').addEventListener('click', () => {
-                if (gameState.isMyTurn) {
+                if (gameState.isMyTurn && !gameState.teleportMode && !gameState.moveMode) {
                     fireWeapon();
                 }
             });
             
             document.getElementById('inventoryBtn').addEventListener('click', toggleInventory);
             document.getElementById('closeInventoryBtn').addEventListener('click', toggleInventory);
+            
+            document.getElementById('moveBtn').addEventListener('click', () => {
+                if (gameState.isMyTurn && !gameState.teleportMode) {
+                    toggleMoveMode();
+                }
+            });
+            
+            // Teleport/move mode handlers
+            teleportOverlay.addEventListener('click', (e) => {
+                if (gameState.teleportMode) {
+                    const rect = gameCanvas.getBoundingClientRect();
+                    const canvasX = e.clientX - rect.left;
+                    const canvasY = e.clientY - rect.top;
+                    
+                    // Convert to world coordinates
+                    const worldX = canvasX + gameState.camera.x - rect.width / 2;
+                    const worldY = canvasY + gameState.camera.y - rect.height / 2;
+                    
+                    // Use teleport at target location
+                    useTeleport(worldX, worldY);
+                }
+            });
+            
+            moveOverlay.addEventListener('click', (e) => {
+                if (gameState.moveMode) {
+                    const rect = gameCanvas.getBoundingClientRect();
+                    const canvasX = e.clientX - rect.left;
+                    const canvasY = e.clientY - rect.top;
+                    
+                    // Convert to world coordinates
+                    const worldX = canvasX + gameState.camera.x - rect.width / 2;
+                    const worldY = canvasY + gameState.camera.y - rect.height / 2;
+                    
+                    // Check if within move range
+                    const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
+                    
+                    if (currentPlayer) {
+                        const dx = worldX - currentPlayer.x;
+                        const dy = worldY - currentPlayer.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance <= gameState.moveDistance) {
+                            // Valid move location
+                            movePlayer(worldX, worldY);
+                        } else {
+                            showToast(currentLanguage === 'vi' ? 'Quá xa! Di chuyển thất bại.' : 'Too far! Move failed.');
+                        }
+                    }
+                }
+            });
             
             // Chat controls
             document.getElementById('chatToggleBtn').addEventListener('click', toggleChat);
@@ -1354,9 +1772,46 @@
             gameCanvas.addEventListener('mouseup', handleDragEnd);
             gameCanvas.addEventListener('touchend', handleDragEnd);
             
+            // Update angle with mouse click
+            gameCanvas.addEventListener('click', (e) => {
+                if (gameState.isMyTurn && gameState.screen === 'game' && !gameState.teleportMode && !gameState.moveMode) {
+                    const rect = gameCanvas.getBoundingClientRect();
+                    const canvasX = e.clientX - rect.left;
+                    const canvasY = e.clientY - rect.top;
+                    
+                    const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
+                    if (currentPlayer) {
+                        // Convert to world coordinates
+                        const worldX = canvasX + gameState.camera.x - rect.width / 2;
+                        const worldY = canvasY + gameState.camera.y - rect.height / 2;
+                        
+                        // Calculate angle
+                        const dx = worldX - currentPlayer.x;
+                        const dy = worldY - currentPlayer.y;
+                        
+                        let angle = Math.atan2(-dy, dx) * 180 / Math.PI;
+                        if (angle < 0) angle += 360;
+                        
+                        // Set new angle
+                        gameState.angle = angle;
+                        updateAngleUI();
+                    }
+                }
+            });
+            
+            // Mouse move to update teleport crosshair
+            document.addEventListener('mousemove', (e) => {
+                if (gameState.teleportMode || gameState.moveMode) {
+                    teleportCrosshair.style.left = `${e.clientX - 15}px`;
+                    teleportCrosshair.style.top = `${e.clientY - 15}px`;
+                }
+            });
+            
             // Resize handler
             window.addEventListener('resize', () => {
                 setupCanvas();
+                positionAngleIndicator();
+                positionPowerBar();
             });
         }
         
@@ -1374,13 +1829,64 @@
             setupSocketEvents();
         }
         
+        // Update the angle UI
+        function updateAngleUI() {
+            // Update angle line rotation
+            const radians = gameState.angle * Math.PI / 180;
+            angleLine.style.transform = `rotate(${-radians}rad)`;
+            
+            // Update angle value
+            angleValue.textContent = `${Math.round(gameState.angle)}°`;
+        }
+        
+        // Update the power UI
+        function updatePowerUI() {
+            // Update power bar width
+            const powerPercent = (gameState.power / MAX_POWER) * 100;
+            powerBar.style.width = `${powerPercent}%`;
+            
+            // Update power value
+            powerValue.textContent = `${gameState.power}%`;
+        }
+        
+        // Position angle indicator relative to current player
+        function positionAngleIndicator() {
+            if (gameState.screen !== 'game') return;
+            
+            const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
+            if (!currentPlayer) return;
+            
+            const canvasWidth = gameCanvas.width / (window.devicePixelRatio || 1);
+            const canvasHeight = gameCanvas.height / (window.devicePixelRatio || 1);
+            
+            // Calculate screen position
+            const screenX = currentPlayer.x - gameState.camera.x + canvasWidth / 2;
+            const screenY = currentPlayer.y - gameState.camera.y + canvasHeight / 2;
+            
+            // Position indicator at player
+            angleIndicator.style.left = `${screenX - 60}px`;
+            angleIndicator.style.top = `${screenY - 60}px`;
+        }
+        
+        // Position power bar
+        function positionPowerBar() {
+            if (gameState.screen !== 'game') return;
+            
+            const canvasWidth = gameCanvas.width / (window.devicePixelRatio || 1);
+            const canvasHeight = gameCanvas.height / (window.devicePixelRatio || 1);
+            
+            // Position power bar at bottom center
+            powerBarContainer.style.left = `${canvasWidth / 2 - 75}px`;
+            powerBarContainer.style.bottom = `80px`;
+        }
+        
         // Create a new game room
         function createRoom() {
             const playerNameInput = document.getElementById('playerName');
             const playerName = playerNameInput.value.trim() || `Player${Math.floor(Math.random() * 1000)}`;
             
             if (playerName.length < 3) {
-                showToast('Name must be at least 3 characters');
+                showToast(currentLanguage === 'vi' ? 'Tên phải có ít nhất 3 ký tự' : 'Name must be at least 3 characters');
                 return;
             }
             
@@ -1388,16 +1894,24 @@
             
             socket.emit('create-room', { 
                 playerName: playerName,
-                character: gameState.selectedCharacter
+                character: gameState.selectedCharacter || 'gunman'
             }, (response) => {
                 if (response.success) {
                     gameState.roomId = response.roomId;
                     gameState.isRoomOwner = true;
                     gameState.players = response.players;
+                    gameState.characters = response.characters || [];
+                    gameState.mapOptions = response.mapOptions || [];
                     
                     document.getElementById('roomCodeValue').textContent = response.roomId;
                     document.getElementById('startGameBtn').style.display = 'block';
                     document.getElementById('mapSelectionContainer').style.display = 'block';
+                    
+                    // Create character selection
+                    createCharacterSelection();
+                    
+                    // Create map selection
+                    createMapSelection();
                     
                     updateWaitingRoomPlayers();
                     
@@ -1405,21 +1919,99 @@
                     waitingRoom.style.display = 'flex';
                     gameState.screen = 'waiting';
                 } else {
-                    showToast('Failed to create room: ' + response.message);
+                    showToast(currentLanguage === 'vi' ? 'Không thể tạo phòng: ' + response.message : 'Failed to create room: ' + response.message);
                 }
             });
         }
         
+        // Create character selection UI
+        function createCharacterSelection() {
+            const characterSelection = document.querySelector('.character-selection');
+            characterSelection.innerHTML = ''; // Clear existing options
+            
+            if (!gameState.characters || gameState.characters.length === 0) {
+                return;
+            }
+            
+            gameState.characters.forEach(char => {
+                const charElement = document.createElement('div');
+                charElement.className = `character-option ${char.id === (gameState.selectedCharacter || 'gunman') ? 'selected' : ''}`;
+                charElement.dataset.characterId = char.id;
+                
+                // Character preview with color and icon
+                charElement.innerHTML = `
+                    <div class="character-preview" style="background-color: ${char.color}">${char.icon}</div>
+                    <div class="character-name">${currentLanguage === 'vi' ? char.viName : char.name}</div>
+                    <div class="character-stats">
+                        <div>${currentLanguage === 'vi' ? 'Máu' : 'Health'}: ${char.maxHealth}</div>
+                        <div>${currentLanguage === 'vi' ? 'Sát thương' : 'Damage'}: x${char.damageMultiplier}</div>
+                        <div>${currentLanguage === 'vi' ? 'Di chuyển' : 'Speed'}: ${char.moveSpeed}</div>
+                        <div>${currentLanguage === 'vi' ? 'Mô tả' : 'Description'}: ${char.description}</div>
+                    </div>
+                `;
+                
+                charElement.addEventListener('click', () => {
+                    document.querySelectorAll('.character-option').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    charElement.classList.add('selected');
+                    gameState.selectedCharacter = char.id;
+                });
+                
+                characterSelection.appendChild(charElement);
+            });
+            
+            // Default to first character if none selected
+            if (!gameState.selectedCharacter) {
+                gameState.selectedCharacter = gameState.characters[0].id;
+            }
+        }
+        
+        // Create map selection UI
+        function createMapSelection() {
+            const mapSelectionList = document.getElementById('mapSelectionList');
+            mapSelectionList.innerHTML = ''; // Clear existing options
+            
+            if (!gameState.mapOptions || gameState.mapOptions.length === 0) {
+                return;
+            }
+            
+            gameState.mapOptions.forEach((map, index) => {
+                const mapElement = document.createElement('div');
+                mapElement.className = `map-option ${index === 0 ? 'selected' : ''}`;
+                mapElement.dataset.mapId = map.id;
+                
+                // Create map preview and name
+                mapElement.innerHTML = `
+                    <div class="map-preview">${createMapPreview(map.id, map.viName)}</div>
+                    <div class="map-name">${currentLanguage === 'vi' ? map.viName : map.name}</div>
+                `;
+                
+                mapElement.addEventListener('click', () => {
+                    document.querySelectorAll('.map-option').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    mapElement.classList.add('selected');
+                    gameState.map = map.id;
+                });
+                
+                mapSelectionList.appendChild(mapElement);
+            });
+            
+            // Default to first map
+            gameState.map = gameState.mapOptions[0].id;
+        }
+        
         // Fetch available rooms
         function fetchRooms() {
-            document.getElementById('roomsList').innerHTML = '<p class="text-center text-white">Loading rooms...</p>';
+            document.getElementById('roomsList').innerHTML = `<p class="text-center text-white" data-lang="loading-rooms">${currentLanguage === 'vi' ? 'Đang tải danh sách phòng...' : 'Loading rooms...'}</p>`;
             
             socket.emit('get-rooms', (response) => {
                 if (response.success) {
                     const roomsList = document.getElementById('roomsList');
                     
                     if (response.rooms.length === 0) {
-                        roomsList.innerHTML = '<p class="text-center text-white">No rooms available. Create a new one!</p>';
+                        roomsList.innerHTML = `<p class="text-center text-white" data-lang="no-rooms">${currentLanguage === 'vi' ? 'Không có phòng nào. Hãy tạo phòng mới!' : 'No rooms available. Create a new one!'}</p>`;
                         return;
                     }
                     
@@ -1430,10 +2022,10 @@
                         roomItem.className = 'room-item';
                         roomItem.innerHTML = `
                             <div>
-                                <div class="room-name">${room.name || 'Game Room'}</div>
-                                <div class="room-info">Players: ${room.players}/${room.maxPlayers}</div>
+                                <div class="room-name">${room.name || (currentLanguage === 'vi' ? 'Phòng Chơi' : 'Game Room')}</div>
+                                <div class="room-info">${currentLanguage === 'vi' ? 'Người chơi' : 'Players'}: ${room.players}/${room.maxPlayers}</div>
                             </div>
-                            <button class="menu-btn w-auto px-4 py-2 text-sm">Join</button>
+                            <button class="menu-btn w-auto px-4 py-2 text-sm" data-lang="join-room">${currentLanguage === 'vi' ? 'Tham Gia' : 'Join'}</button>
                         `;
                         
                         roomItem.querySelector('button').addEventListener('click', () => {
@@ -1443,7 +2035,7 @@
                         roomsList.appendChild(roomItem);
                     });
                 } else {
-                    showToast('Failed to fetch rooms: ' + response.message);
+                    showToast(currentLanguage === 'vi' ? 'Không thể tải danh sách phòng: ' + response.message : 'Failed to fetch rooms: ' + response.message);
                 }
             });
         }
@@ -1454,7 +2046,7 @@
             const playerName = playerNameInput.value.trim() || `Player${Math.floor(Math.random() * 1000)}`;
             
             if (playerName.length < 3) {
-                showToast('Name must be at least 3 characters');
+                showToast(currentLanguage === 'vi' ? 'Tên phải có ít nhất 3 ký tự' : 'Name must be at least 3 characters');
                 return;
             }
             
@@ -1463,16 +2055,21 @@
             socket.emit('join-room', {
                 roomId: roomId,
                 playerName: playerName,
-                character: gameState.selectedCharacter
+                character: gameState.selectedCharacter || 'gunman'
             }, (response) => {
                 if (response.success) {
                     gameState.roomId = response.roomId;
                     gameState.isRoomOwner = false;
                     gameState.players = response.players;
+                    gameState.characters = response.characters || [];
+                    gameState.mapOptions = response.mapOptions || [];
                     
                     document.getElementById('roomCodeValue').textContent = response.roomId;
                     document.getElementById('startGameBtn').style.display = 'none';
                     document.getElementById('mapSelectionContainer').style.display = 'none';
+                    
+                    // Create character selection
+                    createCharacterSelection();
                     
                     updateWaitingRoomPlayers();
                     
@@ -1480,7 +2077,7 @@
                     waitingRoom.style.display = 'flex';
                     gameState.screen = 'waiting';
                 } else {
-                    showToast('Failed to join room: ' + response.message);
+                    showToast(currentLanguage === 'vi' ? 'Không thể tham gia phòng: ' + response.message : 'Failed to join room: ' + response.message);
                 }
             });
         }
@@ -1520,26 +2117,16 @@
                 
                 const character = gameState.characters.find(c => c.id === player.character);
                 
+                if (!character) return;
+                
                 playerCard.innerHTML = `
-                    <div class="player-avatar" style="background-color: ${character ? character.color : '#666'}">${character ? character.icon : '👤'}</div>
+                    <div class="player-avatar" style="background-color: ${character.color}">${character.icon}</div>
                     <div class="player-name">${player.name}</div>
-                    <div class="player-status">${player.isOwner ? 'Room Owner' : 'Player'}</div>
+                    <div class="player-status">${player.isOwner ? (currentLanguage === 'vi' ? 'Chủ phòng' : 'Room Owner') : (currentLanguage === 'vi' ? 'Người chơi' : 'Player')}</div>
                 `;
                 
                 waitingPlayersList.appendChild(playerCard);
             });
-        }
-        
-        // Update the angle UI
-        function updateAngleUI() {
-            // This would update a visible angle indicator
-            // For this demo, we'll just redraw
-        }
-        
-        // Update the power UI
-        function updatePowerUI() {
-            // This would update a visible power indicator
-            // For this demo, we'll just redraw
         }
         
         // Fire the current weapon
@@ -1549,11 +2136,11 @@
             const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
             if (!currentPlayer) return;
             
-            const weapon = gameState.inventory[gameState.selectedWeapon];
+            const weapon = currentPlayer.inventory[gameState.selectedWeapon];
             
             // Check if we have ammo for this weapon
             if (weapon.ammo === 0) {
-                showToast('Out of ammo for this weapon!');
+                showToast(currentLanguage === 'vi' ? 'Hết đạn cho vũ khí này!' : 'Out of ammo for this weapon!');
                 return;
             }
             
@@ -1564,19 +2151,22 @@
             
             // Disable controls during firing
             gameState.isMyTurn = false;
-            document.getElementById('turnText').textContent = 'Firing...';
+            document.getElementById('turnText').textContent = currentLanguage === 'vi' ? 'Đang bắn...' : 'Firing...';
             
             // Calculate initial velocity based on angle and power
             const angleRad = gameState.angle * Math.PI / 180;
             const power = gameState.power / 100 * 20; // Scale power to a reasonable velocity
             
-            const velocityX = Math.cos(angleRad) * power * (currentPlayer.facingLeft ? -1 : 1);
+            // Determine facing direction based on angle
+            const facingLeft = gameState.angle > 90 && gameState.angle < 270;
+            
+            const velocityX = Math.cos(angleRad) * power;
             const velocityY = -Math.sin(angleRad) * power;
             
             // Create projectile
             const projectile = {
                 id: 'proj-' + Date.now(),
-                x: currentPlayer.x + (currentPlayer.facingLeft ? -20 : 20),
+                x: currentPlayer.x + (facingLeft ? -20 : 20),
                 y: currentPlayer.y - 10,
                 velocityX: velocityX,
                 velocityY: velocityY,
@@ -1598,6 +2188,9 @@
                 projectile: projectile,
                 weapon: gameState.selectedWeapon
             });
+            
+            // Update inventory UI
+            populateInventory();
         }
         
         // Toggle inventory panel
@@ -1606,12 +2199,201 @@
             inventoryPanel.classList.toggle('show');
         }
         
+        // Toggle move mode
+        function toggleMoveMode() {
+            gameState.moveMode = !gameState.moveMode;
+            
+            // Update UI
+            moveOverlay.style.display = gameState.moveMode ? 'block' : 'none';
+            teleportCrosshair.style.display = gameState.moveMode ? 'block' : 'none';
+            
+            if (gameState.moveMode) {
+                // Get current player's move distance
+                const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
+                if (currentPlayer) {
+                    const character = gameState.characters.find(c => c.id === currentPlayer.character);
+                    if (character) {
+                        gameState.moveDistance = character.moveSpeed * 20; // Scale based on character speed
+                        
+                        // Set move range circle
+                        moveRange.style.width = `${gameState.moveDistance * 2}px`;
+                        moveRange.style.height = `${gameState.moveDistance * 2}px`;
+                        
+                        // Position move range around player
+                        const canvasWidth = gameCanvas.width / (window.devicePixelRatio || 1);
+                        const canvasHeight = gameCanvas.height / (window.devicePixelRatio || 1);
+                        
+                        const screenX = currentPlayer.x - gameState.camera.x + canvasWidth / 2;
+                        const screenY = currentPlayer.y - gameState.camera.y + canvasHeight / 2;
+                        
+                        moveRange.style.left = `${screenX - gameState.moveDistance}px`;
+                        moveRange.style.top = `${screenY - gameState.moveDistance}px`;
+                    }
+                }
+            }
+        }
+        
+        // Move player to new position
+        function movePlayer(x, y) {
+            // Find terrain height at new x position
+            let terrainY = 1500; // Default bottom
+            
+            if (gameState.terrain && gameState.terrain.length > 0) {
+                const segmentWidth = 3000 / TERRAIN_SEGMENTS;
+                const index = Math.floor(x / segmentWidth);
+                
+                if (index >= 0 && index < gameState.terrain.length - 1) {
+                    const p1 = gameState.terrain[index];
+                    const p2 = gameState.terrain[index + 1];
+                    
+                    // Interpolate height at x
+                    const t = (x - p1.x) / (p2.x - p1.x);
+                    terrainY = p1.y + t * (p2.y - p1.y);
+                }
+            }
+            
+            // Check platforms
+            for (const platform of gameState.platforms) {
+                if (x >= platform.x && x <= platform.x + platform.width && y <= platform.y) {
+                    terrainY = Math.min(terrainY, platform.y);
+                }
+            }
+            
+            // Position player just above terrain/platform
+            const newY = terrainY - 40;
+            
+            // Send movement to server
+            socket.emit('move-player', {
+                x: x,
+                y: newY
+            });
+            
+            // Update local player position
+            const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
+            if (currentPlayer) {
+                currentPlayer.x = x;
+                currentPlayer.y = newY;
+            }
+            
+            // Position angle indicator at new position
+            positionAngleIndicator();
+            
+            // Exit move mode
+            gameState.moveMode = false;
+            moveOverlay.style.display = 'none';
+            teleportCrosshair.style.display = 'none';
+            
+            // End turn
+            socket.emit('turn-complete');
+        }
+        
+        // Toggle teleport mode and UI
+        function toggleTeleportMode() {
+            gameState.teleportMode = !gameState.teleportMode;
+            
+            // Update UI
+            teleportOverlay.style.display = gameState.teleportMode ? 'block' : 'none';
+            teleportCrosshair.style.display = gameState.teleportMode ? 'block' : 'none';
+        }
+        
+        // Use teleport to position
+        function useTeleport(x, y) {
+            // Find terrain height at new x position
+            let terrainY = 1500; // Default bottom
+            
+            if (gameState.terrain && gameState.terrain.length > 0) {
+                const segmentWidth = 3000 / TERRAIN_SEGMENTS;
+                const index = Math.floor(x / segmentWidth);
+                
+                if (index >= 0 && index < gameState.terrain.length - 1) {
+                    const p1 = gameState.terrain[index];
+                    const p2 = gameState.terrain[index + 1];
+                    
+                    // Interpolate height at x
+                    const t = (x - p1.x) / (p2.x - p1.x);
+                    terrainY = p1.y + t * (p2.y - p1.y);
+                }
+            }
+            
+            // Check platforms
+            for (const platform of gameState.platforms) {
+                if (x >= platform.x && x <= platform.x + platform.width && y <= platform.y) {
+                    terrainY = Math.min(terrainY, platform.y);
+                }
+            }
+            
+            // Position player just above terrain/platform
+            const newY = terrainY - 40;
+            
+            // Use teleport item
+            socket.emit('use-item', {
+                itemId: 'teleport',
+                targetX: x,
+                targetY: newY
+            });
+            
+            // Update local player position
+            const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
+            if (currentPlayer) {
+                currentPlayer.x = x;
+                currentPlayer.y = newY;
+                
+                // Reduce teleport count
+                if (currentPlayer.inventory.teleport) {
+                    currentPlayer.inventory.teleport.ammo--;
+                }
+            }
+            
+            // Create teleport effect particles
+            gameState.particles.push(...createTeleportEffect(x, newY));
+            
+            // Position angle indicator at new position
+            positionAngleIndicator();
+            
+            // Exit teleport mode
+            gameState.teleportMode = false;
+            teleportOverlay.style.display = 'none';
+            teleportCrosshair.style.display = 'none';
+            
+            // Update inventory
+            populateInventory();
+            
+            // End turn
+            socket.emit('turn-complete');
+        }
+        
+        // Create teleport effect particles
+        function createTeleportEffect(x, y) {
+            const particles = [];
+            
+            for (let i = 0; i < 40; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 5;
+                
+                particles.push({
+                    x: x,
+                    y: y,
+                    velocityX: Math.cos(angle) * speed,
+                    velocityY: Math.sin(angle) * speed,
+                    size: 5 + Math.random() * 10,
+                    color: '#9C27B0',
+                    opacity: 1,
+                    life: 30 + Math.random() * 30
+                });
+            }
+            
+            return particles;
+        }
+        
         // Populate inventory with weapons and items
         function populateInventory() {
             const inventoryGrid = document.getElementById('inventoryGrid');
             inventoryGrid.innerHTML = '';
             
-            Object.entries(gameState.inventory).forEach(([id, item]) => {
+            const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
+            if (!currentPlayer || !currentPlayer.inventory) return;
+            
+            Object.entries(currentPlayer.inventory).forEach(([id, item]) => {
                 const inventoryItem = document.createElement('div');
                 inventoryItem.className = `inventory-item ${id === gameState.selectedWeapon ? 'selected' : ''}`;
                 inventoryItem.dataset.itemId = id;
@@ -1621,7 +2403,7 @@
                 
                 inventoryItem.innerHTML = `
                     <div class="inventory-icon">${item.icon}</div>
-                    <div class="inventory-name">${item.name}</div>
+                    <div class="inventory-name">${currentLanguage === 'vi' ? item.viName : item.name}</div>
                     <div class="text-xs">${ammoDisplay}</div>
                 `;
                 
@@ -1632,7 +2414,7 @@
                         });
                         inventoryItem.classList.add('selected');
                         gameState.selectedWeapon = id;
-                        document.getElementById('weaponName').textContent = item.name;
+                        document.getElementById('weaponName').textContent = currentLanguage === 'vi' ? item.viName : item.name;
                         inventoryPanel.classList.remove('show');
                     } else if (item.type === 'item' && gameState.isMyTurn && item.ammo > 0) {
                         useItem(id);
@@ -1646,45 +2428,69 @@
         
         // Use an inventory item
         function useItem(itemId) {
-            const item = gameState.inventory[itemId];
-            if (!item || item.type !== 'item' || item.ammo <= 0) return;
-            
             const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
-            if (!currentPlayer) return;
+            if (!currentPlayer || !currentPlayer.inventory[itemId]) return;
+            
+            const item = currentPlayer.inventory[itemId];
+            if (item.ammo <= 0) return;
             
             switch (itemId) {
                 case 'healthpack':
                     // Heal player
-                    currentPlayer.health = Math.min(currentPlayer.maxHealth, currentPlayer.health + 30);
+                    socket.emit('use-item', {
+                        itemId: 'healthpack'
+                    });
                     
                     // Add healing effect
                     gameState.particles.push(...createHealingEffect(currentPlayer.x, currentPlayer.y));
                     
-                    showToast('+30 Health');
+                    // Update local player health
+                    currentPlayer.health = Math.min(currentPlayer.maxHealth, currentPlayer.health + 30);
+                    
+                    // Decrease item count
+                    item.ammo--;
+                    
+                    // Show toast
+                    showToast('+30 ' + (currentLanguage === 'vi' ? 'Máu' : 'Health'));
+                    
+                    // End turn
+                    socket.emit('turn-complete');
                     break;
+                    
                 case 'shield':
-                    // Add shield effect
+                    // Apply shield
+                    socket.emit('use-item', {
+                        itemId: 'shield'
+                    });
+                    
+                    // Add shield effect locally
                     currentPlayer.effects.push({
                         type: 'shield',
-                        duration: 2, // lasts for 2 turns
-                        value: 0.5 // reduces damage by 50%
+                        duration: 2,
+                        value: 0.5
                     });
                     
                     // Add shield visual effect
                     gameState.particles.push(...createShieldEffect(currentPlayer.x, currentPlayer.y));
                     
-                    showToast('Shield Activated');
+                    // Decrease item count
+                    item.ammo--;
+                    
+                    // Show toast
+                    showToast(currentLanguage === 'vi' ? 'Đã kích hoạt khiên' : 'Shield Activated');
+                    
+                    // End turn
+                    socket.emit('turn-complete');
+                    break;
+                    
+                case 'teleport':
+                    // Enter teleport mode
+                    toggleTeleportMode();
                     break;
             }
             
-            // Decrease item count
-            item.ammo--;
-            
-            // Update inventory
+            // Update inventory UI
             populateInventory();
-            
-            // End turn after using item
-            socket.emit('turn-complete');
         }
         
         // Create healing effect particles
@@ -1777,6 +2583,8 @@
         function handleDragStart(e) {
             e.preventDefault();
             
+            if (gameState.teleportMode || gameState.moveMode) return;
+            
             const clientX = e.clientX || (e.touches && e.touches[0].clientX);
             const clientY = e.clientY || (e.touches && e.touches[0].clientY);
             
@@ -1794,7 +2602,7 @@
         function handleDragMove(e) {
             e.preventDefault();
             
-            if (!gameState.dragStart) return;
+            if (!gameState.dragStart || gameState.teleportMode || gameState.moveMode) return;
             
             const clientX = e.clientX || (e.touches && e.touches[0].clientX);
             const clientY = e.clientY || (e.touches && e.touches[0].clientY);
@@ -1809,6 +2617,25 @@
                 // Update target position as well to prevent snap-back
                 gameState.camera.targetX = gameState.camera.x;
                 gameState.camera.targetY = gameState.camera.y;
+                
+                // Update angle indicator and power bar position
+                positionAngleIndicator();
+                positionPowerBar();
+                
+                // Update move range if in move mode
+                if (gameState.moveMode) {
+                    const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
+                    if (currentPlayer) {
+                        const canvasWidth = gameCanvas.width / (window.devicePixelRatio || 1);
+                        const canvasHeight = gameCanvas.height / (window.devicePixelRatio || 1);
+                        
+                        const screenX = currentPlayer.x - gameState.camera.x + canvasWidth / 2;
+                        const screenY = currentPlayer.y - gameState.camera.y + canvasHeight / 2;
+                        
+                        moveRange.style.left = `${screenX - gameState.moveDistance}px`;
+                        moveRange.style.top = `${screenY - gameState.moveDistance}px`;
+                    }
+                }
             }
         }
         
@@ -1852,6 +2679,10 @@
             gameState.camera.x += (gameState.camera.targetX - gameState.camera.x) * cameraSpeed;
             gameState.camera.y += (gameState.camera.targetY - gameState.camera.y) * cameraSpeed;
             
+            // Update angle indicator and power bar position
+            positionAngleIndicator();
+            positionPowerBar();
+            
             // Update projectiles
             updateProjectiles();
             
@@ -1873,8 +2704,8 @@
                 // Apply gravity
                 proj.velocityY += proj.gravity;
                 
-                // Apply wind
-                proj.velocityX += parseFloat(proj.wind) * 0.01;
+                // Apply wind (stronger effect)
+                proj.velocityX += parseFloat(proj.wind) * gameState.windFactor;
                 
                 // Update position
                 proj.x += proj.velocityX;
@@ -1974,38 +2805,48 @@
         
         // Get color for projectile trail based on weapon type
         function getProjectileColor(type) {
+            if (gameState.weapons && gameState.weapons[type]) {
+                return gameState.weapons[type].color;
+            }
+            
+            // Fallback colors if weapons not loaded
             switch (type) {
                 case 'basic': return '#FF9800';
                 case 'missile': return '#F44336';
-                case 'cluster': return '#9C27B0';
-                case 'sniper': return '#4CAF50';
-                case 'grenade': return '#FFEB3B';
+                case 'laser': return '#00BCD4';
+                case 'tornado': return '#03A9F4';
+                case 'shotgun': return '#795548';
+                case 'axe': return '#E91E63';
+                case 'vine': return '#4CAF50';
+                case 'egg': return '#FFEB3B';
                 default: return '#FFFFFF';
             }
         }
         
         // Create an explosion
         function createExplosion(projectile) {
-            let radius, damage, particleCount;
+            let radius, damage, particleCount, color;
             
-            // Different explosion properties based on weapon type
+            // Get weapon properties from server data if available
+            if (gameState.weapons && gameState.weapons[projectile.type]) {
+                const weapon = gameState.weapons[projectile.type];
+                radius = weapon.radius;
+                damage = weapon.damage;
+                particleCount = weapon.particleCount;
+                color = weapon.color;
+            } else {
+                // Default values if weapon data not available
+                radius = 80;
+                damage = 25;
+                particleCount = 30;
+                color = getProjectileColor(projectile.type);
+            }
+            
+            // Special weapon effects
             switch (projectile.type) {
-                case 'basic':
-                    radius = 80;
-                    damage = 25;
-                    particleCount = 30;
-                    break;
-                case 'missile':
-                    radius = 100;
-                    damage = 35;
-                    particleCount = 40;
-                    break;
                 case 'cluster':
-                    radius = 60;
-                    damage = 15;
-                    particleCount = 25;
-                    
-                    // Create additional smaller explosions
+                case 'shotgun':
+                    // Create multiple smaller explosions
                     for (let i = 0; i < 3; i++) {
                         setTimeout(() => {
                             const offsetX = (Math.random() - 0.5) * 100;
@@ -2019,7 +2860,8 @@
                                 currentRadius: 0,
                                 maxRadius: 40,
                                 expandSpeed: 3,
-                                life: 20
+                                life: 20,
+                                color: color
                             });
                             
                             // Create particles for secondary explosions
@@ -2027,7 +2869,7 @@
                                 projectile.x + offsetX, 
                                 projectile.y + offsetY, 
                                 15, 
-                                '#FF5722'
+                                color
                             ));
                             
                             // Damage players in secondary explosion radius
@@ -2041,20 +2883,45 @@
                         }, 300 + i * 200);
                     }
                     break;
-                case 'sniper':
-                    radius = 30;
-                    damage = 50;
-                    particleCount = 15;
+                    
+                case 'egg':
+                    // Egg-specific effect: drop additional explosions downward
+                    for (let i = 0; i < 2; i++) {
+                        setTimeout(() => {
+                            const offsetX = (Math.random() - 0.5) * 40;
+                            const offsetY = (i + 1) * 60; // Drop downward
+                            
+                            gameState.explosions.push({
+                                x: projectile.x + offsetX,
+                                y: projectile.y + offsetY,
+                                radius: 50,
+                                damage: 15,
+                                currentRadius: 0,
+                                maxRadius: 50,
+                                expandSpeed: 3,
+                                life: 20,
+                                color: color
+                            });
+                            
+                            // Create particles for egg explosions
+                            gameState.particles.push(...createExplosionParticles(
+                                projectile.x + offsetX, 
+                                projectile.y + offsetY, 
+                                20, 
+                                '#FFEB3B'
+                            ));
+                            
+                            // Damage players in egg explosion radius
+                            damagePlayersInRadius(
+                                projectile.x + offsetX, 
+                                projectile.y + offsetY, 
+                                50, 
+                                15, 
+                                projectile.ownerId
+                            );
+                        }, 400 + i * 300);
+                    }
                     break;
-                case 'grenade':
-                    radius = 120;
-                    damage = 30;
-                    particleCount = 50;
-                    break;
-                default:
-                    radius = 80;
-                    damage = 25;
-                    particleCount = 30;
             }
             
             // Create main explosion
@@ -2066,7 +2933,8 @@
                 currentRadius: 0,
                 maxRadius: radius,
                 expandSpeed: 4,
-                life: 30
+                life: 30,
+                color: color
             });
             
             // Create particles
@@ -2074,27 +2942,15 @@
                 projectile.x, 
                 projectile.y, 
                 particleCount, 
-                getExplosionColor(projectile.type)
+                color
             ));
             
             // Damage players in radius
             damagePlayersInRadius(projectile.x, projectile.y, radius, damage, projectile.ownerId);
             
-            // Modify terrain for certain weapons
-            if (['basic', 'missile', 'grenade'].includes(projectile.type)) {
+            // Modify terrain for certain weapons that should affect terrain
+            if (['basic', 'missile', 'grenade', 'axe'].includes(projectile.type)) {
                 modifyTerrain(projectile.x, projectile.y, radius * 0.8);
-            }
-        }
-        
-        // Get color for explosion based on weapon type
-        function getExplosionColor(type) {
-            switch (type) {
-                case 'basic': return '#FF9800';
-                case 'missile': return '#F44336';
-                case 'cluster': return '#9C27B0';
-                case 'sniper': return '#4CAF50';
-                case 'grenade': return '#FFEB3B';
-                default: return '#FF9800';
             }
         }
         
@@ -2112,7 +2968,7 @@
                     velocityX: Math.cos(angle) * speed,
                     velocityY: Math.sin(angle) * speed,
                     size: 5 + Math.random() * 10,
-                    color: color,
+                    color: color || '#FF9800',
                     opacity: 1,
                     life: 30 + Math.random() * 30
                 });
@@ -2150,7 +3006,14 @@
                         gameState.particles.push(...createShieldHitEffect(player.x, player.y));
                     }
                     
-                    // Apply damage
+                    // Update server about damage
+                    socket.emit('damage-player', {
+                        targetId: player.id,
+                        attackerId: attackerId,
+                        damage: damage
+                    });
+                    
+                    // Apply damage locally
                     player.health = Math.max(0, player.health - damage);
                     
                     // Check if player is dead
@@ -2159,9 +3022,6 @@
                         
                         // Create death effect
                         gameState.particles.push(...createDeathEffect(player.x, player.y));
-                        
-                        // Check for game over
-                        checkGameOver();
                     }
                     
                     // Create hit number indicator
@@ -2242,6 +3102,8 @@
             const endIndex = Math.min(terrain.length - 1, Math.floor((x + radius) / segmentWidth));
             
             // Modify terrain heights
+            let modified = false;
+            
             for (let i = startIndex; i <= endIndex; i++) {
                 const point = terrain[i];
                 const dx = point.x - x;
@@ -2256,8 +3118,16 @@
                     if (y + 20 > point.y) {
                         // Create a crater effect
                         point.y += maxDepth * depthFactor;
+                        modified = true;
                     }
                 }
+            }
+            
+            // If terrain was modified, tell the server
+            if (modified) {
+                socket.emit('modify-terrain', {
+                    terrain: terrain
+                });
             }
         }
         
@@ -2360,26 +3230,6 @@
             }
         }
         
-        // Check if the game is over
-        function checkGameOver() {
-            // Count alive players
-            const alivePlayers = gameState.players.filter(p => p.alive);
-            
-            // Game is over if only one player or team remains
-            if (alivePlayers.length <= 1) {
-                // Show game over screen
-                const winner = alivePlayers[0];
-                
-                document.getElementById('gameOverTitle').textContent = 
-                    winner && winner.id === gameState.playerId ? 'Victory!' : 'Defeat!';
-                
-                document.getElementById('winnerInfo').textContent = 
-                    winner ? `${winner.name} won the match!` : 'No survivors!';
-                
-                gameOverScreen.style.display = 'flex';
-            }
-        }
-        
         // Render the game
         function render() {
             // Clear canvas
@@ -2445,6 +3295,55 @@
             
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+            
+            // Add a sun or moon
+            if (document.documentElement.classList.contains('dark')) {
+                // Moon
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(gameCanvas.width * 0.8, gameCanvas.height * 0.2, 40, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Moon craters
+                ctx.fillStyle = 'rgba(200, 200, 200, 0.5)';
+                ctx.beginPath();
+                ctx.arc(gameCanvas.width * 0.8 - 15, gameCanvas.height * 0.2 - 10, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(gameCanvas.width * 0.8 + 10, gameCanvas.height * 0.2 + 5, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Stars
+                for (let i = 0; i < 50; i++) {
+                    const x = Math.random() * gameCanvas.width;
+                    const y = Math.random() * gameCanvas.height * 0.6;
+                    const size = Math.random() * 2 + 1;
+                    
+                    ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + Math.random() * 0.7})`;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else {
+                // Sun
+                const sunGradient = ctx.createRadialGradient(
+                    gameCanvas.width * 0.2,
+                    gameCanvas.height * 0.2,
+                    0,
+                    gameCanvas.width * 0.2,
+                    gameCanvas.height * 0.2,
+                    60
+                );
+                
+                sunGradient.addColorStop(0, 'rgba(255, 255, 200, 1)');
+                sunGradient.addColorStop(0.5, 'rgba(255, 200, 100, 0.8)');
+                sunGradient.addColorStop(1, 'rgba(255, 150, 50, 0)');
+                
+                ctx.fillStyle = sunGradient;
+                ctx.beginPath();
+                ctx.arc(gameCanvas.width * 0.2, gameCanvas.height * 0.2, 60, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
         
         // Draw clouds
@@ -2490,7 +3389,12 @@
             if (!gameState.terrain || gameState.terrain.length < 2) return;
             
             // Draw terrain fill
-            ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#3E2723' : '#8B4513';
+            const terrainColor = document.documentElement.classList.contains('dark') ? '#3E2723' : '#8B4513';
+            const terrainGradient = ctx.createLinearGradient(0, 0, 0, gameCanvas.height);
+            terrainGradient.addColorStop(0, terrainColor);
+            terrainGradient.addColorStop(1, document.documentElement.classList.contains('dark') ? '#1B0000' : '#5D4037');
+            
+            ctx.fillStyle = terrainGradient;
             ctx.beginPath();
             
             const firstPoint = gameState.terrain[0];
@@ -2509,7 +3413,8 @@
             ctx.fill();
             
             // Draw grass on top of terrain
-            ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#33691E' : '#558B2F';
+            const grassColor = document.documentElement.classList.contains('dark') ? '#33691E' : '#558B2F';
+            ctx.strokeStyle = grassColor;
             ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(firstPoint.x - cameraX, firstPoint.y - cameraY);
@@ -2520,6 +3425,32 @@
             }
             
             ctx.stroke();
+            
+            // Add grass tufts for detail
+            ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#4CAF50' : '#7CB342';
+            ctx.lineWidth = 1;
+            
+            for (let i = 0; i < gameState.terrain.length; i += 5) {
+                const point = gameState.terrain[i];
+                const screenX = point.x - cameraX;
+                const screenY = point.y - cameraY;
+                
+                if (screenX < -20 || screenX > gameCanvas.width / (window.devicePixelRatio || 1) + 20 ||
+                    screenY < -20 || screenY > gameCanvas.height / (window.devicePixelRatio || 1) + 20) {
+                    continue;
+                }
+                
+                // Draw grass tufts
+                for (let j = 0; j < 3; j++) {
+                    const offsetX = (Math.random() - 0.5) * 10;
+                    const height = 3 + Math.random() * 7;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(screenX + offsetX, screenY);
+                    ctx.lineTo(screenX + offsetX, screenY - height);
+                    ctx.stroke();
+                }
+            }
         }
         
         // Draw platforms
@@ -2535,9 +3466,17 @@
                     continue;
                 }
                 
-                // Draw platform with rounded corners
-                ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#5D4037' : '#8D6E63';
+                // Draw platform with enhanced graphics
+                const platformColor = document.documentElement.classList.contains('dark') ? '#5D4037' : '#8D6E63';
                 
+                // Platform gradient
+                const platformGradient = ctx.createLinearGradient(screenX, screenY, screenX, screenY + platform.height);
+                platformGradient.addColorStop(0, platformColor);
+                platformGradient.addColorStop(1, document.documentElement.classList.contains('dark') ? '#3E2723' : '#6D4C41');
+                
+                ctx.fillStyle = platformGradient;
+                
+                // Draw with rounded corners
                 ctx.beginPath();
                 const radius = 10;
                 ctx.moveTo(screenX + radius, screenY);
@@ -2552,13 +3491,33 @@
                 ctx.closePath();
                 ctx.fill();
                 
+                // Draw platform outline
+                ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#4E342E' : '#A1887F';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
                 // Draw grass on top
-                ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#33691E' : '#558B2F';
+                const grassColor = document.documentElement.classList.contains('dark') ? '#33691E' : '#558B2F';
+                ctx.strokeStyle = grassColor;
                 ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.moveTo(screenX, screenY);
-                ctx.lineTo(screenX + platform.width, screenY);
+                ctx.moveTo(screenX + radius/2, screenY);
+                ctx.lineTo(screenX + platform.width - radius/2, screenY);
                 ctx.stroke();
+                
+                // Add grass tufts
+                ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#4CAF50' : '#7CB342';
+                ctx.lineWidth = 1;
+                
+                for (let i = 0; i < platform.width; i += 15) {
+                    const offsetX = screenX + i + (Math.random() - 0.5) * 5;
+                    const height = 2 + Math.random() * 5;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(offsetX, screenY);
+                    ctx.lineTo(offsetX, screenY - height);
+                    ctx.stroke();
+                }
             }
         }
         
@@ -2575,9 +3534,10 @@
                     continue;
                 }
                 
-                // Draw powerup glow
+                // Draw powerup glow with pulsating effect
                 ctx.save();
-                ctx.globalAlpha = 0.5 + Math.sin(Date.now() * 0.005) * 0.2;
+                const pulseAmount = 0.5 + Math.sin(Date.now() * 0.005) * 0.2;
+                ctx.globalAlpha = pulseAmount;
                 
                 const gradient = ctx.createRadialGradient(
                     screenX, screenY, 0,
@@ -2615,6 +3575,14 @@
                 }
                 
                 ctx.fillText(icon, screenX, screenY);
+                
+                // Draw floating animation
+                const floatOffset = Math.sin(Date.now() * 0.003) * 5;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(screenX, screenY + 20 + floatOffset, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
                 ctx.restore();
             }
         }
@@ -2642,38 +3610,206 @@
                 if (shieldEffect) {
                     ctx.save();
                     ctx.globalAlpha = 0.3 + Math.sin(Date.now() * 0.005) * 0.1;
+                    
+                    // Outer glow
+                    const shieldGradient = ctx.createRadialGradient(
+                        screenX, screenY, 30,
+                        screenX, screenY, 45
+                    );
+                    
+                    shieldGradient.addColorStop(0, 'rgba(100, 181, 246, 0.2)');
+                    shieldGradient.addColorStop(1, 'rgba(100, 181, 246, 0)');
+                    
+                    ctx.fillStyle = shieldGradient;
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, 45, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Shield border
                     ctx.strokeStyle = '#64B5F6';
                     ctx.lineWidth = 3;
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, 40, 0, Math.PI * 2);
                     ctx.stroke();
+                    
                     ctx.restore();
                 }
                 
-                // Draw player circle
+                // Determine facing direction based on angle or last projectile
+                let facingLeft = false;
+                
+                if (player.id === gameState.playerId && gameState.isMyTurn) {
+                    facingLeft = gameState.angle > 90 && gameState.angle < 270;
+                } else if (gameState.projectiles.length > 0 && gameState.projectiles[0].ownerId === player.id) {
+                    facingLeft = gameState.projectiles[0].velocityX < 0;
+                }
+                
+                // Draw player with character-specific appearance
+                ctx.save();
+                
+                // Character base
                 ctx.fillStyle = character.color;
                 ctx.beginPath();
                 ctx.arc(screenX, screenY, 20, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Draw character icon
-                ctx.font = 'bold 20px Nunito';
+                // Character details (eyes, etc.)
+                ctx.fillStyle = 'white';
+                
+                // Eyes position based on facing direction
+                const eyeOffsetX = facingLeft ? -5 : 5;
+                
+                // Left/right eye
+                ctx.beginPath();
+                ctx.arc(screenX + eyeOffsetX, screenY - 5, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Pupil
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(screenX + eyeOffsetX + (facingLeft ? -2 : 2), screenY - 5, 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Character-specific details
+                switch (character.id) {
+                    case 'tank':
+                        // Draw tank hat
+                        ctx.fillStyle = '#4A4A4A';
+                        ctx.beginPath();
+                        ctx.ellipse(screenX, screenY - 15, 20, 8, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                        
+                    case 'scout':
+                        // Draw scout hat
+                        ctx.fillStyle = '#33691E';
+                        ctx.beginPath();
+                        ctx.moveTo(screenX - 15, screenY - 10);
+                        ctx.lineTo(screenX + 15, screenY - 10);
+                        ctx.lineTo(screenX, screenY - 25);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                        
+                    case 'heavy':
+                        // Draw heavy armor
+                        ctx.fillStyle = '#1565C0';
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY, 25, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Redraw character base
+                        ctx.fillStyle = character.color;
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY, 20, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Redraw eyes
+                        ctx.fillStyle = 'white';
+                        ctx.beginPath();
+                        ctx.arc(screenX + eyeOffsetX, screenY - 5, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.fillStyle = 'black';
+                        ctx.beginPath();
+                        ctx.arc(screenX + eyeOffsetX + (facingLeft ? -2 : 2), screenY - 5, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                        
+                    case 'wind':
+                        // Wind swirls
+                        ctx.strokeStyle = '#B3E5FC';
+                        ctx.lineWidth = 2;
+                        
+                        for (let i = 0; i < 3; i++) {
+                            const swirl = (Date.now() / 1000 + i) % 3;
+                            const swirl2 = (Date.now() / 800 + i) % 3;
+                            
+                            ctx.beginPath();
+                            ctx.arc(screenX, screenY, 25 + swirl * 5, 0, Math.PI * 1.2);
+                            ctx.stroke();
+                            
+                            ctx.beginPath();
+                            ctx.arc(screenX, screenY, 25 + swirl2 * 5, Math.PI, Math.PI * 2.2);
+                            ctx.stroke();
+                        }
+                        break;
+                        
+                    case 'robot':
+                        // Robot antenna
+                        ctx.fillStyle = '#9E9E9E';
+                        ctx.fillRect(screenX - 2, screenY - 25, 4, 10);
+                        
+                        ctx.fillStyle = '#F44336';
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY - 28, 4, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Robot panel lines
+                        ctx.strokeStyle = '#424242';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(screenX - 10, screenY + 5);
+                        ctx.lineTo(screenX + 10, screenY + 5);
+                        ctx.stroke();
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(screenX, screenY - 10);
+                        ctx.lineTo(screenX, screenY + 10);
+                        ctx.stroke();
+                        break;
+                        
+                    case 'chicken':
+                        // Chicken comb
+                        ctx.fillStyle = '#F44336';
+                        ctx.beginPath();
+                        ctx.moveTo(screenX, screenY - 20);
+                        ctx.lineTo(screenX - 5, screenY - 25);
+                        ctx.lineTo(screenX, screenY - 30);
+                        ctx.lineTo(screenX + 5, screenY - 25);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Chicken beak
+                        ctx.fillStyle = '#FF9800';
+                        ctx.beginPath();
+                        ctx.moveTo(screenX + (facingLeft ? -20 : 20), screenY);
+                        ctx.lineTo(screenX + (facingLeft ? -10 : 10), screenY - 5);
+                        ctx.lineTo(screenX + (facingLeft ? -10 : 10), screenY + 5);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                }
+                
+                ctx.restore();
+                
+                // Draw character icon above for clarity
+                ctx.font = 'bold 16px Nunito';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = 'white';
-                ctx.fillText(character.icon, screenX, screenY);
+                ctx.fillText(character.icon, screenX, screenY - 30);
                 
                 // Draw weapon if current turn
                 if (player.id === gameState.currentTurn) {
                     // Determine aim direction
-                    const angle = player.facingLeft ? 
-                        Math.PI - gameState.angle * Math.PI / 180 :
-                        gameState.angle * Math.PI / 180;
+                    let angle;
+                    
+                    if (player.id === gameState.playerId) {
+                        angle = gameState.angle * Math.PI / 180;
+                        if (facingLeft) {
+                            angle = Math.PI - angle;
+                        }
+                    } else {
+                        // For other players, just show a default angle
+                        angle = facingLeft ? Math.PI - Math.PI/4 : Math.PI/4;
+                    }
                     
                     const weaponLength = 30;
                     const weaponEndX = screenX + Math.cos(angle) * weaponLength;
                     const weaponEndY = screenY - Math.sin(angle) * weaponLength;
                     
+                    // Draw weapon base
                     ctx.strokeStyle = '#333';
                     ctx.lineWidth = 5;
                     ctx.beginPath();
@@ -2681,9 +3817,59 @@
                     ctx.lineTo(weaponEndX, weaponEndY);
                     ctx.stroke();
                     
-                    // Draw power indicator
+                    // Draw weapon tip based on selected weapon
                     if (player.id === gameState.playerId) {
-                        const powerIndicatorLength = (gameState.power / 100) * 60;
+                        const weaponType = gameState.selectedWeapon;
+                        
+                        switch (weaponType) {
+                            case 'basic':
+                                // Basic cannon tip
+                                ctx.fillStyle = '#555';
+                                ctx.beginPath();
+                                ctx.arc(weaponEndX, weaponEndY, 5, 0, Math.PI * 2);
+                                ctx.fill();
+                                break;
+                                
+                            case 'missile':
+                                // Missile launcher
+                                ctx.fillStyle = '#F44336';
+                                ctx.beginPath();
+                                ctx.moveTo(weaponEndX, weaponEndY);
+                                ctx.lineTo(weaponEndX + Math.cos(angle) * 10, weaponEndY - Math.sin(angle) * 10);
+                                ctx.lineTo(weaponEndX + Math.cos(angle) * 10 + Math.cos(angle + Math.PI/2) * 3, weaponEndY - Math.sin(angle) * 10 - Math.sin(angle + Math.PI/2) * 3);
+                                ctx.lineTo(weaponEndX + Math.cos(angle + Math.PI/2) * 3, weaponEndY - Math.sin(angle + Math.PI/2) * 3);
+                                ctx.closePath();
+                                ctx.fill();
+                                break;
+                                
+                            case 'laser':
+                                // Laser pointer
+                                ctx.fillStyle = '#00BCD4';
+                                ctx.strokeStyle = '#00BCD4';
+                                ctx.lineWidth = 1;
+                                
+                                // Draw laser beam indicator
+                                ctx.beginPath();
+                                ctx.moveTo(weaponEndX, weaponEndY);
+                                ctx.lineTo(weaponEndX + Math.cos(angle) * 100, weaponEndY - Math.sin(angle) * 100);
+                                ctx.stroke();
+                                
+                                // Laser tip
+                                ctx.beginPath();
+                                ctx.arc(weaponEndX, weaponEndY, 4, 0, Math.PI * 2);
+                                ctx.fill();
+                                break;
+                                
+                            default:
+                                // Generic weapon tip
+                                ctx.fillStyle = '#555';
+                                ctx.beginPath();
+                                ctx.arc(weaponEndX, weaponEndY, 5, 0, Math.PI * 2);
+                                ctx.fill();
+                        }
+                        
+                        // Draw power indicator
+                        const powerIndicatorLength = (gameState.power / MAX_POWER) * 60;
                         
                         ctx.strokeStyle = 'rgba(255, 152, 0, 0.7)';
                         ctx.lineWidth = 3;
@@ -2694,6 +3880,12 @@
                             weaponEndY - Math.sin(angle) * powerIndicatorLength
                         );
                         ctx.stroke();
+                    } else {
+                        // Generic weapon tip for other players
+                        ctx.fillStyle = '#555';
+                        ctx.beginPath();
+                        ctx.arc(weaponEndX, weaponEndY, 5, 0, Math.PI * 2);
+                        ctx.fill();
                     }
                 }
                 
@@ -2703,41 +3895,83 @@
                 ctx.fillStyle = 'white';
                 ctx.strokeStyle = 'black';
                 ctx.lineWidth = 3;
-                ctx.strokeText(player.name, screenX, screenY - 40);
-                ctx.fillText(player.name, screenX, screenY - 40);
+                ctx.strokeText(player.name, screenX, screenY - 50);
+                ctx.fillText(player.name, screenX, screenY - 50);
                 
-                // Draw health bar
+                // Draw health bar with improved look
                 const healthBarWidth = 60;
                 const healthBarHeight = 8;
                 const healthPercent = player.health / player.maxHealth;
                 
-                // Health bar background
+                // Health bar container
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                 ctx.fillRect(
                     screenX - healthBarWidth / 2,
-                    screenY - 30,
+                    screenY - 40,
                     healthBarWidth,
                     healthBarHeight
                 );
                 
-                // Health bar fill
-                ctx.fillStyle = healthPercent > 0.5 ? '#4CAF50' : (healthPercent > 0.25 ? '#FFC107' : '#F44336');
+                // Health bar border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(
+                    screenX - healthBarWidth / 2,
+                    screenY - 40,
+                    healthBarWidth,
+                    healthBarHeight
+                );
+                
+                // Health bar fill with gradient based on health percentage
+                const healthGradient = ctx.createLinearGradient(
+                    screenX - healthBarWidth / 2,
+                    screenY - 40,
+                    screenX - healthBarWidth / 2 + healthBarWidth * healthPercent,
+                    screenY - 40
+                );
+                
+                if (healthPercent > 0.5) {
+                    healthGradient.addColorStop(0, '#4CAF50');
+                    healthGradient.addColorStop(1, '#8BC34A');
+                } else if (healthPercent > 0.25) {
+                    healthGradient.addColorStop(0, '#FFC107');
+                    healthGradient.addColorStop(1, '#FFD54F');
+                } else {
+                    healthGradient.addColorStop(0, '#F44336');
+                    healthGradient.addColorStop(1, '#E57373');
+                }
+                
+                ctx.fillStyle = healthGradient;
                 ctx.fillRect(
                     screenX - healthBarWidth / 2,
-                    screenY - 30,
+                    screenY - 40,
                     healthBarWidth * healthPercent,
                     healthBarHeight
                 );
                 
+                // Health text
+                ctx.font = '10px Nunito';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'white';
+                ctx.fillText(`${player.health}/${player.maxHealth}`, screenX, screenY - 40 + healthBarHeight / 2 + 1);
+                
                 // Turn indicator for current player
                 if (player.id === gameState.currentTurn) {
+                    // Animated turn indicator
+                    const pulseSize = 1 + Math.sin(Date.now() * 0.01) * 0.1;
+                    
                     ctx.fillStyle = '#4CAF50';
                     ctx.beginPath();
-                    ctx.moveTo(screenX, screenY - 60);
-                    ctx.lineTo(screenX - 10, screenY - 50);
-                    ctx.lineTo(screenX + 10, screenY - 50);
+                    ctx.moveTo(screenX, screenY - 60 * pulseSize);
+                    ctx.lineTo(screenX - 10 * pulseSize, screenY - 50 * pulseSize);
+                    ctx.lineTo(screenX + 10 * pulseSize, screenY - 50 * pulseSize);
                     ctx.closePath();
                     ctx.fill();
+                    
+                    // Draw border
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
                 }
             }
         }
@@ -2829,92 +4063,158 @@
                         ctx.restore();
                         break;
                     
-                    case 'cluster':
-                        // Draw cluster bomb
-                        ctx.fillStyle = '#9C27B0';
-                        ctx.beginPath();
-                        ctx.arc(screenX, screenY, 10, 0, Math.PI * 2);
-                        ctx.fill();
-                        
-                        // Draw multiple fuses
-                        for (let i = 0; i < 3; i++) {
-                            const angle = (i / 3) * Math.PI * 2 + Date.now() * 0.005;
-                            const fuseLength = 8 + Math.random() * 5;
-                            
-                            ctx.strokeStyle = '#FFA000';
-                            ctx.lineWidth = 2;
-                            ctx.beginPath();
-                            ctx.moveTo(screenX, screenY);
-                            ctx.lineTo(
-                                screenX + Math.cos(angle) * fuseLength,
-                                screenY + Math.sin(angle) * fuseLength
-                            );
-                            ctx.stroke();
-                            
-                            // Draw spark
-                            if (Math.random() > 0.7) {
-                                ctx.fillStyle = '#FFF176';
-                                ctx.beginPath();
-                                ctx.arc(
-                                    screenX + Math.cos(angle) * fuseLength,
-                                    screenY + Math.sin(angle) * fuseLength,
-                                    2 + Math.random() * 2, 0, Math.PI * 2
-                                );
-                                ctx.fill();
-                            }
-                        }
-                        break;
-                    
-                    case 'sniper':
-                        // Draw sniper bullet
+                    case 'laser':
+                        // Draw laser beam
                         ctx.save();
                         
                         // Rotate in direction of movement
-                        const bulletAngle = Math.atan2(proj.velocityY, proj.velocityX);
+                        const laserAngle = Math.atan2(proj.velocityY, proj.velocityX);
                         ctx.translate(screenX, screenY);
-                        ctx.rotate(bulletAngle);
+                        ctx.rotate(laserAngle);
                         
-                        // Bullet body
-                        ctx.fillStyle = '#FFC107';
-                        ctx.beginPath();
-                        ctx.moveTo(12, 0);
-                        ctx.lineTo(0, -2);
-                        ctx.lineTo(-8, -2);
-                        ctx.lineTo(-8, 2);
-                        ctx.lineTo(0, 2);
-                        ctx.closePath();
-                        ctx.fill();
+                        // Create laser gradient
+                        const laserGradient = ctx.createLinearGradient(-30, 0, 30, 0);
+                        laserGradient.addColorStop(0, 'rgba(0, 188, 212, 0)');
+                        laserGradient.addColorStop(0.2, 'rgba(0, 188, 212, 0.8)');
+                        laserGradient.addColorStop(0.5, 'rgba(255, 255, 255, 1)');
+                        laserGradient.addColorStop(0.8, 'rgba(0, 188, 212, 0.8)');
+                        laserGradient.addColorStop(1, 'rgba(0, 188, 212, 0)');
                         
-                        // Bullet trail
-                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(-8, 0);
-                        ctx.lineTo(-30, 0);
-                        ctx.stroke();
+                        // Laser beam
+                        ctx.fillStyle = laserGradient;
+                        ctx.fillRect(-30, -2, 60, 4);
+                        
+                        // Core
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(-20, -1, 40, 2);
                         
                         ctx.restore();
                         break;
                     
-                    case 'grenade':
-                        // Draw grenade
-                        ctx.fillStyle = '#4CAF50';
+                    case 'tornado':
+                        // Draw tornado swirl
+                        ctx.save();
+                        
+                        // Rotate based on time for spinning effect
+                        const tornadoAngle = Date.now() * 0.01;
+                        ctx.translate(screenX, screenY);
+                        ctx.rotate(tornadoAngle);
+                        
+                        // Draw swirls
+                        for (let i = 0; i < 3; i++) {
+                            const radius = 8 + i * 4;
+                            const startAngle = i * Math.PI * 0.5;
+                            
+                            ctx.strokeStyle = `rgba(3, 169, 244, ${0.8 - i * 0.2})`;
+                            ctx.lineWidth = 3;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, radius, startAngle, startAngle + Math.PI * 1.5);
+                            ctx.stroke();
+                        }
+                        
+                        ctx.restore();
+                        break;
+                    
+                    case 'shotgun':
+                        // Draw shotgun pellets
+                        for (let i = 0; i < 3; i++) {
+                            const offsetX = (i - 1) * 5;
+                            const offsetY = (i - 1) * 2;
+                            
+                            ctx.fillStyle = '#795548';
+                            ctx.beginPath();
+                            ctx.arc(screenX + offsetX, screenY + offsetY, 4, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                        break;
+                    
+                    case 'axe':
+                        // Draw spinning axe
+                        ctx.save();
+                        
+                        // Rotate based on velocity and time
+                        const axeAngle = Math.atan2(proj.velocityY, proj.velocityX) + Date.now() * 0.01;
+                        ctx.translate(screenX, screenY);
+                        ctx.rotate(axeAngle);
+                        
+                        // Axe head
+                        ctx.fillStyle = '#E91E63';
                         ctx.beginPath();
-                        ctx.arc(screenX, screenY, 8, 0, Math.PI * 2);
+                        ctx.moveTo(8, -10);
+                        ctx.lineTo(15, -5);
+                        ctx.lineTo(15, 5);
+                        ctx.lineTo(8, 10);
+                        ctx.lineTo(0, 5);
+                        ctx.lineTo(0, -5);
+                        ctx.closePath();
                         ctx.fill();
                         
-                        // Draw grenade details
-                        ctx.fillStyle = '#333';
-                        ctx.fillRect(screenX - 3, screenY - 10, 6, 4);
+                        // Axe handle
+                        ctx.fillStyle = '#795548';
+                        ctx.fillRect(-15, -2, 15, 4);
                         
-                        // Draw pin
-                        ctx.strokeStyle = '#BDBDBD';
-                        ctx.lineWidth = 1;
+                        ctx.restore();
+                        break;
+                    
+                    case 'vine':
+                        // Draw vine projectile
+                        ctx.save();
+                        
+                        // Rotate in direction of movement
+                        const vineAngle = Math.atan2(proj.velocityY, proj.velocityX);
+                        ctx.translate(screenX, screenY);
+                        ctx.rotate(vineAngle);
+                        
+                        // Vine body
+                        ctx.strokeStyle = '#4CAF50';
+                        ctx.lineWidth = 3;
+                        
+                        // Wavy vine
                         ctx.beginPath();
-                        ctx.moveTo(screenX + 3, screenY - 8);
-                        ctx.lineTo(screenX + 8, screenY - 12);
-                        ctx.lineTo(screenX + 12, screenY - 10);
+                        ctx.moveTo(-15, 0);
+                        ctx.quadraticCurveTo(-10, -8, 0, 0);
+                        ctx.quadraticCurveTo(10, 8, 15, 0);
                         ctx.stroke();
+                        
+                        // Vine leaves
+                        ctx.fillStyle = '#8BC34A';
+                        ctx.beginPath();
+                        ctx.ellipse(0, -5, 5, 3, Math.PI/4, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.ellipse(10, 2, 4, 2, Math.PI/3, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.restore();
+                        break;
+                    
+                    case 'egg':
+                        // Draw egg projectile
+                        ctx.save();
+                        
+                        // Wobble rotation based on time
+                        const eggAngle = Math.sin(Date.now() * 0.01) * 0.2;
+                        ctx.translate(screenX, screenY);
+                        ctx.rotate(eggAngle);
+                        
+                        // Egg shape
+                        ctx.fillStyle = '#FFF9C4';
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, 10, 12, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Egg spots
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                        ctx.beginPath();
+                        ctx.ellipse(3, -3, 3, 2, Math.PI/4, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.ellipse(-4, 2, 2, 1, Math.PI/3, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.restore();
                         break;
                     
                     default:
@@ -2939,7 +4239,7 @@
                     continue;
                 }
                 
-                // Draw explosion
+                // Draw explosion with improved appearance
                 const gradient = ctx.createRadialGradient(
                     screenX, screenY, 0,
                     screenX, screenY, explosion.currentRadius
@@ -2948,15 +4248,47 @@
                 // Fade out as life decreases
                 const opacity = Math.min(1, explosion.life / 20);
                 
+                // Use explosion color if provided, otherwise default colors
+                const color = explosion.color || '#FF9800';
+                
                 gradient.addColorStop(0, `rgba(255, 255, 255, ${opacity})`);
-                gradient.addColorStop(0.3, `rgba(255, 200, 0, ${opacity})`);
-                gradient.addColorStop(0.7, `rgba(255, 100, 0, ${opacity})`);
+                gradient.addColorStop(0.3, color.replace(')', `, ${opacity})`).replace('rgb', 'rgba'));
+                gradient.addColorStop(0.7, `rgba(255, 100, 0, ${opacity * 0.7})`);
                 gradient.addColorStop(1, `rgba(255, 0, 0, 0)`);
                 
                 ctx.fillStyle = gradient;
                 ctx.beginPath();
                 ctx.arc(screenX, screenY, explosion.currentRadius, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Add shockwave ring
+                if (explosion.currentRadius > explosion.maxRadius * 0.5) {
+                    const ringRadius = explosion.currentRadius * 1.2;
+                    const ringWidth = 3;
+                    
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.5})`;
+                    ctx.lineWidth = ringWidth;
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, ringRadius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                // Add debris particles near the explosion edge
+                if (Math.random() > 0.7) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = explosion.currentRadius * 0.8;
+                    
+                    ctx.fillStyle = 'rgba(150, 100, 50, 0.8)';
+                    ctx.beginPath();
+                    ctx.arc(
+                        screenX + Math.cos(angle) * distance,
+                        screenY + Math.sin(angle) * distance,
+                        2 + Math.random() * 3,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.fill();
+                }
             }
         }
         
@@ -2983,6 +4315,26 @@
                     ctx.save();
                     ctx.globalAlpha = particle.opacity;
                     ctx.fillStyle = particle.color;
+                    
+                    // Draw glow for particles
+                    const glow = ctx.createRadialGradient(
+                        screenX, screenY, 0,
+                        screenX, screenY, particle.size
+                    );
+                    
+                    glow.addColorStop(0, particle.color);
+                    glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    
+                    // For some particle types, add enhanced effects
+                    if (particle.color === '#4CAF50') { // healing particles
+                        ctx.shadowColor = '#4CAF50';
+                        ctx.shadowBlur = 5;
+                    } else if (particle.color === '#64B5F6') { // shield particles
+                        ctx.shadowColor = '#2196F3';
+                        ctx.shadowBlur = 10;
+                    }
+                    
+                    ctx.fillStyle = glow;
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, particle.size, 0, Math.PI * 2);
                     ctx.fill();
@@ -2993,41 +4345,41 @@
         
         // Draw UI elements
         function drawUI() {
-            // Draw angle indicator
-            if (gameState.isMyTurn) {
-                const currentPlayer = gameState.players.find(p => p.id === gameState.playerId);
-                if (currentPlayer) {
-                    const canvasWidth = uiCanvas.width / (window.devicePixelRatio || 1);
-                    const canvasHeight = uiCanvas.height / (window.devicePixelRatio || 1);
-                    
-                    // Draw angle text
-                    uiCtx.font = '18px Nunito';
-                    uiCtx.fillStyle = 'white';
-                    uiCtx.textAlign = 'center';
-                    uiCtx.fillText(`Angle: ${gameState.angle}°`, 70, canvasHeight - 70);
-                    
-                    // Draw power text
-                    uiCtx.fillText(`Power: ${gameState.power}%`, canvasWidth - 70, canvasHeight - 70);
-                    
-                    // Update wind indicator
-                    document.getElementById('windText').textContent = `Wind: ${gameState.wind} m/s`;
-                    document.getElementById('windArrow').innerHTML = parseFloat(gameState.wind) > 0 ? '→' : (parseFloat(gameState.wind) < 0 ? '←' : '•');
-                }
+            // Timer warning colors
+            const timerText = document.getElementById('timerText');
+            if (gameState.turnTimeRemaining <= 5) {
+                timerText.classList.add('danger');
+                timerText.classList.remove('warning');
+            } else if (gameState.turnTimeRemaining <= 10) {
+                timerText.classList.add('warning');
+                timerText.classList.remove('danger');
+            } else {
+                timerText.classList.remove('warning');
+                timerText.classList.remove('danger');
             }
+            
+            // Update timer text
+            timerText.textContent = `${currentLanguage === 'vi' ? 'Thời gian' : 'Time'}: ${gameState.turnTimeRemaining}s`;
+            
+            // Update wind indicator
+            document.getElementById('windText').textContent = `${currentLanguage === 'vi' ? 'Gió' : 'Wind'}: ${gameState.wind} m/s`;
+            document.getElementById('windArrow').innerHTML = parseFloat(gameState.wind) > 0 ? '→' : (parseFloat(gameState.wind) < 0 ? '←' : '•');
             
             // Update turn indicator
             const turnText = document.getElementById('turnText');
             if (gameState.isMyTurn) {
-                turnText.textContent = 'Your Turn';
+                turnText.textContent = currentLanguage === 'vi' ? 'Lượt Của Bạn' : 'Your Turn';
+                turnText.dataset.playerName = '';
             } else {
                 const currentPlayer = gameState.players.find(p => p.id === gameState.currentTurn);
                 if (currentPlayer) {
-                    turnText.textContent = `${currentPlayer.name}'s Turn`;
+                    turnText.dataset.playerName = currentPlayer.name;
+                    turnText.textContent = (currentLanguage === 'vi' ? 'Lượt của ' : '') + currentPlayer.name + (currentLanguage === 'en' ? '\'s Turn' : '');
                 }
             }
             
             // Update weapon name
-            document.getElementById('weaponName').textContent = gameState.inventory[gameState.selectedWeapon].name;
+            updateWeaponName();
         }
         
         // Set up socket event handlers
@@ -3039,7 +4391,7 @@
                 // Join game
                 socket.emit('join-game', { playerName: gameState.playerName }, (response) => {
                     if (!response.success) {
-                        showToast('Failed to join game: ' + response.message);
+                        showToast(currentLanguage === 'vi' ? 'Không thể tham gia trò chơi: ' + response.message : 'Failed to join game: ' + response.message);
                     }
                 });
             });
@@ -3060,7 +4412,7 @@
                     updateWaitingRoomPlayers();
                     
                     // Show notification
-                    addChatMessage(null, `${data.player.name} joined the room`, true);
+                    addChatMessage(null, `${data.player.name} ${currentLanguage === 'vi' ? 'đã tham gia phòng' : 'joined the room'}`, true);
                 }
             });
             
@@ -3073,7 +4425,7 @@
                     updateWaitingRoomPlayers();
                     
                     // Show notification
-                    addChatMessage(null, `${data.playerName} left the room`, true);
+                    addChatMessage(null, `${data.playerName} ${currentLanguage === 'vi' ? 'đã rời phòng' : 'left the room'}`, true);
                 }
             });
             
@@ -3097,7 +4449,7 @@
                     updateWaitingRoomPlayers();
                     
                     // Show notification
-                    addChatMessage(null, `${data.owner.name} is now the room owner`, true);
+                    addChatMessage(null, `${data.owner.name} ${currentLanguage === 'vi' ? 'là chủ phòng mới' : 'is now the room owner'}`, true);
                 }
             });
             
@@ -3108,7 +4460,10 @@
                 gameState.players = data.players;
                 gameState.currentTurn = data.currentTurn;
                 gameState.isMyTurn = data.currentTurn === gameState.playerId;
+                gameState.turnTimeRemaining = data.turnTime;
                 gameState.wind = data.wind;
+                gameState.weapons = data.weapons;
+                gameState.items = data.items;
                 
                 // Reset game objects
                 gameState.projectiles = [];
@@ -3129,7 +4484,19 @@
                     gameState.camera.y = ownPlayer.y;
                     gameState.camera.targetX = ownPlayer.x;
                     gameState.camera.targetY = ownPlayer.y;
+                    
+                    // Set initial selected weapon to player's primary weapon
+                    if (ownPlayer.inventory) {
+                        const weapons = Object.entries(ownPlayer.inventory).filter(([_, item]) => item.type === 'weapon');
+                        if (weapons.length > 0) {
+                            gameState.selectedWeapon = weapons[0][0];
+                        }
+                    }
                 }
+                
+                // Initialize UI positions
+                positionAngleIndicator();
+                positionPowerBar();
                 
                 // Initialize clouds
                 gameState.clouds = createClouds();
@@ -3140,20 +4507,13 @@
                 gameState.screen = 'game';
                 
                 // Show game started notification
-                addChatMessage(null, 'Game started!', true);
+                addChatMessage(null, currentLanguage === 'vi' ? 'Trò chơi đã bắt đầu!' : 'Game started!', true);
                 
-                // Reset inventory for new game
-                gameState.inventory = {
-                    basic: { type: 'weapon', name: 'Basic Cannon', icon: '💣', ammo: -1 },
-                    missile: { type: 'weapon', name: 'Missile', icon: '🚀', ammo: 5 },
-                    cluster: { type: 'weapon', name: 'Cluster Bomb', icon: '🧨', ammo: 3 },
-                    sniper: { type: 'weapon', name: 'Sniper Shot', icon: '🎯', ammo: 3 },
-                    grenade: { type: 'weapon', name: 'Grenade', icon: '💥', ammo: 3 },
-                    healthpack: { type: 'item', name: 'Health Pack', icon: '❤️', ammo: 2 },
-                    shield: { type: 'item', name: 'Shield', icon: '🛡️', ammo: 1 }
-                };
-                
+                // Populate inventory
                 populateInventory();
+                
+                // Update weapon name based on selected weapon
+                updateWeaponName();
             });
             
             socket.on('turn-changed', (data) => {
@@ -3161,6 +4521,14 @@
                 gameState.currentTurn = data.playerId;
                 gameState.isMyTurn = data.playerId === gameState.playerId;
                 gameState.wind = data.wind;
+                gameState.turnTimeRemaining = data.turnTime || TURN_TIME;
+                
+                // Reset teleport and move modes
+                gameState.teleportMode = false;
+                gameState.moveMode = false;
+                teleportOverlay.style.display = 'none';
+                teleportCrosshair.style.display = 'none';
+                moveOverlay.style.display = 'none';
                 
                 // Focus camera on current player
                 const currentPlayer = gameState.players.find(p => p.id === data.playerId);
@@ -3182,18 +4550,140 @@
                 
                 // Show turn change notification
                 const playerName = currentPlayer ? currentPlayer.name : 'Unknown player';
-                addChatMessage(null, `${playerName}'s turn`, true);
+                addChatMessage(null, `${currentLanguage === 'vi' ? 'Lượt của' : ''} ${playerName} ${currentLanguage === 'en' ? '\'s turn' : ''}`, true);
                 
                 // Reset angle and power for new turn
                 if (gameState.isMyTurn) {
                     gameState.angle = 45;
                     gameState.power = 50;
+                    
+                    updateAngleUI();
+                    updatePowerUI();
+                }
+            });
+            
+            socket.on('turn-time-update', (data) => {
+                if (data.currentTurn === gameState.currentTurn) {
+                    gameState.turnTimeRemaining = data.remainingTime;
                 }
             });
             
             socket.on('projectile-update', (data) => {
-                // For simplicity, we're handling projectiles entirely client-side
-                // But the server could validate or broadcast important updates
+                // For this simplified implementation, projectiles are handled client-side
+            });
+            
+            socket.on('player-moved', (data) => {
+                // Update player position
+                const player = gameState.players.find(p => p.id === data.playerId);
+                if (player) {
+                    player.x = data.x;
+                    player.y = data.y;
+                    
+                    // If it's the current player's move, update camera
+                    if (data.playerId === gameState.currentTurn) {
+                        gameState.camera.targetX = data.x;
+                        gameState.camera.targetY = data.y;
+                    }
+                }
+            });
+            
+            socket.on('player-damaged', (data) => {
+                // Update player health
+                const player = gameState.players.find(p => p.id === data.playerId);
+                if (player) {
+                    player.health = data.health;
+                    
+                    // Create damage number indicator
+                    createDamageNumber(player.x, player.y - 20, data.damage);
+                }
+            });
+            
+            socket.on('player-killed', (data) => {
+                // Mark player as dead
+                const player = gameState.players.find(p => p.id === data.playerId);
+                if (player) {
+                    player.alive = false;
+                    
+                    // Create death effect
+                    gameState.particles.push(...createDeathEffect(player.x, player.y));
+                    
+                    // Show notification
+                    addChatMessage(null, `${player.name} ${currentLanguage === 'vi' ? 'đã bị loại khỏi trận đấu' : 'was eliminated'}`, true);
+                }
+            });
+            
+            socket.on('player-eliminated', (data) => {
+                // Mark player as dead
+                const player = gameState.players.find(p => p.id === data.playerId);
+                if (player) {
+                    player.alive = false;
+                    
+                    let message;
+                    if (data.reason === 'missed_turns') {
+                        message = currentLanguage === 'vi' 
+                            ? `${player.name} đã bỏ lỡ quá nhiều lượt và bị loại` 
+                            : `${player.name} missed too many turns and was eliminated`;
+                    } else {
+                        message = currentLanguage === 'vi' 
+                            ? `${player.name} đã bị loại khỏi trận đấu` 
+                            : `${player.name} was eliminated`;
+                    }
+                    
+                    addChatMessage(null, message, true);
+                }
+            });
+            
+            socket.on('item-used', (data) => {
+                // Update player state after item use
+                const player = gameState.players.find(p => p.id === data.playerId);
+                if (player) {
+                    // Update player state with received data
+                    if (data.playerState) {
+                        player.health = data.playerState.health;
+                        player.effects = data.playerState.effects;
+                        
+                        // Update position if teleport or movement happened
+                        if (data.playerState.x !== undefined && data.playerState.y !== undefined) {
+                            player.x = data.playerState.x;
+                            player.y = data.playerState.y;
+                        }
+                    }
+                    
+                    // Create visual effects based on item used
+                    switch (data.itemId) {
+                        case 'healthpack':
+                            gameState.particles.push(...createHealingEffect(player.x, player.y));
+                            break;
+                        case 'shield':
+                            gameState.particles.push(...createShieldEffect(player.x, player.y));
+                            break;
+                        case 'teleport':
+                            gameState.particles.push(...createTeleportEffect(player.x, player.y));
+                            break;
+                    }
+                    
+                    // Show notification
+                    let itemName = '';
+                    if (gameState.items && gameState.items[data.itemId]) {
+                        itemName = currentLanguage === 'vi' ? gameState.items[data.itemId].viName : gameState.items[data.itemId].name;
+                    } else {
+                        itemName = data.itemId;
+                    }
+                    
+                    addChatMessage(null, `${player.name} ${currentLanguage === 'vi' ? 'đã sử dụng' : 'used'} ${itemName}`, true);
+                }
+            });
+            
+            socket.on('terrain-modified', (data) => {
+                // Update terrain
+                if (data.terrain) {
+                    gameState.terrain = data.terrain;
+                }
+                
+                // Update platforms if provided
+                if (data.platforms) {
+                    gameState.platforms = data.platforms;
+                }
             });
             
             socket.on('chat-message', (data) => {
@@ -3202,11 +4692,28 @@
             
             socket.on('all-players-ready', () => {
                 // Notification that all players are ready for a new game
-                addChatMessage(null, 'All players are ready. Starting new game...', true);
+                addChatMessage(null, currentLanguage === 'vi' ? 'Tất cả người chơi đã sẵn sàng. Bắt đầu trò chơi mới...' : 'All players are ready. Starting new game...', true);
+            });
+            
+            socket.on('game-over', (data) => {
+                // Show game over screen
+                const winner = data.winner;
+                
+                document.getElementById('gameOverTitle').textContent = 
+                    winner && winner.id === gameState.playerId 
+                        ? (currentLanguage === 'vi' ? 'Chiến Thắng!' : 'Victory!') 
+                        : (currentLanguage === 'vi' ? 'Thất Bại!' : 'Defeat!');
+                
+                document.getElementById('winnerInfo').textContent = 
+                    winner 
+                        ? (currentLanguage === 'vi' ? `${winner.name} đã thắng trận đấu!` : `${winner.name} won the match!`) 
+                        : (currentLanguage === 'vi' ? 'Không có người thắng cuộc!' : 'No winner!');
+                
+                gameOverScreen.style.display = 'flex';
             });
             
             socket.on('disconnect', () => {
-                showToast('Disconnected from server');
+                showToast(currentLanguage === 'vi' ? 'Mất kết nối tới máy chủ' : 'Disconnected from server');
                 
                 // Go back to menu
                 if (gameState.screen === 'game' || gameState.screen === 'waiting') {
